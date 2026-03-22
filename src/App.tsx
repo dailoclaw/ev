@@ -6,23 +6,27 @@ import './App.css'
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
 function App() {
-  const [search, setSearch] = useState('')
+  const [selectedType, setSelectedType] = useState('All')
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
+
+  // Get unique charger types
+  const chargerTypes = useMemo(() => {
+    const types = Array.from(new Set(chargingData.map(s => s.Type))).sort()
+    return ['All', ...types]
+  }, [])
 
   // Filter data
   const filteredData = useMemo(() => {
     return chargingData.filter(session => {
-      const matchSearch = !search || 
-        session.Type.toLowerCase().includes(search.toLowerCase()) ||
-        session.Notes?.toLowerCase().includes(search.toLowerCase())
+      const matchType = selectedType === 'All' || session.Type === selectedType
       
       const sessionDate = new Date(session.Date)
       const matchStart = !dateRange.start || sessionDate >= new Date(dateRange.start)
       const matchEnd = !dateRange.end || sessionDate <= new Date(dateRange.end)
       
-      return matchSearch && matchStart && matchEnd
+      return matchType && matchStart && matchEnd
     })
-  }, [search, dateRange])
+  }, [selectedType, dateRange])
 
   // Summary stats
   const stats = useMemo(() => {
@@ -89,6 +93,21 @@ function App() {
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
       <p className="app-subtitle">Track your electric vehicle charging costs and usage patterns</p>
 
+      {/* Car Image */}
+      <div className="mb-6">
+        <img 
+          src="/car.jpg" 
+          alt="EV Car" 
+          className="w-full h-48 object-cover object-center rounded-2xl"
+          style={{ 
+            border: '1px solid rgba(255,255,255,0.1)',
+            maxWidth: '800px',
+            margin: '0 auto',
+            display: 'block'
+          }}
+        />
+      </div>
+
       {/* Hero Card */}
       <div className="hero-card">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -109,31 +128,48 @@ function App() {
 
       {/* Filters */}
       <div className="glass-card p-5 mb-6">
-        <div className="filter-row">
-          <input
-            type="text"
-            placeholder="🔍 Search charger type or notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="glass-input w-full"
-          />
-          <input
-            type="date"
-            value={dateRange.start}
-            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-            className="glass-input w-full"
-          />
-          <input
-            type="date"
-            value={dateRange.end}
-            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-            className="glass-input w-full"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+              Charger Type
+            </label>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="glass-input w-full"
+            >
+              {chargerTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              className="glass-input w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+              End Date
+            </label>
+            <input
+              type="date"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              className="glass-input w-full"
+            />
+          </div>
         </div>
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {[
           { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌' },
           { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰' },
@@ -150,19 +186,27 @@ function App() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Monthly Cost Trend - 2 columns */}
         <div className="lg:col-span-2 glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
                 <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="cost" stroke="#3b82f6" strokeWidth={2} name="Cost ($)" dot={{ r: 4 }} />
+                <Line 
+                  type="monotone" 
+                  dataKey="cost" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3} 
+                  name="Cost ($)" 
+                  dot={{ r: 5, fill: '#3b82f6' }}
+                  activeDot={{ r: 7 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -172,7 +216,7 @@ function App() {
         <div className="glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Type</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
                   data={costByType}
@@ -180,7 +224,7 @@ function App() {
                   nameKey="type"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
+                  outerRadius={85}
                   label
                 >
                   {costByType.map((_item, index) => (
@@ -196,12 +240,12 @@ function App() {
       </div>
 
       {/* Second Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Monthly Energy */}
         <div className="glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy (kWh)</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
@@ -218,7 +262,7 @@ function App() {
         <div className="glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>📊 Sessions per Type</h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <BarChart data={costByType}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="type" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
@@ -273,7 +317,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.2.0
+        EV Charging Dashboard v1.3.0
       </div>
     </div>
   )
