@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react'
-import { CContainer, CCard, CCardBody, CCardHeader, CRow, CCol, CTable, CFormInput } from '@coreui/react'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { chargingData } from './data/evData'
 import './App.css'
 
-const COLORS = ['#4f46e5', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
 function App() {
   const [search, setSearch] = useState('')
@@ -86,200 +85,196 @@ function App() {
 
   return (
     <div className="app-container">
-      <CContainer className="py-4">
-        {/* Header */}
-        <div className="header-section">
-          <h1 className="app-title">⚡ EV Charging Dashboard</h1>
-          <p className="app-subtitle">Track your electric vehicle charging costs and usage patterns</p>
+      {/* Header */}
+      <h1 className="app-title">⚡ EV Charging Dashboard</h1>
+      <p className="app-subtitle">Track your electric vehicle charging costs and usage patterns</p>
+
+      {/* Hero Card */}
+      <div className="hero-card">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div className="hero-value">${stats.totalCost}</div>
+            <div className="hero-label">Total Spent</div>
+          </div>
+          <div>
+            <div className="hero-value">{stats.totalKwh}</div>
+            <div className="hero-label">kWh Charged</div>
+          </div>
+          <div>
+            <div className="hero-value">{stats.totalSessions}</div>
+            <div className="hero-label">Sessions</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="glass-card p-5 mb-6">
+        <div className="filter-row">
+          <input
+            type="text"
+            placeholder="🔍 Search charger type or notes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="glass-input w-full"
+          />
+          <input
+            type="date"
+            value={dateRange.start}
+            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            className="glass-input w-full"
+          />
+          <input
+            type="date"
+            value={dateRange.end}
+            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+            className="glass-input w-full"
+          />
+        </div>
+      </div>
+
+      {/* Stat Cards Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        {[
+          { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌' },
+          { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰' },
+          { label: 'Total Energy', value: `${stats.totalKwh} kWh`, icon: '⚡' },
+          { label: 'Avg $/kWh', value: `$${stats.avgCostPerKwh}`, icon: '📊' },
+          { label: 'Avg/Session', value: `$${stats.avgCostPerSession}`, icon: '💳' },
+        ].map((stat, idx) => (
+          <div key={idx} className="stat-card-modern">
+            <div className="stat-icon-modern">{stat.icon}</div>
+            <div className="stat-value-modern">{stat.value}</div>
+            <div className="stat-label-modern">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Monthly Cost Trend - 2 columns */}
+        <div className="lg:col-span-2 glass-card p-6">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="cost" stroke="#3b82f6" strokeWidth={2} name="Cost ($)" dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Filters */}
-        <CCard className="mb-4">
-          <CCardBody>
-            <CRow className="g-3">
-              <CCol md={4}>
-                <CFormInput
-                  placeholder="🔍 Search charger type or notes..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormInput
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormInput
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                />
-              </CCol>
-            </CRow>
-          </CCardBody>
-        </CCard>
+        {/* Cost by Type - 1 column */}
+        <div className="glass-card p-6">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Type</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={costByType}
+                  dataKey="cost"
+                  nameKey="type"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {costByType.map((_item, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
-        {/* Summary Stats */}
-        <CRow className="mb-4 g-3">
-          {[
-            { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌' },
-            { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰' },
-            { label: 'Total Energy', value: `${stats.totalKwh} kWh`, icon: '⚡' },
-            { label: 'Avg $/kWh', value: `$${stats.avgCostPerKwh}`, icon: '📊' },
-            { label: 'Avg $/Session', value: `$${stats.avgCostPerSession}`, icon: '💳' },
-          ].map((stat, idx) => (
-            <CCol key={idx} xs={6} lg className="stat-col">
-              <CCard className="stat-card h-100">
-                <CCardBody>
-                  <div className="stat-icon">{stat.icon}</div>
-                  <div className="stat-value">{stat.value}</div>
-                  <div className="stat-label">{stat.label}</div>
-                </CCardBody>
-              </CCard>
-            </CCol>
-          ))}
-        </CRow>
+      {/* Second Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Monthly Energy */}
+        <div className="glass-card p-6">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy (kWh)</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="kwh" fill="#10b981" name="Energy (kWh)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        {/* Charts Row 1: Cost Trends */}
-        <CRow className="mb-4 g-4">
-          <CCol lg={8}>
-            <CCard className="chart-card h-100">
-              <CCardHeader className="chart-header">
-                <h5 className="mb-0">💰 Monthly Cost Trend</h5>
-              </CCardHeader>
-              <CCardBody>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38" />
-                    <XAxis dataKey="month" stroke="#888899" />
-                    <YAxis stroke="#888899" />
-                    <Tooltip contentStyle={{ background: '#13131e', border: '1px solid #2a2a40', borderRadius: 8 }} />
-                    <Legend />
-                    <Line type="monotone" dataKey="cost" stroke="#ef4444" strokeWidth={2} name="Cost ($)" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol lg={4}>
-            <CCard className="chart-card h-100">
-              <CCardHeader className="chart-header">
-                <h5 className="mb-0">🔌 Cost by Charger Type</h5>
-              </CCardHeader>
-              <CCardBody>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={costByType}
-                      dataKey="cost"
-                      nameKey="type"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label
-                    >
-                      {costByType.map((_item, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: '#13131e', border: '1px solid #2a2a40', borderRadius: 8 }} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
+        {/* Sessions per Type */}
+        <div className="glass-card p-6">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>📊 Sessions per Type</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={costByType}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="type" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#8b5cf6" name="Sessions" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
-        {/* Charts Row 2: Energy & Sessions */}
-        <CRow className="mb-4 g-4">
-          <CCol lg={6}>
-            <CCard className="chart-card h-100">
-              <CCardHeader className="chart-header">
-                <h5 className="mb-0">⚡ Monthly Energy (kWh)</h5>
-              </CCardHeader>
-              <CCardBody>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38" />
-                    <XAxis dataKey="month" stroke="#888899" />
-                    <YAxis stroke="#888899" />
-                    <Tooltip contentStyle={{ background: '#13131e', border: '1px solid #2a2a40', borderRadius: 8 }} />
-                    <Legend />
-                    <Bar dataKey="kwh" fill="#10b981" name="Energy (kWh)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol lg={6}>
-            <CCard className="chart-card h-100">
-              <CCardHeader className="chart-header">
-                <h5 className="mb-0">📊 Sessions per Charger Type</h5>
-              </CCardHeader>
-              <CCardBody>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={costByType}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38" />
-                    <XAxis dataKey="type" stroke="#888899" />
-                    <YAxis stroke="#888899" />
-                    <Tooltip contentStyle={{ background: '#13131e', border: '1px solid #2a2a40', borderRadius: 8 }} />
-                    <Legend />
-                    <Bar dataKey="count" fill="#4f46e5" name="Sessions" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
-
-        {/* Data Table */}
-        <CCard className="table-card">
-          <CCardHeader className="chart-header">
-            <h5 className="mb-0">📋 Charging History ({filteredData.length} sessions)</h5>
-          </CCardHeader>
-          <CCardBody className="p-0">
-            <div className="table-container">
-              <CTable hover responsive className="charging-table mb-0">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Charger Type</th>
-                    <th>Energy (kWh)</th>
-                    <th>Cost ($)</th>
-                    <th>$/kWh</th>
-                    <th>Notes</th>
+      {/* Data Table */}
+      <div className="glass-card overflow-hidden">
+        <div className="p-6 border-b border-white/10">
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
+            📋 Charging History ({filteredData.length} sessions)
+          </h3>
+        </div>
+        <div className="table-container">
+          <table className="glass-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Charger Type</th>
+                <th>Energy (kWh)</th>
+                <th>Cost ($)</th>
+                <th>$/kWh</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData
+                .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
+                .map((session, idx) => (
+                  <tr key={idx}>
+                    <td>{new Date(session.Date).toLocaleDateString()}</td>
+                    <td>
+                      <span className="charger-badge-modern">{session.Type}</span>
+                    </td>
+                    <td>{session.Amount.toFixed(2)}</td>
+                    <td>${session.Cost.toFixed(2)}</td>
+                    <td>${(session.Cost / session.Amount).toFixed(3)}</td>
+                    <td style={{ color: 'var(--muted)' }}>{session.Notes || '-'}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredData
-                    .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
-                    .map((session, idx) => (
-                      <tr key={idx}>
-                        <td>{new Date(session.Date).toLocaleDateString()}</td>
-                        <td>
-                          <span className="charger-badge">{session.Type}</span>
-                        </td>
-                        <td>{session.Amount.toFixed(2)}</td>
-                        <td>${session.Cost.toFixed(2)}</td>
-                        <td>${(session.Cost / session.Amount).toFixed(3)}</td>
-                        <td className="text-muted">{session.Notes || '-'}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </CTable>
-            </div>
-          </CCardBody>
-        </CCard>
-
-        {/* Footer */}
-        <div className="text-center mt-4">
-          <small className="app-version">EV Charging Dashboard v1.1.0</small>
+                ))}
+            </tbody>
+          </table>
         </div>
-      </CContainer>
+      </div>
+
+      {/* Footer */}
+      <div className="text-center app-version">
+        EV Charging Dashboard v1.2.0
+      </div>
     </div>
   )
 }
