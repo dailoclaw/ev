@@ -88,16 +88,13 @@ function App() {
     <div className="app-container">
       <CContainer className="py-4">
         {/* Header */}
-        <div className="header-section mb-4">
-          <div className="d-flex align-items-center gap-3 mb-2">
-            <div className="app-icon">⚡</div>
-            <h1 className="app-title mb-0">EV Charging Dashboard</h1>
-          </div>
+        <div className="header-section">
+          <h1 className="app-title">⚡ EV Charging Dashboard</h1>
           <p className="app-subtitle">Track your electric vehicle charging costs and usage patterns</p>
         </div>
 
         {/* Filters */}
-        <CCard className="mb-4 filter-card">
+        <CCard className="mb-4">
           <CCardBody>
             <CRow className="g-3">
               <CCol md={4}>
@@ -105,25 +102,20 @@ function App() {
                   placeholder="🔍 Search charger type or notes..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="search-input"
                 />
               </CCol>
               <CCol md={4}>
                 <CFormInput
                   type="date"
-                  placeholder="Start Date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="date-input"
                 />
               </CCol>
               <CCol md={4}>
                 <CFormInput
                   type="date"
-                  placeholder="End Date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="date-input"
                 />
               </CCol>
             </CRow>
@@ -133,19 +125,17 @@ function App() {
         {/* Summary Stats */}
         <CRow className="mb-4 g-3">
           {[
-            { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌', color: '#4f46e5' },
-            { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰', color: '#ef4444' },
-            { label: 'Total Energy', value: `${stats.totalKwh} kWh`, icon: '⚡', color: '#10b981' },
-            { label: 'Avg $/kWh', value: `$${stats.avgCostPerKwh}`, icon: '📊', color: '#f59e0b' },
-            { label: 'Avg $/Session', value: `$${stats.avgCostPerSession}`, icon: '💳', color: '#06b6d4' },
+            { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌' },
+            { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰' },
+            { label: 'Total Energy', value: `${stats.totalKwh} kWh`, icon: '⚡' },
+            { label: 'Avg $/kWh', value: `$${stats.avgCostPerKwh}`, icon: '📊' },
+            { label: 'Avg $/Session', value: `$${stats.avgCostPerSession}`, icon: '💳' },
           ].map((stat, idx) => (
-            <CCol key={idx} xs={12} sm={6} lg className="stat-col">
+            <CCol key={idx} xs={6} lg className="stat-col">
               <CCard className="stat-card h-100">
-                <CCardBody className="d-flex flex-column align-items-center justify-content-center">
-                  <div className="stat-icon" style={{ background: `${stat.color}20`, color: stat.color }}>
-                    {stat.icon}
-                  </div>
-                  <div className="stat-value" style={{ color: stat.color }}>{stat.value}</div>
+                <CCardBody>
+                  <div className="stat-icon">{stat.icon}</div>
+                  <div className="stat-value">{stat.value}</div>
                   <div className="stat-label">{stat.label}</div>
                 </CCardBody>
               </CCard>
@@ -287,7 +277,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-4">
-          <small className="text-muted app-version">EV Charging Dashboard v1.0.0</small>
+          <small className="app-version">EV Charging Dashboard v1.1.0</small>
         </div>
       </CContainer>
     </div>
