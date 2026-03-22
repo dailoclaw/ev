@@ -1,0 +1,278 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0a0a0f;
+  color: #e8e8f0;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.app-container {
+  min-height: 100vh;
+  background: #0a0a0f;
+}
+
+/* Header */
+.header-section {
+  border-bottom: 1px solid #1a1a28;
+  padding-bottom: 16px;
+}
+
+.app-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.app-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: #e8e8f0;
+}
+
+.app-subtitle {
+  font-size: 14px;
+  color: #666680;
+  margin-left: 60px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Filter Card */
+.filter-card .card-body {
+  background: #13131e;
+  border: 1px solid #1e1e30;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.search-input,
+.date-input {
+  background: #0e0e18;
+  border: 1px solid #1e1e30;
+  color: #e8e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: inherit;
+}
+
+.search-input:focus,
+.date-input:focus {
+  background: #0e0e18;
+  border-color: #4f46e5;
+  color: #e8e8f0;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.search-input::placeholder {
+  color: #555570;
+}
+
+/* Stat Cards */
+.stat-col {
+  min-width: 160px;
+}
+
+.stat-card {
+  background: #13131e;
+  border: 1px solid #1e1e30;
+  border-radius: 14px;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: #2a2a40;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card .card-body {
+  padding: 24px 20px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666680;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Chart Cards */
+.chart-card {
+  background: #13131e;
+  border: 1px solid #1e1e30;
+  border-radius: 14px;
+}
+
+.chart-header {
+  background: transparent;
+  border-bottom: 1px solid #1e1e30;
+  padding: 16px 20px;
+}
+
+.chart-header h5 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #c8c8e0;
+}
+
+.chart-card .card-body {
+  padding: 20px;
+}
+
+/* Table */
+.table-card {
+  background: #13131e;
+  border: 1px solid #1e1e30;
+  border-radius: 14px;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-height: 600px;
+}
+
+.charging-table {
+  color: #e8e8f0;
+  font-size: 14px;
+}
+
+.charging-table thead {
+  background: #0e0e18;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.charging-table thead th {
+  color: #666680;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e1e30;
+}
+
+.charging-table tbody tr {
+  border-bottom: 1px solid #141420;
+  transition: background 0.15s;
+}
+
+.charging-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.charging-table tbody td {
+  padding: 14px 16px;
+  color: #d8d8ee;
+}
+
+.charger-badge {
+  display: inline-block;
+  background: rgba(79, 70, 229, 0.2);
+  color: #8b85ff;
+  border: 1px solid rgba(79, 70, 229, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.text-muted {
+  color: #666680 !important;
+}
+
+/* Footer */
+.app-version {
+  color: #44445e;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111118;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a38;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a48;
+}
+
+/* Recharts customization */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  background: #13131e !important;
+  border: 1px solid #2a2a40 !important;
+  border-radius: 8px !important;
+  color: #e8e8f0 !important;
+}
+
+.recharts-legend-item-text {
+  color: #888899 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 22px;
+  }
+
+  .app-subtitle {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .stat-card .card-body {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .charging-table {
+    font-size: 13px;
+  }
+}
