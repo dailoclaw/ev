@@ -1,73 +1,76 @@
-# React + TypeScript + Vite
+# EV Charging Dashboard ⚡
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Track your electric vehicle charging costs and usage patterns**
 
-Currently, two official plugins are available:
+A comprehensive dashboard for monitoring EV charging sessions with cost analysis, energy tracking, and usage insights.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+📊 **Summary Statistics**
+- Total sessions, cost, and energy (kWh)
+- Average cost per kWh and per session
+- Real-time filtering and search
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+📈 **Interactive Charts**
+- Monthly cost trends (line chart)
+- Cost distribution by charger type (pie chart)
+- Monthly energy usage (bar chart)
+- Sessions per charger type
 
-## Expanding the ESLint configuration
+🔍 **Data Management**
+- Search by charger type or notes
+- Filter by date range
+- Sortable data table with all sessions
+- Cost per kWh calculation for each session
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+⚡ **Charger Types Tracked**
+- Matty
+- Chargefox
+- Jolt
+- Supercharger
+- And more...
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **React 18** + **TypeScript**
+- **Vite** - Fast build tool
+- **CoreUI React** - UI components
+- **Recharts** - Data visualization
+- Dark theme with DM Sans/Mono fonts
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Data Structure
+
+Each charging session includes:
+- Date
+- Charger type
+- Energy added (kWh)
+- Cost ($)
+- Optional notes
+
+## Quick Start
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Build for production:
+```bash
+npm run build
 ```
+
+## Updating Data
+
+To update with new charging data:
+1. Export your charging spreadsheet (Excel/CSV)
+2. Replace `src/data/ev_data.json` with new data
+3. Ensure format matches: `{ Date, Type, Amount, Cost, Notes }`
+4. Rebuild and redeploy
+
+## Version
+
+**v1.0.0** - Initial release
+
+## License
+
+MIT
