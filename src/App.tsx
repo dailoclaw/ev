@@ -22,6 +22,7 @@ function App() {
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
   const [currentCarImage, setCurrentCarImage] = useState(0)
+  const [splashComplete, setSplashComplete] = useState(false)
 
   // Get unique charger types and years
   const chargerTypes = useMemo(() => {
@@ -106,8 +107,8 @@ function App() {
 
   return (
     <>
-      <SplashScreen />
-      <div className="app-container">
+      <SplashScreen onComplete={() => setSplashComplete(true)} />
+      <div className="app-container" style={{ visibility: splashComplete ? 'visible' : 'hidden' }}>
       {/* Header */}
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
 
@@ -293,7 +294,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.9.4
+        EV Charging Dashboard v1.9.5
       </div>
     </div>
     </>
