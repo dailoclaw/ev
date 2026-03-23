@@ -12,10 +12,13 @@ const formatMonth = (monthStr: string) => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
+const CAR_IMAGES = ['/car1.jpg', '/car2.jpg', '/car3.jpg'];
+
 function App() {
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
   const [tableExpanded, setTableExpanded] = useState(false)
+  const [currentCarImage, setCurrentCarImage] = useState(0)
 
   // Get unique charger types and years
   const chargerTypes = useMemo(() => {
@@ -103,12 +106,14 @@ function App() {
       {/* Header */}
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
 
-      {/* Car Image */}
+      {/* Car Image - Click to cycle */}
       <div className="car-image-container mb-6">
         <img 
-          src="/car.jpg" 
+          src={CAR_IMAGES[currentCarImage]}
           alt="EV Car" 
-          className="car-image"
+          className="car-image clickable-car"
+          onClick={() => setCurrentCarImage((prev) => (prev + 1) % CAR_IMAGES.length)}
+          title="Click to change car view"
         />
       </div>
 
@@ -173,7 +178,7 @@ function App() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         {/* Monthly Cost Trend - 2 columns */}
         <div className="lg:col-span-2 glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
@@ -292,7 +297,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.5.0
+        EV Charging Dashboard v1.6.0
       </div>
     </div>
   )
