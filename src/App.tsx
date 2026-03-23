@@ -294,7 +294,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.9.8
+        EV Charging Dashboard v1.9.9
       </div>
     </div>
     </>
