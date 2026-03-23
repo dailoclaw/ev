@@ -122,7 +122,7 @@ function App() {
       </div>
 
       {/* Hero Card with 5 stats */}
-      <div className="hero-card mb-12">
+      <div className="hero-card hero-spacing">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
           <div>
             <div className="hero-value">${stats.totalCost}</div>
@@ -148,7 +148,7 @@ function App() {
       </div>
 
       {/* Filters */}
-      <div className="mb-12">
+      <div className="filter-spacing">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
@@ -182,9 +182,9 @@ function App() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 chart-row-spacing">
         {/* Monthly Cost Trend - 2 columns */}
-        <div className="lg:col-span-2 glass-card p-6 mb-12 lg:mb-0">
+        <div className="lg:col-span-2 glass-card p-6 chart-mobile-spacing">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={320}>
@@ -227,7 +227,7 @@ function App() {
       </div>
 
       {/* Cost by Type - Full Width */}
-      <div className="glass-card p-6 mb-16">
+      <div className="glass-card p-6 chart-row-spacing">
         <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Charger Type</h3>
         <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height={320}>
@@ -301,7 +301,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.8.2
+        EV Charging Dashboard v1.8.3
       </div>
     </div>
     </>

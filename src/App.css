@@ -7,6 +7,29 @@
   margin: 6px 0 24px;
 }
 
+/* Explicit spacing classes */
+.hero-spacing {
+  margin-bottom: 48px !important;
+}
+
+.filter-spacing {
+  margin-bottom: 48px !important;
+}
+
+.chart-row-spacing {
+  margin-bottom: 64px !important;
+}
+
+.chart-mobile-spacing {
+  margin-bottom: 48px;
+}
+
+@media (min-width: 1024px) {
+  .chart-mobile-spacing {
+    margin-bottom: 0;
+  }
+}
+
 /* Car image container */
 .car-image-container {
   display: flex;
