@@ -39,6 +39,7 @@
   text-shadow: 0 4px 20px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7);
   animation: fadeInUp 1.2s ease-out 0.3s both;
   padding: 0 20px;
+  white-space: nowrap;
 }
 
 @keyframes fadeInUp {
@@ -54,6 +55,12 @@
 
 @media (max-width: 768px) {
   .splash-title {
-    font-size: 28px;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .splash-title {
+    font-size: 18px;
   }
 }

@@ -113,7 +113,7 @@ function App() {
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
 
       {/* Car Image - Click to cycle through photos */}
-      <div className="car-image-container mb-6">
+      <div className="car-image-container" style={{ marginBottom: '32px' }}>
         <img 
           src={CAR_IMAGES[currentCarImage]}
           alt="EV Car" 
@@ -125,7 +125,7 @@ function App() {
 
       {/* Hero Card with 5 stats */}
       <div className="hero-card hero-spacing">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-12">
           <div>
             <div className="hero-value">${stats.totalCost}</div>
             <div className="hero-label">Total Spent</div>
@@ -294,7 +294,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.0.1
+        EV Charging Dashboard v2.1.0
       </div>
     </div>
     </>
