@@ -1,11 +1,11 @@
-import { useState, useMemo, useTransition } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { chargingData } from './data/evData'
 import SplashScreen from './components/SplashScreen'
+import MonthlyCostChart from './components/MonthlyCostChart'
+import MonthlyEnergyChart from './components/MonthlyEnergyChart'
+import CostByTypeChart from './components/CostByTypeChart'
 import './App.css'
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
 // Month name formatting
 const formatMonth = (monthStr: string) => {
@@ -44,7 +44,6 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('All')
   const [currentCarImage, setCurrentCarImage] = useState(0)
   const [splashComplete, setSplashComplete] = useState(false)
-  const [, startTransition] = useTransition()
 
   // Get unique years
   const years = useMemo(() => {
@@ -172,11 +171,7 @@ function App() {
           {years.map(year => (
             <button
               key={year}
-              onClick={() => {
-                startTransition(() => {
-                  setSelectedYear(year.toString())
-                })
-              }}
+              onClick={() => setSelectedYear(year.toString())}
               style={{
                 padding: '8px 20px',
                 fontSize: '14px',
@@ -202,11 +197,7 @@ function App() {
           {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
             <button
               key={type}
-              onClick={() => {
-                startTransition(() => {
-                  setSelectedType(selectedType === type ? 'All' : type)
-                })
-              }}
+              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
               onTouchStart={(e) => {
                 if (selectedType !== type) {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
@@ -274,24 +265,7 @@ function App() {
             <span>Monthly Cost Trend</span>
           </h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 11 }} />
-                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="cost" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3} 
-                  name="Cost ($)" 
-                  dot={{ r: 5, fill: '#3b82f6' }}
-                  activeDot={{ r: 7 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <MonthlyCostChart data={monthlyData} />
           </div>
         </div>
 
@@ -302,16 +276,7 @@ function App() {
             <span>Monthly Energy</span>
           </h3>
           <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="kwh" fill="#10b981" name="kWh" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <MonthlyEnergyChart data={monthlyData} />
           </div>
         </div>
       </div>
@@ -323,25 +288,7 @@ function App() {
           <span>Cost by Charger Type</span>
         </h3>
         <div className="chart-wrapper">
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={costByType}
-                dataKey="cost"
-                nameKey="type"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) => `$${entry.value.toFixed(2)}`}
-              >
-                {costByType.map((_item, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <CostByTypeChart data={costByType} />
         </div>
       </div>
 
@@ -376,7 +323,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.5.0
+        EV Charging Dashboard v2.6.0
       </div>
     </div>
     </>
