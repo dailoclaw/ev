@@ -37,14 +37,14 @@
   color: #ffffff;
   text-align: center;
   text-shadow: 0 4px 20px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7);
-  animation: fadeIn 0.5s ease-out 0.2s both;
+  animation: fadeInUp 1.2s ease-out 0.3s both;
   padding: 0 20px;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(60px);
   }
   to {
     opacity: 1;
