@@ -5,6 +5,13 @@ import './App.css'
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
+// Month name formatting
+const formatMonth = (monthStr: string) => {
+  const [year, month] = monthStr.split('-')
+  const date = new Date(parseInt(year), parseInt(month) - 1)
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
 function App() {
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
@@ -74,13 +81,13 @@ function App() {
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       
       if (!acc[monthKey]) {
-        acc[monthKey] = { month: monthKey, cost: 0, kwh: 0, sessions: 0 }
+        acc[monthKey] = { month: monthKey, monthLabel: formatMonth(monthKey), cost: 0, kwh: 0, sessions: 0 }
       }
       acc[monthKey].cost += session.Cost
       acc[monthKey].kwh += session.Amount
       acc[monthKey].sessions += 1
       return acc
-    }, {} as Record<string, { month: string, cost: number, kwh: number, sessions: number }>)
+    }, {} as Record<string, { month: string, monthLabel: string, cost: number, kwh: number, sessions: number }>)
     
     return Object.values(grouped)
       .sort((a, b) => a.month.localeCompare(b.month))
@@ -105,9 +112,9 @@ function App() {
         />
       </div>
 
-      {/* Hero Card */}
-      <div className="hero-card">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Hero Card with 5 stats */}
+      <div className="hero-card mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           <div>
             <div className="hero-value">${stats.totalCost}</div>
             <div className="hero-label">Total Spent</div>
@@ -119,6 +126,14 @@ function App() {
           <div>
             <div className="hero-value">{stats.totalSessions}</div>
             <div className="hero-label">Sessions</div>
+          </div>
+          <div>
+            <div className="hero-value">${stats.avgCostPerKwh}</div>
+            <div className="hero-label">Avg $/kWh</div>
+          </div>
+          <div>
+            <div className="hero-value">${stats.avgCostPerSession}</div>
+            <div className="hero-label">Avg/Session</div>
           </div>
         </div>
       </div>
@@ -157,25 +172,8 @@ function App() {
         </div>
       </div>
 
-      {/* Stat Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          { label: 'Total Sessions', value: stats.totalSessions, icon: '🔌' },
-          { label: 'Total Cost', value: `$${stats.totalCost}`, icon: '💰' },
-          { label: 'Total Energy', value: `${stats.totalKwh} kWh`, icon: '⚡' },
-          { label: 'Avg $/kWh', value: `$${stats.avgCostPerKwh}`, icon: '📊' },
-          { label: 'Avg/Session', value: `$${stats.avgCostPerSession}`, icon: '💳' },
-        ].map((stat, idx) => (
-          <div key={idx} className="stat-card-modern">
-            <div className="stat-icon-modern">{stat.icon}</div>
-            <div className="stat-value-modern">{stat.value}</div>
-            <div className="stat-label-modern">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
         {/* Monthly Cost Trend - 2 columns */}
         <div className="lg:col-span-2 glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
@@ -183,7 +181,7 @@ function App() {
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+                <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 11 }} />
                 <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
@@ -201,60 +199,60 @@ function App() {
           </div>
         </div>
 
-        {/* Cost by Type - 1 column */}
+        {/* Monthly Energy - 1 column */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Type</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={320}>
-              <PieChart>
-                <Pie
-                  data={costByType}
-                  dataKey="cost"
-                  nameKey="type"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={85}
-                  label
-                >
-                  {costByType.map((_item, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
+                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-              </PieChart>
+                <Bar dataKey="kwh" fill="#10b981" name="kWh" radius={[8, 8, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Monthly Energy Chart - Full Width */}
-      <div className="glass-card p-6 mb-8">
-        <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy (kWh)</h3>
+      {/* Cost by Type - Full Width */}
+      <div className="glass-card p-6 mb-10">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Charger Type</h3>
         <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-              <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+            <PieChart>
+              <Pie
+                data={costByType}
+                dataKey="cost"
+                nameKey="type"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
+              >
+                {costByType.map((_item, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
               <Tooltip />
               <Legend />
-              <Bar dataKey="kwh" fill="#10b981" name="Energy (kWh)" radius={[8, 8, 0, 0]} />
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Collapsible Data Table */}
-      <div className="glass-card overflow-hidden">
+      <div className="glass-card overflow-hidden mb-6">
         <button
           onClick={() => setTableExpanded(!tableExpanded)}
-          className="w-full p-6 text-left border-b border-white/10 hover:bg-white/5 transition-colors flex items-center justify-between"
+          className="collapsible-header w-full p-6 text-left border-b border-white/10 hover:bg-white/5 transition-colors flex items-center justify-between"
         >
           <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
             📋 Charging History ({filteredData.length} sessions)
           </h3>
-          <span className="text-2xl" style={{ color: 'var(--text)', transition: 'transform 0.2s', transform: tableExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <span className="arrow-icon" style={{ transform: tableExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
             ▼
           </span>
         </button>
@@ -294,7 +292,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.4.0
+        EV Charging Dashboard v1.5.0
       </div>
     </div>
   )
