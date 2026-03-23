@@ -109,6 +109,16 @@ export default function History() {
             <button
               key={type}
               onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
+              onTouchStart={(e) => {
+                if (selectedType !== type) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                }
+              }}
+              onTouchEnd={(e) => {
+                if (selectedType !== type) {
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -119,6 +129,7 @@ export default function History() {
                 background: selectedType === type ? `${getChargerColor(type)}15` : 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
+                WebkitTapHighlightColor: 'transparent',
               }}
               onMouseEnter={(e) => {
                 if (selectedType !== type) {
@@ -217,7 +228,7 @@ export default function History() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.4.1
+        EV Charging Dashboard v2.4.2
       </div>
     </div>
   )
