@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { chargingData } from '../data/evData'
 import '../App.css'
@@ -28,6 +28,11 @@ export default function History() {
   const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   // Get unique charger types and years
   const chargerTypes = useMemo(() => {
@@ -110,6 +115,35 @@ export default function History() {
         </div>
       </div>
 
+      {/* Legend */}
+      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px', borderRadius: '12px' }}>
+        <h4 style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Charger Types</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
+            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  background: `${getChargerColor(type)}20`,
+                  color: getChargerColor(type),
+                  flexShrink: 0,
+                }}
+              >
+                {getChargerIcon(type)}
+              </div>
+              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{type}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* History Table */}
       <div className="glass-card" style={{ padding: '24px', borderRadius: '16px' }}>
         <div className="overflow-x-auto">
@@ -169,38 +203,9 @@ export default function History() {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="glass-card" style={{ padding: '20px', marginTop: '24px', borderRadius: '12px' }}>
-        <h4 style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Charger Types</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
-          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
-            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  background: `${getChargerColor(type)}20`,
-                  color: getChargerColor(type),
-                  flexShrink: 0,
-                }}
-              >
-                {getChargerIcon(type)}
-              </div>
-              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{type}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.9.3
+        EV Charging Dashboard v1.9.4
       </div>
     </div>
   )

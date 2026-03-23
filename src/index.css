@@ -21,14 +21,17 @@
   padding: 0;
 }
 
-html, body {
+html {
   height: 100%;
+  background-color: #000000;
 }
 
 body {
   margin: 0;
+  min-height: 100%;
   font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial;
   color: var(--text);
+  background-color: var(--bg0);
   background:
     linear-gradient(180deg, #000000 0px, var(--bg0) 60px),
     radial-gradient(1200px 600px at 10% 0%, rgba(59,130,246,0.10), transparent 60%),
