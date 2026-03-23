@@ -111,16 +111,15 @@ export default function History() {
       </div>
 
       {/* History Table */}
-      <div className="glass-card" style={{ padding: '20px', borderRadius: '16px' }}>
+      <div className="glass-card" style={{ padding: '24px', borderRadius: '16px' }}>
         <div className="overflow-x-auto">
-          <table className="w-full" style={{ fontSize: '14px' }}>
+          <table className="w-full" style={{ fontSize: '15px', tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.15)' }}>
-                <th className="text-left py-3 px-3" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</th>
-                <th className="text-left py-3 px-3" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Type</th>
-                <th className="text-right py-3 px-3" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>kWh</th>
-                <th className="text-right py-3 px-3" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cost</th>
-                <th className="text-left py-3 px-3" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Notes</th>
+                <th className="text-left py-4 px-4" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', width: '35%' }}>Date</th>
+                <th className="text-center py-4 px-4" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', width: '15%' }}>Type</th>
+                <th className="text-right py-4 px-4" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Energy</th>
+                <th className="text-right py-4 px-4" style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', width: '25%' }}>Cost</th>
               </tr>
             </thead>
             <tbody>
@@ -131,40 +130,34 @@ export default function History() {
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
                   }}
                 >
-                  <td className="py-3 px-3" style={{ color: 'var(--text)', fontWeight: 500 }}>
+                  <td className="py-4 px-4" style={{ color: 'var(--text)', fontWeight: 500, fontSize: '14px' }}>
                     {new Date(session.Date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
-                  <td className="py-3 px-3">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <td className="py-4 px-4 text-center">
+                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div
                         style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '6px',
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 700,
-                          fontSize: '13px',
+                          fontSize: '14px',
                           background: `${getChargerColor(session.Type)}20`,
                           color: getChargerColor(session.Type),
                         }}
                       >
                         {getChargerIcon(session.Type)}
                       </div>
-                      <span style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 500 }}>
-                        {session.Type}
-                      </span>
                     </div>
                   </td>
-                  <td className="py-3 px-3 text-right" style={{ color: 'var(--text)', fontWeight: 500 }}>
-                    {session.Amount.toFixed(2)}
+                  <td className="py-4 px-4 text-right" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '15px' }}>
+                    {session.Amount.toFixed(2)} kWh
                   </td>
-                  <td className="py-3 px-3 text-right" style={{ color: '#10b981', fontWeight: 600, fontSize: '15px' }}>
+                  <td className="py-4 px-4 text-right" style={{ color: '#10b981', fontWeight: 700, fontSize: '16px' }}>
                     ${session.Cost.toFixed(2)}
-                  </td>
-                  <td className="py-3 px-3" style={{ color: 'var(--muted)', fontSize: '13px' }}>
-                    {session.Notes || ''}
                   </td>
                 </tr>
               ))}
@@ -176,9 +169,38 @@ export default function History() {
         </div>
       </div>
 
+      {/* Legend */}
+      <div className="glass-card" style={{ padding: '20px', marginTop: '24px', borderRadius: '12px' }}>
+        <h4 style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Charger Types</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
+            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  background: `${getChargerColor(type)}20`,
+                  color: getChargerColor(type),
+                  flexShrink: 0,
+                }}
+              >
+                {getChargerIcon(type)}
+              </div>
+              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{type}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.9.2
+        EV Charging Dashboard v1.9.3
       </div>
     </div>
   )
