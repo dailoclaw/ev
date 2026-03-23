@@ -139,7 +139,7 @@ function App() {
       </div>
 
       {/* Filters */}
-      <div className="mb-10">
+      <div className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
@@ -173,7 +173,7 @@ function App() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
         {/* Monthly Cost Trend - 2 columns */}
         <div className="lg:col-span-2 glass-card p-6">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
@@ -218,7 +218,7 @@ function App() {
       </div>
 
       {/* Cost by Type - Full Width */}
-      <div className="glass-card p-6 mb-10">
+      <div className="glass-card p-6 mb-12">
         <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Charger Type</h3>
         <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height={320}>
