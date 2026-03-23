@@ -64,7 +64,7 @@ body {
     rgba(255,255,255,0.06);
   border: 1px solid rgba(59,130,246,0.25);
   border-radius: 20px;
-  padding: 32px;
+  padding: 40px;
   backdrop-filter: blur(12px);
   margin-bottom: 24px;
 }
@@ -72,19 +72,21 @@ body {
 .hero-value {
   font-size: 48px;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
   background: linear-gradient(135deg, #fff 0%, rgba(59,130,246,0.8) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  margin-top: 8px;
 }
 
 .hero-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  font-weight: 500;
 }
 
 /* Stat cards */
