@@ -2,15 +2,15 @@
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 9999;
   opacity: 1;
   transition: opacity 0.5s ease-out;
   overflow: hidden;
   background: #000000;
+  margin: 0;
+  padding: 0;
 }
 
 .splash-screen.fade-out {
@@ -18,12 +18,18 @@
 }
 
 .splash-content {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 15vh;
 }
 
 .splash-image {
@@ -33,6 +39,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -43,9 +50,10 @@
   font-weight: 800;
   color: #ffffff;
   text-align: center;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7);
   animation: fadeIn 0.5s ease-out 0.2s both;
   padding: 0 20px;
+  margin: 0;
 }
 
 @keyframes fadeIn {
