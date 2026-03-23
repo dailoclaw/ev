@@ -33,6 +33,7 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
   return (
     <div className={`splash-screen ${fadeOut ? 'fade-out' : ''}`}>
       <img src="/splash.jpg" alt="EV Dashboard" className="splash-image" />
+      <div className="splash-title">⚡ EV Charging Dashboard</div>
     </div>
   )
 }
