@@ -164,7 +164,7 @@ export default function History() {
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
                   }}
                 >
-                  <td className="py-4 px-4" style={{ color: 'var(--text)', fontWeight: 500, fontSize: '14px' }}>
+                  <td className="py-4 px-4" style={{ color: 'var(--text)', fontWeight: 500, fontSize: '14px', whiteSpace: 'nowrap' }}>
                     {new Date(session.Date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="py-4 px-4 text-center">
@@ -187,10 +187,10 @@ export default function History() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-right" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '15px' }}>
+                  <td className="py-4 px-4 text-right" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '15px', whiteSpace: 'nowrap' }}>
                     {session.Amount.toFixed(2)} kWh
                   </td>
-                  <td className="py-4 px-4 text-right" style={{ color: '#10b981', fontWeight: 700, fontSize: '16px' }}>
+                  <td className="py-4 px-4 text-right" style={{ color: '#10b981', fontWeight: 700, fontSize: '16px', whiteSpace: 'nowrap' }}>
                     ${session.Cost.toFixed(2)}
                   </td>
                 </tr>
@@ -205,7 +205,7 @@ export default function History() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.1.0
+        EV Charging Dashboard v2.1.1
       </div>
     </div>
   )
