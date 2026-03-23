@@ -14,6 +14,27 @@ const formatMonth = (monthStr: string) => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
+// Charger type icons (first letter)
+const getChargerIcon = (type: string) => {
+  const icons: Record<string, string> = {
+    'Jolt': 'J',
+    'Matty': 'M',
+    'Chargefox': 'C',
+    'Supercharger': 'S'
+  }
+  return icons[type] || type.charAt(0).toUpperCase()
+}
+
+const getChargerColor = (type: string) => {
+  const colors: Record<string, string> = {
+    'Jolt': '#10b981',
+    'Matty': '#3b82f6',
+    'Chargefox': '#8b5cf6',
+    'Supercharger': '#ef4444'
+  }
+  return colors[type] || '#6b7280'
+}
+
 // Car image carousel - original plus 5 new photos
 const CAR_IMAGES = ['/car.jpg', '/car1.jpg', '/car2.jpg', '/car3.jpg', '/car4.jpg', '/car5.jpg'];
 
@@ -24,12 +45,7 @@ function App() {
   const [currentCarImage, setCurrentCarImage] = useState(0)
   const [splashComplete, setSplashComplete] = useState(false)
 
-  // Get unique charger types and years
-  const chargerTypes = useMemo(() => {
-    const types = Array.from(new Set(chargingData.map(s => s.Type))).sort()
-    return ['All', ...types]
-  }, [])
-
+  // Get unique years
   const years = useMemo(() => {
     const yearSet = new Set(chargingData.map(s => new Date(s.Date).getFullYear()))
     return ['All', ...Array.from(yearSet).sort().reverse()]
@@ -149,37 +165,83 @@ function App() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="filter-spacing">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-              Charger Type
-            </label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="glass-input w-full"
+      {/* Year Filter Toggle */}
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'inline-flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          {years.map(year => (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year.toString())}
+              style={{
+                padding: '8px 20px',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: selectedYear === year.toString() ? 'rgba(59,130,246,0.3)' : 'transparent',
+                color: selectedYear === year.toString() ? '#ffffff' : 'var(--muted)',
+              }}
             >
-              {chargerTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-              Year
-            </label>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="glass-input w-full"
+              {year}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Clickable Legend for Charger Type Filter */}
+      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px', borderRadius: '12px' }}>
+        <h4 style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Filter by Charger Type</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px',
+                borderRadius: '10px',
+                border: selectedType === type ? `2px solid ${getChargerColor(type)}` : '2px solid transparent',
+                background: selectedType === type ? `${getChargerColor(type)}15` : 'transparent',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (selectedType !== type) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedType !== type) {
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
             >
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  background: `${getChargerColor(type)}20`,
+                  color: getChargerColor(type),
+                  flexShrink: 0,
+                }}
+              >
+                {getChargerIcon(type)}
+              </div>
+              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, flex: 1 }}>
+                {type}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -294,7 +356,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.3.0
+        EV Charging Dashboard v2.4.0
       </div>
     </div>
     </>
