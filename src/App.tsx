@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { chargingData } from './data/evData'
@@ -44,6 +44,7 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('All')
   const [currentCarImage, setCurrentCarImage] = useState(0)
   const [splashComplete, setSplashComplete] = useState(false)
+  const [, startTransition] = useTransition()
 
   // Get unique years
   const years = useMemo(() => {
@@ -171,7 +172,11 @@ function App() {
           {years.map(year => (
             <button
               key={year}
-              onClick={() => setSelectedYear(year.toString())}
+              onClick={() => {
+                startTransition(() => {
+                  setSelectedYear(year.toString())
+                })
+              }}
               style={{
                 padding: '8px 20px',
                 fontSize: '14px',
@@ -197,7 +202,11 @@ function App() {
           {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
             <button
               key={type}
-              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
+              onClick={() => {
+                startTransition(() => {
+                  setSelectedType(selectedType === type ? 'All' : type)
+                })
+              }}
               onTouchStart={(e) => {
                 if (selectedType !== type) {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
@@ -367,7 +376,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.4.2
+        EV Charging Dashboard v2.5.0
       </div>
     </div>
     </>
