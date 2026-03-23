@@ -180,7 +180,7 @@ function App() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         {/* Monthly Cost Trend - 2 columns */}
-        <div className="lg:col-span-2 glass-card p-6">
+        <div className="lg:col-span-2 glass-card p-6 mb-8 lg:mb-0">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={320}>
