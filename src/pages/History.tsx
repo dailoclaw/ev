@@ -105,18 +105,18 @@ export default function History() {
       <div className="glass-card" style={{ padding: '20px', marginBottom: '24px', borderRadius: '12px' }}>
         <h4 style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Filter by Charger Type</h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-          {['All', 'Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
+          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
             <button
               key={type}
-              onClick={() => setSelectedType(type)}
+              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
                 padding: '12px',
                 borderRadius: '10px',
-                border: selectedType === type ? '2px solid ' + (type === 'All' ? 'rgba(255,255,255,0.3)' : getChargerColor(type)) : '2px solid transparent',
-                background: selectedType === type ? (type === 'All' ? 'rgba(255,255,255,0.1)' : `${getChargerColor(type)}15`) : 'transparent',
+                border: selectedType === type ? `2px solid ${getChargerColor(type)}` : '2px solid transparent',
+                background: selectedType === type ? `${getChargerColor(type)}15` : 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
@@ -131,26 +131,24 @@ export default function History() {
                 }
               }}
             >
-              {type !== 'All' && (
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    background: `${getChargerColor(type)}20`,
-                    color: getChargerColor(type),
-                    flexShrink: 0,
-                  }}
-                >
-                  {getChargerIcon(type)}
-                </div>
-              )}
-              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, flex: 1, textAlign: type === 'All' ? 'center' : 'left' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  background: `${getChargerColor(type)}20`,
+                  color: getChargerColor(type),
+                  flexShrink: 0,
+                }}
+              >
+                {getChargerIcon(type)}
+              </div>
+              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, flex: 1 }}>
                 {type}
               </span>
             </button>
@@ -219,7 +217,7 @@ export default function History() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.2.0
+        EV Charging Dashboard v2.3.0
       </div>
     </div>
   )
