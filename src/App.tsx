@@ -114,7 +114,7 @@ function App() {
 
       {/* Hero Card with 5 stats */}
       <div className="hero-card mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
           <div>
             <div className="hero-value">${stats.totalCost}</div>
             <div className="hero-label">Total Spent</div>
