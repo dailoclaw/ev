@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { chargingData } from './data/evData'
+import SplashScreen from './components/SplashScreen'
 import './App.css'
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
@@ -99,7 +100,9 @@ function App() {
   }, [filteredData])
 
   return (
-    <div className="app-container">
+    <>
+      <SplashScreen />
+      <div className="app-container">
       {/* Header */}
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
 
@@ -292,9 +295,10 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.6.4
+        EV Charging Dashboard v1.7.0
       </div>
     </div>
+    </>
   )
 }
 
