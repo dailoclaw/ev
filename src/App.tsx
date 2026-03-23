@@ -13,8 +13,8 @@ const formatMonth = (monthStr: string) => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-// Car image carousel - original plus 4 new photos
-const CAR_IMAGES = ['/car.jpg', '/car1.jpg', '/car2.jpg', '/car3.jpg', '/car4.jpg'];
+// Car image carousel - original plus 5 new photos
+const CAR_IMAGES = ['/car.jpg', '/car1.jpg', '/car2.jpg', '/car3.jpg', '/car4.jpg', '/car5.jpg'];
 
 function App() {
   const [selectedType, setSelectedType] = useState('All')
@@ -301,7 +301,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.8.0
+        EV Charging Dashboard v1.8.1
       </div>
     </div>
     </>
