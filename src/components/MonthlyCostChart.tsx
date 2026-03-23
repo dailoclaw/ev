@@ -30,6 +30,7 @@ const MonthlyCostChart = memo(({ data }: Props) => {
           name="Cost ($)" 
           dot={{ r: 5, fill: '#3b82f6' }}
           activeDot={{ r: 7 }}
+          isAnimationActive={false}
         />
       </LineChart>
     </ResponsiveContainer>

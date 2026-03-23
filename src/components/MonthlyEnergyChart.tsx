@@ -22,7 +22,7 @@ const MonthlyEnergyChart = memo(({ data }: Props) => {
         <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
         <Tooltip />
         <Legend />
-        <Bar dataKey="kwh" fill="#10b981" name="kWh" radius={[8, 8, 0, 0]} />
+        <Bar dataKey="kwh" fill="#10b981" name="kWh" radius={[8, 8, 0, 0]} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
   )

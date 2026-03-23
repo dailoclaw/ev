@@ -26,6 +26,7 @@ const CostByTypeChart = memo(({ data }: Props) => {
           cy="50%"
           outerRadius={100}
           label={(entry) => `$${entry.value.toFixed(2)}`}
+          isAnimationActive={false}
         >
           {data.map((_item, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
