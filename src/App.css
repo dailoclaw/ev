@@ -4,13 +4,23 @@
   font-size: 26px;
   font-weight: 760;
   line-height: 1.08;
-  margin: 6px 0 8px;
+  margin: 6px 0 24px;
 }
 
-.app-subtitle {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 24px;
+/* Car image container */
+.car-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.car-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
 .app-version {

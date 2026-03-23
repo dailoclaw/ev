@@ -7,26 +7,30 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
 
 function App() {
   const [selectedType, setSelectedType] = useState('All')
-  const [dateRange, setDateRange] = useState({ start: '', end: '' })
+  const [selectedYear, setSelectedYear] = useState('All')
+  const [tableExpanded, setTableExpanded] = useState(false)
 
-  // Get unique charger types
+  // Get unique charger types and years
   const chargerTypes = useMemo(() => {
     const types = Array.from(new Set(chargingData.map(s => s.Type))).sort()
     return ['All', ...types]
+  }, [])
+
+  const years = useMemo(() => {
+    const yearSet = new Set(chargingData.map(s => new Date(s.Date).getFullYear()))
+    return ['All', ...Array.from(yearSet).sort().reverse()]
   }, [])
 
   // Filter data
   const filteredData = useMemo(() => {
     return chargingData.filter(session => {
       const matchType = selectedType === 'All' || session.Type === selectedType
+      const sessionYear = new Date(session.Date).getFullYear().toString()
+      const matchYear = selectedYear === 'All' || sessionYear === selectedYear
       
-      const sessionDate = new Date(session.Date)
-      const matchStart = !dateRange.start || sessionDate >= new Date(dateRange.start)
-      const matchEnd = !dateRange.end || sessionDate <= new Date(dateRange.end)
-      
-      return matchType && matchStart && matchEnd
+      return matchType && matchYear
     })
-  }, [selectedType, dateRange])
+  }, [selectedType, selectedYear])
 
   // Summary stats
   const stats = useMemo(() => {
@@ -91,20 +95,13 @@ function App() {
     <div className="app-container">
       {/* Header */}
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
-      <p className="app-subtitle">Track your electric vehicle charging costs and usage patterns</p>
 
       {/* Car Image */}
-      <div className="mb-6">
+      <div className="car-image-container mb-6">
         <img 
           src="/car.jpg" 
           alt="EV Car" 
-          className="w-full h-48 object-cover object-center rounded-2xl"
-          style={{ 
-            border: '1px solid rgba(255,255,255,0.1)',
-            maxWidth: '800px',
-            margin: '0 auto',
-            display: 'block'
-          }}
+          className="car-image"
         />
       </div>
 
@@ -128,7 +125,7 @@ function App() {
 
       {/* Filters */}
       <div className="glass-card p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
               Charger Type
@@ -145,25 +142,17 @@ function App() {
           </div>
           <div>
             <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-              Start Date
+              Year
             </label>
-            <input
-              type="date"
-              value={dateRange.start}
-              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
               className="glass-input w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
-              End Date
-            </label>
-            <input
-              type="date"
-              value={dateRange.end}
-              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-              className="glass-input w-full"
-            />
+            >
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -239,85 +228,73 @@ function App() {
         </div>
       </div>
 
-      {/* Second Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Monthly Energy */}
-        <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy (kWh)</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="kwh" fill="#10b981" name="Energy (kWh)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Sessions per Type */}
-        <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>📊 Sessions per Type</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={costByType}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="type" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#8b5cf6" name="Sessions" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {/* Monthly Energy Chart - Full Width */}
+      <div className="glass-card p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy (kWh)</h3>
+        <div className="chart-wrapper">
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+              <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="kwh" fill="#10b981" name="Energy (kWh)" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Data Table */}
+      {/* Collapsible Data Table */}
       <div className="glass-card overflow-hidden">
-        <div className="p-6 border-b border-white/10">
+        <button
+          onClick={() => setTableExpanded(!tableExpanded)}
+          className="w-full p-6 text-left border-b border-white/10 hover:bg-white/5 transition-colors flex items-center justify-between"
+        >
           <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
             📋 Charging History ({filteredData.length} sessions)
           </h3>
-        </div>
-        <div className="table-container">
-          <table className="glass-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Charger Type</th>
-                <th>Energy (kWh)</th>
-                <th>Cost ($)</th>
-                <th>$/kWh</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData
-                .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
-                .map((session, idx) => (
-                  <tr key={idx}>
-                    <td>{new Date(session.Date).toLocaleDateString()}</td>
-                    <td>
-                      <span className="charger-badge-modern">{session.Type}</span>
-                    </td>
-                    <td>{session.Amount.toFixed(2)}</td>
-                    <td>${session.Cost.toFixed(2)}</td>
-                    <td>${(session.Cost / session.Amount).toFixed(3)}</td>
-                    <td style={{ color: 'var(--muted)' }}>{session.Notes || '-'}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+          <span className="text-2xl" style={{ color: 'var(--text)', transition: 'transform 0.2s', transform: tableExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            ▼
+          </span>
+        </button>
+        {tableExpanded && (
+          <div className="table-container">
+            <table className="glass-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Charger Type</th>
+                  <th>Energy (kWh)</th>
+                  <th>Cost ($)</th>
+                  <th>$/kWh</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData
+                  .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
+                  .map((session, idx) => (
+                    <tr key={idx}>
+                      <td>{new Date(session.Date).toLocaleDateString()}</td>
+                      <td>
+                        <span className="charger-badge-modern">{session.Type}</span>
+                      </td>
+                      <td>{session.Amount.toFixed(2)}</td>
+                      <td>${session.Cost.toFixed(2)}</td>
+                      <td>${(session.Cost / session.Amount).toFixed(3)}</td>
+                      <td style={{ color: 'var(--muted)' }}>{session.Notes || '-'}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.3.0
+        EV Charging Dashboard v1.4.0
       </div>
     </div>
   )
