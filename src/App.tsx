@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { chargingData } from './data/evData'
 import SplashScreen from './components/SplashScreen'
@@ -17,9 +18,9 @@ const formatMonth = (monthStr: string) => {
 const CAR_IMAGES = ['/car.jpg', '/car1.jpg', '/car2.jpg', '/car3.jpg', '/car4.jpg', '/car5.jpg'];
 
 function App() {
+  const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
-  const [tableExpanded, setTableExpanded] = useState(false)
   const [currentCarImage, setCurrentCarImage] = useState(0)
 
   // Get unique charger types and years
@@ -185,7 +186,10 @@ function App() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 chart-row-spacing">
         {/* Monthly Cost Trend - 2 columns */}
         <div className="lg:col-span-2 glass-card p-6 chart-mobile-spacing">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>💰 Monthly Cost Trend</h3>
+          <h3 className="chart-heading">
+            <span>💰</span>
+            <span>Monthly Cost Trend</span>
+          </h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={monthlyData}>
@@ -210,7 +214,10 @@ function App() {
 
         {/* Monthly Energy - 1 column */}
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>⚡ Monthly Energy</h3>
+          <h3 className="chart-heading">
+            <span>⚡</span>
+            <span>Monthly Energy</span>
+          </h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={monthlyData}>
@@ -228,7 +235,10 @@ function App() {
 
       {/* Cost by Type - Full Width */}
       <div className="glass-card p-6 chart-row-spacing">
-        <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>🔌 Cost by Charger Type</h3>
+        <h3 className="chart-heading">
+          <span>🔌</span>
+          <span>Cost by Charger Type</span>
+        </h3>
         <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
@@ -252,56 +262,38 @@ function App() {
         </div>
       </div>
 
-      {/* Collapsible Data Table */}
-      <div className="glass-card overflow-hidden mb-6">
+      {/* History Button */}
+      <div className="text-center mb-6">
         <button
-          onClick={() => setTableExpanded(!tableExpanded)}
-          className="collapsible-header w-full p-6 text-left border-b border-white/10 hover:bg-white/5 transition-colors flex items-center justify-between"
+          onClick={() => navigate('/history')}
+          className="glass-input"
+          style={{
+            padding: '16px 48px',
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(59,130,246,0.15)',
+            color: 'var(--text)',
+            borderRadius: '12px',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(59,130,246,0.25)'
+            e.currentTarget.style.transform = 'translateY(-2px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(59,130,246,0.15)'
+            e.currentTarget.style.transform = 'translateY(0)'
+          }}
         >
-          <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
-            📋 Charging History ({filteredData.length} sessions)
-          </h3>
-          <span className="arrow-icon" style={{ transform: tableExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-            ▼
-          </span>
+          📋 View Charging History
         </button>
-        {tableExpanded && (
-          <div className="table-container">
-            <table className="glass-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Charger Type</th>
-                  <th>Energy (kWh)</th>
-                  <th>Cost ($)</th>
-                  <th>$/kWh</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData
-                  .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
-                  .map((session, idx) => (
-                    <tr key={idx}>
-                      <td>{new Date(session.Date).toLocaleDateString()}</td>
-                      <td>
-                        <span className="charger-badge-modern">{session.Type}</span>
-                      </td>
-                      <td>{session.Amount.toFixed(2)}</td>
-                      <td>${session.Cost.toFixed(2)}</td>
-                      <td>${(session.Cost / session.Amount).toFixed(3)}</td>
-                      <td style={{ color: 'var(--muted)' }}>{session.Notes || '-'}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.8.3
+        EV Charging Dashboard v1.9.0
       </div>
     </div>
     </>

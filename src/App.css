@@ -7,21 +7,34 @@
   margin: 6px 0 24px;
 }
 
+.chart-heading {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--text);
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(59,130,246,0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Explicit spacing classes */
 .hero-spacing {
-  margin-bottom: 48px !important;
+  margin-bottom: 24px !important;
 }
 
 .filter-spacing {
-  margin-bottom: 48px !important;
+  margin-bottom: 24px !important;
 }
 
 .chart-row-spacing {
-  margin-bottom: 64px !important;
+  margin-bottom: 32px !important;
 }
 
 .chart-mobile-spacing {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
 }
 
 @media (min-width: 1024px) {
