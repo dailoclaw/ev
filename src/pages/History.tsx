@@ -34,12 +34,7 @@ export default function History() {
     window.scrollTo(0, 0)
   }, [])
 
-  // Get unique charger types and years
-  const chargerTypes = useMemo(() => {
-    const types = Array.from(new Set(chargingData.map(s => s.Type))).sort()
-    return ['All', ...types]
-  }, [])
-
+  // Get unique years
   const years = useMemo(() => {
     const yearSet = new Set(chargingData.map(s => new Date(s.Date).getFullYear()))
     return ['All', ...Array.from(yearSet).sort().reverse()]
