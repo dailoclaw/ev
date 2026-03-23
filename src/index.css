@@ -30,16 +30,20 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial;
   color: var(--text);
   background:
+    linear-gradient(180deg, #000000 0px, var(--bg0) 60px),
     radial-gradient(1200px 600px at 10% 0%, rgba(59,130,246,0.10), transparent 60%),
     radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,0.06), transparent 62%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
   background-attachment: fixed;
+  /* iOS safe area support */
+  padding-top: env(safe-area-inset-top);
 }
 
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 22px 18px 26px;
+  padding-top: max(22px, calc(env(safe-area-inset-top, 0px) + 10px));
 }
 
 /* Glass morphism cards */
