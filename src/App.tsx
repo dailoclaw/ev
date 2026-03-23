@@ -312,7 +312,7 @@ function App() {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label
+                label={(entry) => `$${entry.value.toFixed(2)}`}
               >
                 {costByType.map((_item, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -356,7 +356,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.4.0
+        EV Charging Dashboard v2.4.1
       </div>
     </div>
     </>
