@@ -139,8 +139,8 @@ function App() {
       </div>
 
       {/* Filters */}
-      <div className="glass-card p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
               Charger Type
