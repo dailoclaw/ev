@@ -12,13 +12,10 @@ const formatMonth = (monthStr: string) => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-const CAR_IMAGES = ['/car1.jpg', '/car2.jpg', '/car3.jpg'];
-
 function App() {
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
   const [tableExpanded, setTableExpanded] = useState(false)
-  const [currentCarImage, setCurrentCarImage] = useState(0)
 
   // Get unique charger types and years
   const chargerTypes = useMemo(() => {
@@ -106,14 +103,12 @@ function App() {
       {/* Header */}
       <h1 className="app-title">⚡ EV Charging Dashboard</h1>
 
-      {/* Car Image - Click to cycle */}
+      {/* Car Image */}
       <div className="car-image-container mb-6">
         <img 
-          src={CAR_IMAGES[currentCarImage]}
+          src="/car.jpg"
           alt="EV Car" 
-          className="car-image clickable-car"
-          onClick={() => setCurrentCarImage((prev) => (prev + 1) % CAR_IMAGES.length)}
-          title="Click to change car view"
+          className="car-image"
         />
       </div>
 
@@ -297,7 +292,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v1.6.0
+        EV Charging Dashboard v1.6.3
       </div>
     </div>
   )
