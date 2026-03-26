@@ -111,6 +111,14 @@
 }
 
 /* Charger filter buttons */
+.charger-filter-button {
+  outline: none;
+}
+
+.charger-filter-button:focus {
+  outline: none;
+}
+
 .charger-filter-button:not([data-selected="true"]):hover {
   background: rgba(255,255,255,0.05) !important;
 }

@@ -55,7 +55,10 @@ export default function History() {
     <div className="app-container">
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={(e) => {
+            navigate('/')
+            e.currentTarget.blur()
+          }}
           className="glass-input"
           style={{ 
             padding: '10px 18px',
@@ -66,7 +69,8 @@ export default function History() {
             borderRadius: '10px',
             fontSize: '14px',
             fontWeight: 600,
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            outline: 'none',
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
           onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
@@ -82,7 +86,10 @@ export default function History() {
           {years.map(year => (
             <button
               key={year}
-              onClick={() => setSelectedYear(year.toString())}
+              onClick={(e) => {
+                setSelectedYear(year.toString())
+                e.currentTarget.blur()
+              }}
               style={{
                 padding: '8px 20px',
                 fontSize: '14px',
@@ -93,6 +100,7 @@ export default function History() {
                 transition: 'all 0.2s ease',
                 background: selectedYear === year.toString() ? 'rgba(59,130,246,0.3)' : 'transparent',
                 color: selectedYear === year.toString() ? '#ffffff' : 'var(--muted)',
+                outline: 'none',
               }}
             >
               {year}
@@ -108,7 +116,10 @@ export default function History() {
           {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
             <button
               key={type}
-              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
+              onClick={(e) => {
+                setSelectedType(selectedType === type ? 'All' : type)
+                e.currentTarget.blur() // Release focus to restore scrolling immediately
+              }}
               className="charger-filter-button"
               data-selected={selectedType === type}
               style={{
@@ -209,7 +220,7 @@ export default function History() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.9.0
+        EV Charging Dashboard v2.10.0
       </div>
     </div>
   )

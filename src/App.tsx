@@ -171,7 +171,10 @@ function App() {
           {years.map(year => (
             <button
               key={year}
-              onClick={() => setSelectedYear(year.toString())}
+              onClick={(e) => {
+                setSelectedYear(year.toString())
+                e.currentTarget.blur()
+              }}
               style={{
                 padding: '8px 20px',
                 fontSize: '14px',
@@ -182,6 +185,7 @@ function App() {
                 transition: 'all 0.2s ease',
                 background: selectedYear === year.toString() ? 'rgba(59,130,246,0.3)' : 'transparent',
                 color: selectedYear === year.toString() ? '#ffffff' : 'var(--muted)',
+                outline: 'none',
               }}
             >
               {year}
@@ -197,7 +201,10 @@ function App() {
           {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
             <button
               key={type}
-              onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
+              onClick={(e) => {
+                setSelectedType(selectedType === type ? 'All' : type)
+                e.currentTarget.blur() // Release focus to restore scrolling immediately
+              }}
               className="charger-filter-button"
               data-selected={selectedType === type}
               style={{
@@ -276,7 +283,10 @@ function App() {
       {/* History Button */}
       <div className="text-center mb-6">
         <button
-          onClick={() => navigate('/history')}
+          onClick={(e) => {
+            navigate('/history')
+            e.currentTarget.blur()
+          }}
           className="glass-input"
           style={{
             padding: '16px 48px',
@@ -288,6 +298,7 @@ function App() {
             color: 'var(--text)',
             borderRadius: '12px',
             transition: 'all 0.2s ease',
+            outline: 'none',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(59,130,246,0.25)'
@@ -304,7 +315,7 @@ function App() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.9.0
+        EV Charging Dashboard v2.10.0
       </div>
     </div>
     </>
