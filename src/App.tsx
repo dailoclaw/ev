@@ -198,16 +198,8 @@ function App() {
             <button
               key={type}
               onClick={() => setSelectedType(selectedType === type ? 'All' : type)}
-              onTouchStart={(e) => {
-                if (selectedType !== type) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                }
-              }}
-              onTouchEnd={(e) => {
-                if (selectedType !== type) {
-                  e.currentTarget.style.background = 'transparent'
-                }
-              }}
+              className="charger-filter-button"
+              data-selected={selectedType === type}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -217,18 +209,7 @@ function App() {
                 border: selectedType === type ? `2px solid ${getChargerColor(type)}` : '2px solid transparent',
                 background: selectedType === type ? `${getChargerColor(type)}15` : 'transparent',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                if (selectedType !== type) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedType !== type) {
-                  e.currentTarget.style.background = 'transparent'
-                }
+                transition: 'all 0.15s ease',
               }}
             >
               <div
@@ -258,17 +239,6 @@ function App() {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 chart-row-spacing">
-        {/* Monthly Cost Trend - 2 columns */}
-        <div className="lg:col-span-2 glass-card p-6 chart-mobile-spacing">
-          <h3 className="chart-heading">
-            <span>💰</span>
-            <span>Monthly Cost Trend</span>
-          </h3>
-          <div className="chart-wrapper">
-            <MonthlyCostChart data={monthlyData} />
-          </div>
-        </div>
-
         {/* Monthly Energy - 1 column */}
         <div className="glass-card p-6">
           <h3 className="chart-heading">
@@ -277,6 +247,17 @@ function App() {
           </h3>
           <div className="chart-wrapper">
             <MonthlyEnergyChart data={monthlyData} />
+          </div>
+        </div>
+
+        {/* Monthly Cost Trend - 2 columns */}
+        <div className="lg:col-span-2 glass-card p-6 chart-mobile-spacing">
+          <h3 className="chart-heading">
+            <span>💰</span>
+            <span>Monthly Cost Trend</span>
+          </h3>
+          <div className="chart-wrapper">
+            <MonthlyCostChart data={monthlyData} />
           </div>
         </div>
       </div>

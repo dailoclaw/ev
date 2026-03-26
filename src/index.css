@@ -24,6 +24,17 @@
 html {
   height: 100%;
   background-color: #000000;
+  /* Improve scroll performance and touch behavior */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent scroll delay on touch devices */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {

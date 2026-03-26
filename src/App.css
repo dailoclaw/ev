@@ -110,6 +110,15 @@
   display: inline-block;
 }
 
+/* Charger filter buttons */
+.charger-filter-button:not([data-selected="true"]):hover {
+  background: rgba(255,255,255,0.05) !important;
+}
+
+.charger-filter-button:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 768px) {
   .filter-row {
     flex-direction: column;
