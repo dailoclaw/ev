@@ -209,7 +209,7 @@ export default function History() {
 
       {/* Footer */}
       <div className="text-center app-version">
-        EV Charging Dashboard v2.8.0
+        EV Charging Dashboard v2.9.0
       </div>
     </div>
   )
