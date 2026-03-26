@@ -3,1351 +3,1351 @@
     "Date": "2025-05-25",
     "Type": "Matty",
     "Amount": 9.0,
-    "Total": 3.42,
+    "Cost": 3.42,
     "Notes": null
   },
   {
     "Date": "2025-05-27",
     "Type": "Chargefox",
     "Amount": 33.13,
-    "Total": 15.9,
+    "Cost": 15.9,
     "Notes": null
   },
   {
     "Date": "2025-05-30",
     "Type": "Matty",
     "Amount": 9.0,
-    "Total": 3.42,
+    "Cost": 3.42,
     "Notes": null
   },
   {
     "Date": "2025-06-01",
     "Type": "Supercharger",
     "Amount": 14.0,
-    "Total": 5.67,
+    "Cost": 5.67,
     "Notes": null
   },
   {
     "Date": "2025-06-03",
     "Type": "Jolt",
     "Amount": 7.003,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-06-07",
     "Type": "Jolt",
     "Amount": 12.851,
-    "Total": 3.39,
+    "Cost": 3.39,
     "Notes": null
   },
   {
     "Date": "2025-06-09",
     "Type": "Jolt",
     "Amount": 7.544,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-06-13",
     "Type": "Jolt",
     "Amount": 6.995,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-14",
     "Type": "Jolt",
     "Amount": 8.71,
-    "Total": 0.99,
+    "Cost": 0.99,
     "Notes": null
   },
   {
     "Date": "2025-06-15",
     "Type": "Supercharger",
     "Amount": 35.406,
-    "Total": 16.64,
+    "Cost": 16.64,
     "Notes": null
   },
   {
     "Date": "2025-06-15",
     "Type": "Matty",
     "Amount": 4.0,
-    "Total": 1.52,
+    "Cost": 1.52,
     "Notes": null
   },
   {
     "Date": "2025-06-17",
     "Type": "Jolt",
     "Amount": 6.524,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-18",
     "Type": "Jolt",
     "Amount": 6.968,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-20",
     "Type": "Jolt",
     "Amount": 5.562,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-21",
     "Type": "Jolt",
     "Amount": 6.993,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-22",
     "Type": "Matty",
     "Amount": 11.0,
-    "Total": 4.18,
+    "Cost": 4.18,
     "Notes": null
   },
   {
     "Date": "2025-06-24",
     "Type": "Jolt",
     "Amount": 7.064,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-06-26",
     "Type": "Jolt",
     "Amount": 6.798,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-06-27",
     "Type": "Matty",
     "Amount": 11.0,
-    "Total": 4.18,
+    "Cost": 4.18,
     "Notes": null
   },
   {
     "Date": "2025-06-29",
     "Type": "Matty",
     "Amount": 15.0,
-    "Total": 5.7,
+    "Cost": 5.7,
     "Notes": null
   },
   {
     "Date": "2025-06-30",
     "Type": "Jolt",
     "Amount": 7.027,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-07-02",
     "Type": "Jolt",
     "Amount": 7.062,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-07-03",
     "Type": "Jolt",
     "Amount": 11.735,
-    "Total": 2.75,
+    "Cost": 2.75,
     "Notes": null
   },
   {
     "Date": "2025-07-04",
     "Type": "Jolt",
     "Amount": 6.087,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-05",
     "Type": "Jolt",
     "Amount": 10.536,
-    "Total": 2.05,
+    "Cost": 2.05,
     "Notes": null
   },
   {
     "Date": "2025-07-06",
     "Type": "Matty",
     "Amount": 13.0,
-    "Total": 4.94,
+    "Cost": 4.94,
     "Notes": null
   },
   {
     "Date": "2025-07-09",
     "Type": "Jolt",
     "Amount": 6.958,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-10",
     "Type": "Jolt",
     "Amount": 10.246,
-    "Total": 2.04,
+    "Cost": 2.04,
     "Notes": null
   },
   {
     "Date": "2025-07-11",
     "Type": "Jolt",
     "Amount": 6.94,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-12",
     "Type": "Jolt",
     "Amount": 6.978,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-13",
     "Type": "Matty",
     "Amount": 14.0,
-    "Total": 5.32,
+    "Cost": 5.32,
     "Notes": null
   },
   {
     "Date": "2025-07-13",
     "Type": "Jolt",
     "Amount": 6.966,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-19",
     "Type": "Jolt",
     "Amount": 6.99,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-20",
     "Type": "Matty",
     "Amount": 13.0,
-    "Total": 4.94,
+    "Cost": 4.94,
     "Notes": null
   },
   {
     "Date": "2025-07-21",
     "Type": "Jolt",
     "Amount": 6.988,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-23",
     "Type": "Jolt",
     "Amount": 6.9983,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-24",
     "Type": "Jolt",
     "Amount": 7.024,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-07-26",
     "Type": "Jolt",
     "Amount": 6.959,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-30",
     "Type": "Jolt",
     "Amount": 6.978,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-07-31",
     "Type": "Jolt",
     "Amount": 7.024,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-08-01",
     "Type": "Jolt",
     "Amount": 7.0,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-08-02",
     "Type": "Jolt",
     "Amount": 11.534,
-    "Total": 2.86,
+    "Cost": 2.86,
     "Notes": null
   },
   {
     "Date": "2025-08-04",
     "Type": "Jolt",
     "Amount": 7.025,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-08-06",
     "Type": "Jolt",
     "Amount": 7.039,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2025-08-07",
     "Type": "Jolt",
     "Amount": 6.973,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-08",
     "Type": "Jolt",
     "Amount": 6.999,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-09",
     "Type": "Jolt",
     "Amount": 8.338,
-    "Total": 0.84,
+    "Cost": 0.84,
     "Notes": null
   },
   {
     "Date": "2025-08-11",
     "Type": "Jolt",
     "Amount": 6.954,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-12",
     "Type": "Jolt",
     "Amount": 6.953,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-13",
     "Type": "Jolt",
     "Amount": 6.996,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-14",
     "Type": "Jolt",
     "Amount": 6.986,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-15",
     "Type": "Jolt",
     "Amount": 6.382,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-16",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-18",
     "Type": "Jolt",
     "Amount": 6.962,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-19",
     "Type": "Jolt",
     "Amount": 6.952,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-20",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-22",
     "Type": "Jolt",
     "Amount": 6.928,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-23",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-25",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-30",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-08-31",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-01",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-02",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-03",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-04",
     "Type": "Jolt",
     "Amount": 6.945,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-05",
     "Type": "Jolt",
     "Amount": 6.944,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-06",
     "Type": "Jolt",
     "Amount": 6.925,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-08",
     "Type": "Jolt",
     "Amount": 6.949,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-10",
     "Type": "Jolt",
     "Amount": 6.932,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-12",
     "Type": "Jolt",
     "Amount": 6.951,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-13",
     "Type": "Jolt",
     "Amount": 6.996,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-14",
     "Type": "Jolt",
     "Amount": 6.933,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-15",
     "Type": "Jolt",
     "Amount": 6.963,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-16",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-19",
     "Type": "Jolt",
     "Amount": 6.939,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-20",
     "Type": "Jolt",
     "Amount": 6.961,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-21",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-22",
     "Type": "Jolt",
     "Amount": 6.94,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-24",
     "Type": "Jolt",
     "Amount": 6.96,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-26",
     "Type": "Jolt",
     "Amount": 6.939,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-27",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-29",
     "Type": "Jolt",
     "Amount": 6.921,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-09-30",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-01",
     "Type": "Jolt",
     "Amount": 6.927,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-03",
     "Type": "Jolt",
     "Amount": 6.921,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-08",
     "Type": "Jolt",
     "Amount": 6.925,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-10",
     "Type": "Jolt",
     "Amount": 6.852,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-11",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-13",
     "Type": "Jolt",
     "Amount": 6.922,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-14",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-17",
     "Type": "Jolt",
     "Amount": 6.924,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-18",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-19",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-20",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-21",
     "Type": "Jolt",
     "Amount": 7.787,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-22",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-23",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-24",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-25",
     "Type": "Jolt",
     "Amount": 6.923,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-26",
     "Type": "Jolt",
     "Amount": 6.955,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-29",
     "Type": "Jolt",
     "Amount": 6.978,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-30",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-10-31",
     "Type": "Jolt",
     "Amount": 6.944,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-01",
     "Type": "Jolt",
     "Amount": 6.953,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-03",
     "Type": "Jolt",
     "Amount": 6.954,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-04",
     "Type": "Jolt",
     "Amount": 6.972,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-05",
     "Type": "Jolt",
     "Amount": 6.928,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-06",
     "Type": "Jolt",
     "Amount": 6.964,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-07",
     "Type": "Jolt",
     "Amount": 6.931,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-08",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-11-10",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-03",
     "Type": "Jolt",
     "Amount": 4.107,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-06",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-08",
     "Type": "Jolt",
     "Amount": 6.953,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-10",
     "Type": "Jolt",
     "Amount": 6.122,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-13",
     "Type": "Jolt",
     "Amount": 6.931,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-16",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-17",
     "Type": "Jolt",
     "Amount": 6.951,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-20",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-22",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-23",
     "Type": "Jolt",
     "Amount": 6.935,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-24",
     "Type": "Jolt",
     "Amount": 6.935,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-25",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-26",
     "Type": "Jolt",
     "Amount": 6.935,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-27",
     "Type": "Jolt",
     "Amount": 6.959,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-28",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-29",
     "Type": "Jolt",
     "Amount": 6.925,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-30",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2025-12-31",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-01",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-02",
     "Type": "Jolt",
     "Amount": 7.111,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2026-01-03",
     "Type": "Jolt",
     "Amount": 6.932,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-05",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-06",
     "Type": "Jolt",
     "Amount": 6.961,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-07",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-08",
     "Type": "Jolt",
     "Amount": 6.93,
-    "Total": 15.0,
+    "Cost": 15.0,
     "Notes": "*Monthly charge"
   },
   {
     "Date": "2026-01-09",
     "Type": "Jolt",
     "Amount": 6.99,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-10",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-11",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-12",
     "Type": "Jolt",
     "Amount": 6.943,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-13",
     "Type": "Jolt",
     "Amount": 6.925,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-14",
     "Type": "Jolt",
     "Amount": 6.936,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-15",
     "Type": "Jolt",
     "Amount": 6.975,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-16",
     "Type": "Jolt",
     "Amount": 7.0,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2026-01-17",
     "Type": "Jolt",
     "Amount": 6.951,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-19",
     "Type": "Jolt",
     "Amount": 6.954,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-20",
     "Type": "Jolt",
     "Amount": 0.79,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-21",
     "Type": "Jolt",
     "Amount": 6.952,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-22",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-23",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-24",
     "Type": "Jolt",
     "Amount": 6.935,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-25",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-26",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-27",
     "Type": "Jolt",
     "Amount": 7.566,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2026-01-29",
     "Type": "Jolt",
     "Amount": 6.913,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-30",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-01-31",
     "Type": "Jolt",
     "Amount": 6.941,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-01",
     "Type": "Jolt",
     "Amount": 6.924,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-02",
     "Type": "Jolt",
     "Amount": 6.942,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-03",
     "Type": "Jolt",
     "Amount": 6.937,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-04",
     "Type": "Jolt",
     "Amount": 7.015,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2026-02-06",
     "Type": "Jolt",
     "Amount": 6.948,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-07",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-08",
     "Type": "Jolt",
-    "Amount": NaN,
-    "Total": 15.0,
+    "Amount": 0.0,
+    "Cost": 15.0,
     "Notes": "*Monthly charge"
   },
   {
     "Date": "2026-02-09",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-10",
     "Type": "Jolt",
     "Amount": 6.959,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-13",
     "Type": "Jolt",
     "Amount": 11.284,
-    "Total": 1.97,
+    "Cost": 1.97,
     "Notes": null
   },
   {
     "Date": "2026-02-14",
     "Type": "Jolt",
     "Amount": 13.588,
-    "Total": 2.46,
+    "Cost": 2.46,
     "Notes": null
   },
   {
     "Date": "2026-02-16",
     "Type": "Jolt",
     "Amount": 6.911,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-17",
     "Type": "Jolt",
     "Amount": 6.946,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-18",
     "Type": "Jolt",
     "Amount": 9.953,
-    "Total": 1.36,
+    "Cost": 1.36,
     "Notes": null
   },
   {
     "Date": "2026-02-19",
     "Type": "Jolt",
     "Amount": 6.947,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-20",
     "Type": "Jolt",
     "Amount": 7.871,
-    "Total": 0.5,
+    "Cost": 0.5,
     "Notes": null
   },
   {
     "Date": "2026-02-21",
     "Type": "Jolt",
     "Amount": 6.944,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-23",
     "Type": "Jolt",
     "Amount": 6.929,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-02-24",
     "Type": "Supercharger",
     "Amount": 42.5512,
-    "Total": 17.02,
+    "Cost": 17.02,
     "Notes": null
   },
   {
     "Date": "2026-02-27",
     "Type": "Jolt",
     "Amount": 9.585,
-    "Total": 1.19,
+    "Cost": 1.19,
     "Notes": null
   },
   {
     "Date": "2026-02-28",
     "Type": "Jolt",
     "Amount": 8.988,
-    "Total": 1.19,
+    "Cost": 1.19,
     "Notes": null
   },
   {
     "Date": "2026-03-03",
     "Type": "Jolt",
     "Amount": 11.588,
-    "Total": 2.75,
+    "Cost": 2.75,
     "Notes": null
   },
   {
     "Date": "2026-03-04",
     "Type": "Jolt",
     "Amount": 6.928,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-06",
     "Type": "Jolt",
     "Amount": 6.928,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-08",
     "Type": "Jolt",
-    "Amount": NaN,
-    "Total": 15.0,
+    "Amount": 0.0,
+    "Cost": 15.0,
     "Notes": "*Monthly charge"
   },
   {
     "Date": "2026-03-09",
     "Type": "Jolt",
     "Amount": 6.94,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-10",
     "Type": "Jolt",
     "Amount": 6.926,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-11",
     "Type": "Jolt",
     "Amount": 6.9641,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-13",
     "Type": "Jolt",
     "Amount": 6.986,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-14",
     "Type": "Jolt",
     "Amount": 12.237,
-    "Total": 3.14,
+    "Cost": 3.14,
     "Notes": null
   },
   {
     "Date": "2026-03-16",
     "Type": "Jolt",
     "Amount": 6.908,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-21",
     "Type": "Jolt",
     "Amount": 14.615,
-    "Total": 4.57,
+    "Cost": 4.57,
     "Notes": null
   },
   {
     "Date": "2026-03-23",
     "Type": "Jolt",
     "Amount": 6.927,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-24",
     "Type": "Jolt",
     "Amount": 12.556,
-    "Total": 3.33,
+    "Cost": 3.33,
     "Notes": null
   },
   {
     "Date": "2026-03-25",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   },
   {
     "Date": "2026-03-27",
     "Type": "Jolt",
     "Amount": 6.934,
-    "Total": 0.0,
+    "Cost": 0.0,
     "Notes": null
   }
 ]
