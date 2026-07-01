@@ -2,7 +2,7 @@
   width: min(100%, 520px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: max(18px, calc(env(safe-area-inset-top, 0px) + 14px)) 14px calc(104px + env(safe-area-inset-bottom, 0px));
+  padding: max(8px, env(safe-area-inset-top, 0px)) 14px calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
 .mobile-appbar {
@@ -498,7 +498,7 @@ button.session-row {
 
 @media (min-width: 768px) {
   .app-shell {
-    padding-top: 28px;
+    padding-top: 10px;
   }
 
   .chart-card {

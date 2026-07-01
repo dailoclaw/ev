@@ -47,7 +47,7 @@ body {
     radial-gradient(360px 260px at 88% 4%, rgba(20, 184, 166, 0.16), transparent 68%),
     linear-gradient(180deg, #050507 0%, #0f1020 58%, #080911 100%);
   background-attachment: fixed;
-  padding-top: env(safe-area-inset-top);
+  padding-top: 0;
 }
 
 button,
