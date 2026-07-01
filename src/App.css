@@ -423,7 +423,9 @@ button.session-row {
 }
 
 .bottom-nav button {
+  display: grid;
   min-height: 34px;
+  place-items: center;
   border-radius: 0;
   background: transparent;
   color: var(--muted);
@@ -441,13 +443,15 @@ button.session-row {
 }
 
 .bottom-nav button.active span {
+  display: block;
   position: relative;
+  line-height: 1;
 }
 
 .bottom-nav button.active span::before {
   content: "";
   position: absolute;
-  top: -5px;
+  top: -8px;
   left: 50%;
   width: 18px;
   height: 2px;
