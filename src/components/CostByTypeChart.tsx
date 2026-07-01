@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
+const COLORS = ['#6366f1', '#14b8a6', '#8b5cf6', '#f43f5e']
 
 interface CostData {
   type: string
@@ -16,7 +16,7 @@ interface Props {
 
 const CostByTypeChart = memo(({ data }: Props) => {
   return (
-    <ResponsiveContainer width="100%" height={320}>
+    <ResponsiveContainer width="100%" height={240}>
       <PieChart>
         <Pie
           data={data}
@@ -24,8 +24,10 @@ const CostByTypeChart = memo(({ data }: Props) => {
           nameKey="type"
           cx="50%"
           cy="50%"
-          outerRadius={100}
-          label={(entry) => `$${entry.value.toFixed(2)}`}
+          innerRadius={48}
+          outerRadius={78}
+          paddingAngle={3}
+          label={(entry) => `$${entry.value.toFixed(0)}`}
           isAnimationActive={false}
         >
           {data.map((_item, index) => (

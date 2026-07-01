@@ -15,21 +15,21 @@ interface Props {
 
 const MonthlyCostChart = memo(({ data }: Props) => {
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-        <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 11 }} />
-        <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+    <ResponsiveContainer width="100%" height={240}>
+      <LineChart data={data} margin={{ top: 8, right: 10, bottom: 6, left: -16 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+        <XAxis dataKey="monthLabel" stroke="rgba(203,213,225,0.62)" style={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+        <YAxis stroke="rgba(203,213,225,0.62)" style={{ fontSize: 10 }} tickLine={false} axisLine={false} />
         <Tooltip />
         <Legend />
         <Line 
           type="monotone" 
           dataKey="cost" 
-          stroke="#3b82f6" 
+          stroke="#6366f1" 
           strokeWidth={3} 
           name="Cost ($)" 
-          dot={{ r: 5, fill: '#3b82f6' }}
-          activeDot={{ r: 7 }}
+          dot={{ r: 4, fill: '#6366f1', strokeWidth: 0 }}
+          activeDot={{ r: 6, fill: '#ffffff', stroke: '#6366f1', strokeWidth: 3 }}
           isAnimationActive={false}
         />
       </LineChart>

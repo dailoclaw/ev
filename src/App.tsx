@@ -1,84 +1,86 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { chargingData } from './data/evData'
-import SplashScreen from './components/SplashScreen'
+import { chargingData, type ChargingSession } from './data/evData'
 import MonthlyCostChart from './components/MonthlyCostChart'
 import MonthlyEnergyChart from './components/MonthlyEnergyChart'
 import CostByTypeChart from './components/CostByTypeChart'
 import './App.css'
 
-// Month name formatting
+const chargerTypes = ['Jolt', 'Matty', 'Chargefox', 'Supercharger']
+
 const formatMonth = (monthStr: string) => {
   const [year, month] = monthStr.split('-')
   const date = new Date(parseInt(year), parseInt(month) - 1)
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  return date.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })
 }
 
-// Charger type icons (first letter)
+const formatShortDate = (dateStr: string) => (
+  new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+)
+
 const getChargerIcon = (type: string) => {
   const icons: Record<string, string> = {
-    'Jolt': 'J',
-    'Matty': 'M',
-    'Chargefox': 'C',
-    'Supercharger': 'S'
+    Jolt: 'J',
+    Matty: 'M',
+    Chargefox: 'C',
+    Supercharger: 'S',
   }
   return icons[type] || type.charAt(0).toUpperCase()
 }
 
 const getChargerColor = (type: string) => {
   const colors: Record<string, string> = {
-    'Jolt': '#10b981',
-    'Matty': '#3b82f6',
-    'Chargefox': '#8b5cf6',
-    'Supercharger': '#ef4444'
+    Jolt: '#14b8a6',
+    Matty: '#6366f1',
+    Chargefox: '#8b5cf6',
+    Supercharger: '#f43f5e',
   }
-  return colors[type] || '#6b7280'
+  return colors[type] || '#94a3b8'
 }
 
-// Car image carousel - original plus 5 new photos
-const CAR_IMAGES = ['/car.jpg', '/car1.jpg', '/car2.jpg', '/car3.jpg', '/car4.jpg', '/car5.jpg'];
+const getSessionRate = (session: ChargingSession) => (
+  session.Amount > 0 ? session.Cost / session.Amount : 0
+)
 
 function App() {
   const navigate = useNavigate()
   const [selectedType, setSelectedType] = useState('All')
   const [selectedYear, setSelectedYear] = useState('All')
-  const [currentCarImage, setCurrentCarImage] = useState(0)
-  const [splashComplete, setSplashComplete] = useState(false)
 
-  // Get unique years
   const years = useMemo(() => {
     const yearSet = new Set(chargingData.map(s => new Date(s.Date).getFullYear()))
     return ['All', ...Array.from(yearSet).sort().reverse()]
   }, [])
 
-  // Filter data
   const filteredData = useMemo(() => {
     return chargingData.filter(session => {
-      const matchType = selectedType === 'All' || session.Type === selectedType
       const sessionYear = new Date(session.Date).getFullYear().toString()
-      const matchYear = selectedYear === 'All' || sessionYear === selectedYear
-      
-      return matchType && matchYear
+      return (
+        (selectedType === 'All' || session.Type === selectedType) &&
+        (selectedYear === 'All' || sessionYear === selectedYear)
+      )
     })
   }, [selectedType, selectedYear])
 
-  // Summary stats
+  const sortedFilteredData = useMemo(() => {
+    return [...filteredData].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())
+  }, [filteredData])
+
   const stats = useMemo(() => {
     const totalCost = filteredData.reduce((sum, s) => sum + s.Cost, 0)
     const totalKwh = filteredData.reduce((sum, s) => sum + s.Amount, 0)
     const avgCostPerKwh = totalKwh > 0 ? totalCost / totalKwh : 0
     const avgCostPerSession = filteredData.length > 0 ? totalCost / filteredData.length : 0
-    
+
     return {
       totalSessions: filteredData.length,
       totalCost: totalCost.toFixed(2),
-      totalKwh: totalKwh.toFixed(2),
+      totalKwh: totalKwh.toLocaleString('en-AU', { maximumFractionDigits: 0 }),
       avgCostPerKwh: avgCostPerKwh.toFixed(3),
       avgCostPerSession: avgCostPerSession.toFixed(2),
     }
   }, [filteredData])
 
-  // Cost by charger type
   const costByType = useMemo(() => {
     const grouped = filteredData.reduce((acc, session) => {
       if (!acc[session.Type]) {
@@ -89,7 +91,7 @@ function App() {
       acc[session.Type].count += 1
       return acc
     }, {} as Record<string, { type: string, cost: number, kwh: number, count: number }>)
-    
+
     return Object.values(grouped).map(item => ({
       ...item,
       cost: Number(item.cost.toFixed(2)),
@@ -97,12 +99,11 @@ function App() {
     }))
   }, [filteredData])
 
-  // Monthly trends
   const monthlyData = useMemo(() => {
     const grouped = filteredData.reduce((acc, session) => {
       const date = new Date(session.Date)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      
+
       if (!acc[monthKey]) {
         acc[monthKey] = { month: monthKey, monthLabel: formatMonth(monthKey), cost: 0, kwh: 0, sessions: 0 }
       }
@@ -111,7 +112,7 @@ function App() {
       acc[monthKey].sessions += 1
       return acc
     }, {} as Record<string, { month: string, monthLabel: string, cost: number, kwh: number, sessions: number }>)
-    
+
     return Object.values(grouped)
       .sort((a, b) => a.month.localeCompare(b.month))
       .map(item => ({
@@ -121,204 +122,179 @@ function App() {
       }))
   }, [filteredData])
 
+  const recentSessions = sortedFilteredData.slice(0, 4)
+
   return (
-    <>
-      <SplashScreen onComplete={() => setSplashComplete(true)} />
-      <div className="app-container" style={{ visibility: splashComplete ? 'visible' : 'hidden' }}>
-      {/* Header */}
-      <h1 className="app-title">⚡ EV Charging Dashboard</h1>
-
-      {/* Car Image - Click to cycle through photos */}
-      <div className="car-image-container" style={{ marginBottom: '32px' }}>
-        <img 
-          src={CAR_IMAGES[currentCarImage]}
-          alt="EV Car" 
-          className="car-image clickable-car"
-          onClick={() => setCurrentCarImage((prev) => (prev + 1) % CAR_IMAGES.length)}
-          title="Click to see more photos"
-        />
-      </div>
-
-      {/* Hero Card with 5 stats */}
-      <div className="hero-card hero-spacing">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-12">
-          <div>
-            <div className="hero-value">${stats.totalCost}</div>
-            <div className="hero-label">Total Spent</div>
-          </div>
-          <div>
-            <div className="hero-value">{stats.totalKwh}</div>
-            <div className="hero-label">kWh Charged</div>
-          </div>
-          <div>
-            <div className="hero-value">{stats.totalSessions}</div>
-            <div className="hero-label">Sessions</div>
-          </div>
-          <div>
-            <div className="hero-value">${stats.avgCostPerKwh}</div>
-            <div className="hero-label">Avg $/kWh</div>
-          </div>
-          <div>
-            <div className="hero-value">${stats.avgCostPerSession}</div>
-            <div className="hero-label">Avg/Session</div>
-          </div>
+    <main className="app-shell">
+      <header className="mobile-appbar">
+        <div>
+          <p className="eyebrow">EV Command</p>
+          <h1>Overview</h1>
+          <span>{selectedType === 'All' ? 'All chargers' : selectedType} · {selectedYear === 'All' ? 'All years' : selectedYear}</span>
         </div>
-      </div>
-
-      {/* Year Filter Toggle */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ display: 'inline-flex', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          {years.map(year => (
-            <button
-              key={year}
-              onClick={(e) => {
-                setSelectedYear(year.toString())
-                e.currentTarget.blur()
-              }}
-              style={{
-                padding: '8px 20px',
-                fontSize: '14px',
-                fontWeight: 600,
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                background: selectedYear === year.toString() ? 'rgba(59,130,246,0.3)' : 'transparent',
-                color: selectedYear === year.toString() ? '#ffffff' : 'var(--muted)',
-                outline: 'none',
-              }}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Clickable Legend for Charger Type Filter */}
-      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px', borderRadius: '12px' }}>
-        <h4 style={{ color: 'var(--text)', fontSize: '13px', fontWeight: 600, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Filter by Charger Type</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-          {['Jolt', 'Matty', 'Chargefox', 'Supercharger'].map(type => (
-            <button
-              key={type}
-              onClick={(e) => {
-                setSelectedType(selectedType === type ? 'All' : type)
-                e.currentTarget.blur() // Release focus to restore scrolling immediately
-              }}
-              className="charger-filter-button"
-              data-selected={selectedType === type}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '12px',
-                borderRadius: '10px',
-                border: selectedType === type ? `2px solid ${getChargerColor(type)}` : '2px solid transparent',
-                background: selectedType === type ? `${getChargerColor(type)}15` : 'transparent',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                  background: `${getChargerColor(type)}20`,
-                  color: getChargerColor(type),
-                  flexShrink: 0,
-                }}
-              >
-                {getChargerIcon(type)}
-              </div>
-              <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, flex: 1 }}>
-                {type}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 chart-row-spacing">
-        {/* Monthly Energy - 1 column */}
-        <div className="glass-card p-6">
-          <h3 className="chart-heading">
-            <span>⚡</span>
-            <span>Monthly Energy</span>
-          </h3>
-          <div className="chart-wrapper">
-            <MonthlyEnergyChart data={monthlyData} />
-          </div>
-        </div>
-
-        {/* Monthly Cost Trend - 2 columns */}
-        <div className="lg:col-span-2 glass-card p-6 chart-mobile-spacing">
-          <h3 className="chart-heading">
-            <span>💰</span>
-            <span>Monthly Cost Trend</span>
-          </h3>
-          <div className="chart-wrapper">
-            <MonthlyCostChart data={monthlyData} />
-          </div>
-        </div>
-      </div>
-
-      {/* Cost by Type - Full Width */}
-      <div className="glass-card p-6 chart-row-spacing">
-        <h3 className="chart-heading">
-          <span>🔌</span>
-          <span>Cost by Charger Type</span>
-        </h3>
-        <div className="chart-wrapper">
-          <CostByTypeChart data={costByType} />
-        </div>
-      </div>
-
-      {/* History Button */}
-      <div className="text-center mb-6">
-        <button
-          onClick={(e) => {
-            navigate('/history')
-            e.currentTarget.blur()
-          }}
-          className="glass-input"
-          style={{
-            padding: '16px 48px',
-            fontSize: '16px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(59,130,246,0.15)',
-            color: 'var(--text)',
-            borderRadius: '12px',
-            transition: 'all 0.2s ease',
-            outline: 'none',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(59,130,246,0.25)'
-            e.currentTarget.style.transform = 'translateY(-2px)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(59,130,246,0.15)'
-            e.currentTarget.style.transform = 'translateY(0)'
-          }}
-        >
-          📋 View Charging History
+        <button className="icon-button" type="button" aria-label="Open charging history" onClick={() => navigate('/history')}>
+          →
         </button>
-      </div>
+      </header>
 
-      {/* Footer */}
-      <div className="text-center app-version">
-        EV Charging Dashboard v2.10.0
-      </div>
+      <section className="segmented-control" aria-label="Filter by year">
+        {years.map(year => {
+          const yearValue = year.toString()
+          return (
+            <button
+              key={yearValue}
+              type="button"
+              className={selectedYear === yearValue ? 'active' : ''}
+              onClick={() => setSelectedYear(yearValue)}
+            >
+              {yearValue === 'All' ? 'All' : yearValue}
+            </button>
+          )
+        })}
+      </section>
+
+      <section className="ledger-hero">
+        <span className="hero-caption">Total spent</span>
+        <strong>${stats.totalCost}</strong>
+        <p>{stats.totalSessions} charging sessions · {stats.totalKwh} kWh added</p>
+      </section>
+
+      <section className="metric-grid" aria-label="Charging summary">
+        <article className="metric-card">
+          <span>Energy</span>
+          <strong>{stats.totalKwh}</strong>
+          <small>kWh charged</small>
+        </article>
+        <article className="metric-card">
+          <span>Sessions</span>
+          <strong>{stats.totalSessions}</strong>
+          <small>recorded stops</small>
+        </article>
+        <article className="metric-card">
+          <span>Rate</span>
+          <strong>${stats.avgCostPerKwh}</strong>
+          <small>avg / kWh</small>
+        </article>
+        <article className="metric-card">
+          <span>Avg stop</span>
+          <strong>${stats.avgCostPerSession}</strong>
+          <small>per session</small>
+        </article>
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <h2>Chargers</h2>
+            <p>Tap a provider to focus the ledger.</p>
+          </div>
+          {selectedType !== 'All' && (
+            <button className="text-button" type="button" onClick={() => setSelectedType('All')}>
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="provider-chip-row" aria-label="Filter by charger type">
+          {chargerTypes.map(type => {
+            const color = getChargerColor(type)
+            const providerStats = costByType.find(item => item.type === type)
+            const isActive = selectedType === type
+
+            return (
+              <button
+                key={type}
+                type="button"
+                className={`provider-chip ${isActive ? 'active' : ''}`}
+                style={{ '--provider': color } as CSSProperties}
+                onClick={() => setSelectedType(isActive ? 'All' : type)}
+              >
+                <span className="provider-mark">{getChargerIcon(type)}</span>
+                <span>
+                  <strong>{type}</strong>
+                  <small>{providerStats ? `${providerStats.count} sessions` : '0 sessions'}</small>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <h2>Insights</h2>
+            <p>Cost and energy trends for the active filter.</p>
+          </div>
+        </div>
+        <article className="chart-card">
+          <h3>Monthly cost</h3>
+          <MonthlyCostChart data={monthlyData} />
+        </article>
+        <article className="chart-card">
+          <h3>Monthly energy</h3>
+          <MonthlyEnergyChart data={monthlyData} />
+        </article>
+        <article className="chart-card compact-chart">
+          <h3>Provider split</h3>
+          <CostByTypeChart data={costByType} />
+        </article>
+      </section>
+
+      <section className="section-block bottom-spacer">
+        <div className="section-heading">
+          <div>
+            <h2>Recent sessions</h2>
+            <p>Latest records from your filtered ledger.</p>
+          </div>
+          <button className="text-button" type="button" onClick={() => navigate('/history')}>
+            View all
+          </button>
+        </div>
+
+        {recentSessions.length > 0 ? (
+          <div className="session-list">
+            {recentSessions.map((session, index) => (
+              <article className="session-row" key={`${session.Date}-${session.Type}-${index}`}>
+                <span className="provider-mark" style={{ '--provider': getChargerColor(session.Type) } as CSSProperties}>
+                  {getChargerIcon(session.Type)}
+                </span>
+                <div>
+                  <strong>{session.Type}</strong>
+                  <small>{formatShortDate(session.Date)} · {session.Amount.toFixed(1)} kWh · ${getSessionRate(session).toFixed(3)}/kWh</small>
+                </div>
+                <b>${session.Cost.toFixed(2)}</b>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <EmptyState onReset={() => {
+            setSelectedType('All')
+            setSelectedYear('All')
+          }} />
+        )}
+      </section>
+
+      <nav className="bottom-nav" aria-label="Primary">
+        <button className="active" type="button" aria-current="page">
+          <span>Overview</span>
+        </button>
+        <button type="button" onClick={() => navigate('/history')}>
+          <span>History</span>
+        </button>
+      </nav>
+    </main>
+  )
+}
+
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="empty-state">
+      <strong>No matching sessions</strong>
+      <p>Clear the charger or year filter to restore your charging ledger.</p>
+      <button className="primary-button" type="button" onClick={onReset}>
+        Clear filters
+      </button>
     </div>
-    </>
   )
 }
 

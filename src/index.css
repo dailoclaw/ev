@@ -3,16 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --bg0: #07070a;
-  --bg1: #0b0b10;
-  --glass: rgba(255,255,255,0.06);
-  --border: rgba(255,255,255,0.10);
-  --text: rgba(255,255,255,0.92);
-  --muted: rgba(255,255,255,0.60);
-  
-  /* Electric Blue accent (instead of copper) */
-  --accent: rgba(59,130,246,0.95);
-  --accentSoft: rgba(59,130,246,0.22);
+  color-scheme: dark;
+  --bg0: #050507;
+  --bg1: #0f1020;
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --surface-muted: rgba(255, 255, 255, 0.045);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: rgba(248, 250, 252, 0.96);
+  --muted: rgba(203, 213, 225, 0.68);
+  --faint: rgba(148, 163, 184, 0.52);
+  --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.18);
+  --energy: #14b8a6;
+  --energy-soft: rgba(20, 184, 166, 0.18);
+  --danger: #f43f5e;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
 }
 
 * {
@@ -22,284 +31,79 @@
 }
 
 html {
-  height: 100%;
-  background-color: #000000;
-  /* Improve scroll performance and touch behavior */
+  min-height: 100%;
+  background: var(--bg0);
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
 
-/* Prevent scroll delay on touch devices */
-button, a, [role="button"] {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
 body {
-  margin: 0;
   min-height: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial;
+  margin: 0;
   color: var(--text);
-  background-color: var(--bg0);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background:
-    linear-gradient(180deg, #000000 0px, var(--bg0) 60px),
-    radial-gradient(1200px 600px at 10% 0%, rgba(59,130,246,0.10), transparent 60%),
-    radial-gradient(900px 600px at 80% 10%, rgba(255,255,255,0.06), transparent 62%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
+    radial-gradient(460px 300px at 12% -8%, rgba(99, 102, 241, 0.25), transparent 65%),
+    radial-gradient(360px 260px at 88% 4%, rgba(20, 184, 166, 0.16), transparent 68%),
+    linear-gradient(180deg, #050507 0%, #0f1020 58%, #080911 100%);
   background-attachment: fixed;
-  /* iOS safe area support */
   padding-top: env(safe-area-inset-top);
 }
 
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 22px 18px 26px;
-  padding-top: max(22px, calc(env(safe-area-inset-top, 0px) + 10px));
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Glass morphism cards */
-.glass-card {
-  background: var(--glass);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: all 0.2s ease;
+button {
+  border: 0;
+  color: inherit;
+  font: inherit;
 }
 
-.glass-card:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.15);
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(129, 140, 248, 0.9);
+  outline-offset: 3px;
 }
 
-/* Hero card */
-.hero-card {
-  background:
-    radial-gradient(600px 300px at 10% 0%, var(--accentSoft), transparent 70%),
-    rgba(255,255,255,0.06);
-  border: 1px solid rgba(59,130,246,0.25);
-  border-radius: 20px;
-  padding: 32px 24px;
-  backdrop-filter: blur(12px);
-  margin-bottom: 24px;
+::selection {
+  background: rgba(99, 102, 241, 0.4);
 }
 
-@media (min-width: 768px) {
-  .hero-card {
-    padding: 40px 32px;
-  }
-}
-
-.hero-value {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.0;
-  background: linear-gradient(135deg, #fff 0%, rgba(59,130,246,0.8) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
-  margin-top: 0;
-}
-
-.hero-label {
-  font-size: 13px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 500;
-  margin-top: 0;
-}
-
-/* Stat cards */
-.stat-card-modern {
-  background: var(--glass);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  text-align: center;
-  backdrop-filter: blur(12px);
-  transition: all 0.2s ease;
-}
-
-.stat-card-modern:hover {
-  transform: translateY(-2px);
-  border-color: rgba(59,130,246,0.3);
-  box-shadow: 0 8px 32px rgba(59,130,246,0.15);
-}
-
-.stat-icon-modern {
-  font-size: 32px;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 2px 8px rgba(59,130,246,0.3));
-}
-
-.stat-value-modern {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.stat-label-modern {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* Form inputs */
-.glass-input {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: var(--text);
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.glass-input:focus {
-  outline: none;
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(59,130,246,0.5);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-}
-
-.glass-input::placeholder {
-  color: rgba(255,255,255,0.4);
-}
-
-/* Select dropdown */
-select.glass-input {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
-select.glass-input option {
-  background: #0b0b10;
-  color: var(--text);
-  padding: 8px;
-}
-
-/* Chart containers */
-.chart-wrapper {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 16px;
-  backdrop-filter: blur(8px);
-}
-
-/* Table */
-.glass-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.glass-table thead th {
-  background: rgba(255,255,255,0.04);
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.glass-table tbody td {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: var(--text);
-}
-
-.glass-table tbody tr:hover {
-  background: rgba(255,255,255,0.03);
-}
-
-.glass-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* Badge */
-.charger-badge-modern {
-  display: inline-block;
-  background: var(--accentSoft);
-  color: var(--accent);
-  border: 1px solid rgba(59,130,246,0.3);
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.25);
-}
-
-/* Recharts customization */
 .recharts-tooltip-wrapper {
   outline: none;
 }
 
 .recharts-default-tooltip {
-  background: rgba(11,11,16,0.95) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
+  background: rgba(15, 16, 32, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 12px !important;
-  backdrop-filter: blur(12px) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.42) !important;
 }
 
 .recharts-tooltip-label {
   color: var(--text) !important;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-weight: 760;
 }
 
-.recharts-tooltip-item {
-  color: rgba(255,255,255,0.8) !important;
-}
-
+.recharts-tooltip-item,
 .recharts-legend-item-text {
   color: var(--muted) !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .hero-value {
-    font-size: 36px;
-  }
-  
-  .stat-value-modern {
-    font-size: 22px;
-  }
-  
-  .app-container {
-    padding: 16px 12px;
-  }
 }

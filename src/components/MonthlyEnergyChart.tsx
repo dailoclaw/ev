@@ -15,14 +15,14 @@ interface Props {
 
 const MonthlyEnergyChart = memo(({ data }: Props) => {
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-        <XAxis dataKey="monthLabel" stroke="rgba(255,255,255,0.6)" style={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-        <YAxis stroke="rgba(255,255,255,0.6)" style={{ fontSize: 12 }} />
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data} margin={{ top: 8, right: 10, bottom: 20, left: -16 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+        <XAxis dataKey="monthLabel" stroke="rgba(203,213,225,0.62)" style={{ fontSize: 10 }} angle={-35} textAnchor="end" height={54} tickLine={false} axisLine={false} />
+        <YAxis stroke="rgba(203,213,225,0.62)" style={{ fontSize: 10 }} tickLine={false} axisLine={false} />
         <Tooltip />
         <Legend />
-        <Bar dataKey="kwh" fill="#10b981" name="kWh" radius={[8, 8, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey="kwh" fill="#14b8a6" name="kWh" radius={[8, 8, 0, 0]} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
   )
