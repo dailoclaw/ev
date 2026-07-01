@@ -274,6 +274,10 @@ function App() {
         )}
       </section>
 
+      <footer className="app-footer">
+        EV Charging Dashboard v2.10.0
+      </footer>
+
       <nav className="bottom-nav" aria-label="Primary">
         <button className="active" type="button" aria-current="page">
           <span>Overview</span>

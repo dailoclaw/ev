@@ -196,6 +196,10 @@ export default function History() {
         )}
       </section>
 
+      <footer className="app-footer">
+        EV Charging Dashboard v2.10.0
+      </footer>
+
       {selectedSession && (
         <div className="sheet-backdrop" role="presentation" onClick={() => setSelectedSession(null)}>
           <aside

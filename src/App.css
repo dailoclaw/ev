@@ -428,9 +428,10 @@ button.session-row {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 16px;
   font-weight: 820;
   letter-spacing: 0.01em;
+  line-height: 1;
   transition: color 160ms ease, background 160ms ease;
 }
 
@@ -453,6 +454,16 @@ button.session-row {
   border-radius: 999px;
   background: var(--energy);
   transform: translateX(-50%);
+}
+
+.app-footer {
+  margin: 18px 0 8px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .sheet-backdrop {
@@ -504,7 +515,6 @@ button.session-row {
   line-height: 1.45;
 }
 
-.app-version,
 .app-title,
 .chart-heading,
 .glass-card,
