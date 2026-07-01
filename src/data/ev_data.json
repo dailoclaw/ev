@@ -1349,5 +1349,215 @@
     "Amount": 6.934,
     "Cost": 0.0,
     "Notes": null
+  },
+  {
+    "Date": "2026-03-28",
+    "Type": "Jolt",
+    "Amount": 6.948,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-03-30",
+    "Type": "Jolt",
+    "Amount": 6.94,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-03",
+    "Type": "Jolt",
+    "Amount": 6.953,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-06",
+    "Type": "Jolt",
+    "Amount": 6.924,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-07",
+    "Type": "Jolt",
+    "Amount": 12.163,
+    "Cost": 3.1,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-08",
+    "Type": "Jolt",
+    "Amount": 6.924,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-08",
+    "Type": "Jolt",
+    "Amount": 0.0,
+    "Cost": 15.0,
+    "Notes": "*Monthly charge"
+  },
+  {
+    "Date": "2026-04-10",
+    "Type": "Jolt",
+    "Amount": 6.484,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-14",
+    "Type": "Jolt",
+    "Amount": 9.614,
+    "Cost": 1.57,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-17",
+    "Type": "Jolt",
+    "Amount": 6.941,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-18",
+    "Type": "Jolt",
+    "Amount": 14.078,
+    "Cost": 4.25,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-20",
+    "Type": "Jolt",
+    "Amount": 6.94,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-21",
+    "Type": "Jolt",
+    "Amount": 7.421,
+    "Cost": 0.5,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-22",
+    "Type": "Jolt",
+    "Amount": 6.934,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-24",
+    "Type": "Jolt",
+    "Amount": 6.94,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-25",
+    "Type": "Jolt",
+    "Amount": 6.973,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-27",
+    "Type": "Jolt",
+    "Amount": 6.934,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-28",
+    "Type": "Jolt",
+    "Amount": 8.032,
+    "Cost": 0.62,
+    "Notes": null
+  },
+  {
+    "Date": "2026-04-29",
+    "Type": "Jolt",
+    "Amount": 6.948,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-01",
+    "Type": "Jolt",
+    "Amount": 6.954,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-03",
+    "Type": "Jolt",
+    "Amount": 6.941,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-04",
+    "Type": "Jolt",
+    "Amount": 6.934,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-05",
+    "Type": "Jolt",
+    "Amount": 6.94,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-06",
+    "Type": "Jolt",
+    "Amount": 6.942,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-08",
+    "Type": "Jolt",
+    "Amount": 6.935,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-08",
+    "Type": "Jolt",
+    "Amount": 0.0,
+    "Cost": 15.0,
+    "Notes": "*Monthly charge"
+  },
+  {
+    "Date": "2026-05-09",
+    "Type": "Jolt",
+    "Amount": 6.941,
+    "Cost": 0.0,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-16",
+    "Type": "Jolt",
+    "Amount": 14.711,
+    "Cost": 4.63,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-19",
+    "Type": "Jolt",
+    "Amount": 12.316,
+    "Cost": 3.19,
+    "Notes": null
+  },
+  {
+    "Date": "2026-05-20",
+    "Type": "Jolt",
+    "Amount": 6.946,
+    "Cost": 0.0,
+    "Notes": null
   }
 ]
