@@ -3,7 +3,7 @@ import { Icon } from './ui'
 
 const TABS = [
   { path: '/', icon: 'home', label: 'Home' },
-  { path: '/statement', icon: 'book', label: 'Statement' },
+  { path: '/analytics', icon: 'chart', label: 'Stats' },
   { fab: true },
   { path: '/vehicle', icon: 'car', label: 'Vehicle' },
   { path: '/settings', icon: 'gear', label: 'Settings' },

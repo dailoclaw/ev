@@ -1,0 +1,556 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EV Command · Analytics page — 5 concepts</title>
+<style>
+  /* ===== Cockpit Ledger tokens (copied from src/index.css) ===== */
+  :root{
+    --canvas:#f3f5f7; --surf:#fff; --surf2:#f7f9fa; --bd:#e3e8ec; --bd2:#edf1f3;
+    --tx:#0f1a24; --mut:#4e5e6b; --fnt:#8496a3;
+    --money:#059669; --money-deep:#047857; --money-soft:#e7f6ef; --money-line:#b8e6d0;
+    --steel:#334155; --neg:#e11d48; --warn:#b45309;
+    --radius:16px; --radius-sm:12px;
+    --cardshadow:0 1px 2px rgba(15,26,36,.05),0 10px 24px rgba(15,26,36,.07);
+    /* provider colours from src/lib/providers.ts */
+    --p-jolt:#0d9488; --p-matty:#6366f1; --p-cf:#8b5cf6; --p-sc:#f43f5e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#e7ebef; color:var(--tx); font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ===== page chrome ===== */
+  .pagehead{
+    position:sticky; top:0; z-index:50; background:rgba(231,235,239,.86);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid #d3dae0; padding:16px 20px 12px;
+  }
+  .pagehead .kick{color:var(--money);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .pagehead h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:3px}
+  .pagehead p{font-size:13px;color:var(--mut);font-weight:600;margin-top:4px;max-width:720px}
+  .jump{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .jump a{
+    font-size:11.5px;font-weight:800;text-decoration:none;color:var(--steel);
+    background:var(--surf);border:1px solid var(--bd);border-radius:999px;padding:6px 12px;
+    box-shadow:var(--cardshadow);
+  }
+  .jump a b{color:var(--money);margin-right:5px}
+  .grid{
+    display:grid; gap:26px; padding:26px 20px 80px;
+    grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+    max-width:1500px; margin:0 auto; align-items:start;
+  }
+  .concept{content-visibility:auto; contain-intrinsic-size:900px}
+  .concept > .meta{margin-bottom:14px}
+  .concept .no{
+    display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;
+    background:var(--steel);color:#fff;font-size:13px;font-weight:800;margin-right:8px;vertical-align:-6px;
+  }
+  .concept h2{display:inline;font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .concept .tag{
+    display:inline-block;margin-left:8px;font-size:10px;font-weight:800;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--money-deep);background:var(--money-soft);
+    border:1px solid var(--money-line);border-radius:6px;padding:3px 7px;vertical-align:2px;
+  }
+  .concept .desc{font-size:12.5px;color:var(--mut);font-weight:600;line-height:1.55;margin-top:8px}
+  .concept .desc b{color:var(--tx)}
+
+  /* ===== phone device frame ===== */
+  .phone{
+    width:390px; max-width:100%; margin:0 auto;
+    border:11px solid #0f1a24; border-radius:44px;
+    background:var(--canvas); overflow:hidden;
+    box-shadow:0 30px 60px rgba(15,26,36,.22),0 6px 16px rgba(15,26,36,.14);
+  }
+  .statusbar{
+    height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px 0 30px;font-size:14px;font-weight:700;color:var(--tx);
+    background:var(--canvas);
+  }
+  .statusbar .dots{display:flex;gap:5px;align-items:center;font-size:12px}
+  .screen{padding:6px 15px 12px}
+  .tabbar-m{
+    display:flex;align-items:center;justify-content:space-around;
+    height:60px;background:var(--surf);border-top:1px solid var(--bd);
+    padding-bottom:6px;
+  }
+  .tabbar-m .ti{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--fnt);font-size:10px;font-weight:750}
+  .tabbar-m .ti.on{color:var(--money)}
+  .tabbar-m .ti svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar-m .fab{
+    width:46px;height:46px;margin-top:-24px;border-radius:15px;display:grid;place-items:center;color:#fff;
+    background:linear-gradient(140deg,#047857,#0d9488);box-shadow:0 10px 22px rgba(5,150,105,.42);
+  }
+  .tabbar-m .fab svg{width:22px;height:22px;stroke-width:2.2}
+
+  /* ===== app component classes (from src/App.css, trimmed) ===== */
+  .appbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:8px 2px 14px}
+  .eyebrow{color:var(--money);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .appbar h1{margin:4px 0;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .appbar .sub{color:var(--mut);font-size:12.5px;font-weight:600}
+  .icon-btn{display:inline-grid;width:40px;height:40px;place-items:center;border:1px solid var(--bd);border-radius:12px;background:var(--surf);color:var(--steel);box-shadow:var(--cardshadow)}
+  .svgi{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;width:20px;height:20px}
+
+  .hero-card,.chart-card{border:1px solid var(--bd);border-radius:var(--radius);background:var(--surf);box-shadow:var(--cardshadow);padding:16px;margin-bottom:10px}
+  .cap{display:block;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fnt)}
+  .hero-num{font-size:38px;font-weight:800;line-height:.95;margin-top:7px;letter-spacing:-.02em}
+  .hero-sub{font-size:12.5px;font-weight:600;color:var(--mut);margin-top:8px}
+  .delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:var(--money-soft);color:var(--money-deep);white-space:nowrap}
+  .delta.up{background:#fdecef;color:#be123c}
+
+  .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .metric-card{border:1px solid var(--bd);border-radius:var(--radius-sm);background:var(--surf);box-shadow:var(--cardshadow);padding:12px}
+  .metric-card span{display:block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt)}
+  .metric-card strong{display:block;font-size:22px;font-weight:800;margin-top:6px}
+  .metric-card small{display:block;font-size:11px;color:var(--mut);font-weight:600;margin-top:3px}
+  .metric-card small.pos{color:var(--money-deep);font-weight:750}
+  .metric-card small.negd{color:#be123c;font-weight:750}
+
+  .sec-h2{font-size:16px;font-weight:800;margin:16px 2px 3px}
+  .sec-sub{font-size:12px;color:var(--mut);margin:0 2px 10px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px}
+  .text-btn{font-size:12px;font-weight:800;color:var(--money);background:none;border:0}
+
+  .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:11px;align-items:center;width:100%;padding:12px;border:1px solid var(--bd);border-radius:var(--radius-sm);background:var(--surf);box-shadow:var(--cardshadow);margin-bottom:8px;text-align:left}
+  .row strong{display:block;font-size:14px;font-weight:800}
+  .row small{display:block;font-size:11.5px;color:var(--mut);font-weight:600;margin-top:3px}
+  .row .amt{font-size:14px;font-weight:800;color:var(--steel);text-align:right;white-space:nowrap}
+  .mark{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;font-size:14px;font-weight:800;color:#fff;background:var(--pc,var(--money));box-shadow:0 4px 10px color-mix(in srgb,var(--pc,var(--money)) 40%,transparent)}
+  .freetag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;padding:3px 7px;border-radius:6px;background:var(--money-soft);color:var(--money-deep);margin-left:6px;vertical-align:1px}
+
+  .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border:1px solid var(--bd);border-radius:13px;background:var(--surf2);margin-bottom:12px}
+  .seg button{min-height:34px;border-radius:9px;font-size:13px;font-weight:750;color:var(--mut);background:none;border:0}
+  .seg button.on{background:var(--steel);color:#fff}
+
+  /* filter chip row */
+  .chiprow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{font-size:12px;font-weight:750;padding:8px 12px;border-radius:999px;background:var(--surf);color:var(--mut);border:1px solid var(--bd);box-shadow:var(--cardshadow);display:inline-flex;align-items:center;gap:6px}
+  .chip .dt{width:8px;height:8px;border-radius:50%;background:var(--pc,var(--money))}
+  .chip.on{background:var(--steel);color:#fff;border-color:transparent}
+  .chip.on .dt{box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+
+  /* charts */
+  .chart-card h4{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:800;margin-bottom:12px}
+  .chart-card h4 em{font-style:normal;font-size:10px;color:var(--fnt);font-weight:700}
+  .bars{display:flex;align-items:flex-end;gap:7px;height:104px}
+  .bars .b{flex:1;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,var(--money),color-mix(in srgb,var(--money) 40%,var(--surf)));min-height:4px;position:relative}
+  .bars .b.st{background:linear-gradient(180deg,var(--steel),color-mix(in srgb,var(--steel) 35%,var(--surf)))}
+  .bars .b.dim{opacity:.32}
+  .bars .b.hi::after{content:attr(data-v);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;color:var(--tx);white-space:nowrap}
+  .blbl{display:flex;gap:7px;margin-top:7px}
+  .blbl span{flex:1;text-align:center;font-size:9px;color:var(--fnt);font-weight:750}
+  .blbl span.hi{color:var(--tx)}
+
+  /* stacked bars (free/paid) */
+  .sbars{display:flex;align-items:flex-end;gap:8px;height:120px}
+  .sbars .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%}
+  .sbars .col i{display:block;border-radius:4px;width:100%}
+  .sbars .col i.free{background:linear-gradient(180deg,#34d399,#059669);border-radius:6px 6px 4px 4px}
+  .sbars .col i.paid{background:var(--steel);border-radius:4px 4px 6px 6px}
+
+  /* race bars (from App.css) */
+  .race .rrow{margin-bottom:11px}
+  .race .rl2{display:flex;justify-content:space-between;font-size:11.5px;font-weight:750;color:var(--mut);margin-bottom:5px}
+  .race .rl2 b{color:var(--tx)}
+  .race .bar{height:15px;border-radius:8px;background:var(--surf2);border:1px solid var(--bd);overflow:hidden}
+  .race .bar i{display:block;height:100%;border-radius:8px;background:var(--pc,var(--money))}
+
+  /* donut legend */
+  .donutwrap{display:flex;gap:16px;align-items:center}
+  .donut{width:120px;height:120px;flex:0 0 auto;border-radius:50%;position:relative}
+  .donut::before{content:'';position:absolute;inset:19px;border-radius:50%;background:var(--surf)}
+  .donut .din{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .donut .din b{font-size:19px;font-weight:800;line-height:1}
+  .donut .din small{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--fnt);margin-top:2px}
+  .leg{display:flex;flex-direction:column;gap:9px;flex:1}
+  .leg .lr{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+  .leg .lr i{width:10px;height:10px;border-radius:3px;background:var(--pc)}
+  .leg .lr .nm{flex:1;color:var(--mut)}
+  .leg .lr .vl{font-weight:800;color:var(--tx)}
+
+  .splitleg{display:flex;gap:14px;margin-top:9px;font-size:10.5px;font-weight:750;color:var(--mut);flex-wrap:wrap}
+  .splitleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  /* ledger table (concept 1) */
+  .ledger{border:1px solid var(--bd);border-radius:var(--radius);background:var(--surf);box-shadow:var(--cardshadow);overflow:hidden}
+  .ledger .lhead,.ledger .lrow{display:grid;grid-template-columns:1.15fr .9fr .8fr auto;gap:8px;align-items:center;padding:11px 14px}
+  .ledger .lhead{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt);background:var(--surf2);border-bottom:1px solid var(--bd)}
+  .ledger .lrow{border-top:1px solid var(--bd2)}
+  .ledger .lrow:first-of-type{border-top:0}
+  .ledger .lrow .mo{font-size:13px;font-weight:800}
+  .ledger .lrow .mo small{display:block;font-size:10px;font-weight:600;color:var(--fnt)}
+  .ledger .lrow .num{font-size:13px;font-weight:750;color:var(--steel);text-align:right}
+  .ledger .lrow .spk{display:flex;align-items:flex-end;gap:2px;height:22px;justify-content:flex-end}
+  .ledger .lrow .spk i{width:4px;border-radius:2px;background:color-mix(in srgb,var(--money) 55%,var(--surf))}
+  .ledger .lrow.tot{background:var(--surf2);border-top:1.5px solid var(--bd)}
+  .ledger .lrow.tot .mo,.ledger .lrow.tot .num{font-weight:800;color:var(--tx)}
+
+  /* compare (concept 5) */
+  .cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:9px}
+  .cmp .side{text-align:center}
+  .cmp .side .v{font-size:19px;font-weight:800}
+  .cmp .side .l{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--fnt);margin-top:2px}
+  .cmp .mid{font-size:10px;font-weight:800;color:var(--fnt);text-align:center}
+  .cmpbar{display:flex;height:12px;border-radius:8px;overflow:hidden;background:var(--surf2);border:1px solid var(--bd);margin-bottom:16px}
+  .cmpbar i{display:block;height:100%}
+  .cmpbar i.a{background:linear-gradient(90deg,#047857,#34d399)}
+  .cmpbar i.b{background:var(--steel)}
+  .cmp-metric{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--fnt);text-align:center;margin-bottom:8px}
+
+  /* big scrub chart (concept 3) */
+  .scrub{position:relative;height:150px;margin:4px 0 2px}
+  .scrub svg{width:100%;height:100%;overflow:visible}
+  .scrub .gl{stroke:var(--bd2);stroke-width:1}
+  .scrub .area{fill:url(#ag)}
+  .scrub .ln{fill:none;stroke:var(--money);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .scrub .dot{fill:var(--surf);stroke:var(--money);stroke-width:2.5}
+  .scrub .flag{position:absolute;transform:translate(-50%,-100%);background:var(--tx);color:#fff;font-size:10px;font-weight:800;padding:4px 8px;border-radius:8px;white-space:nowrap}
+  .scrub .flag::after{content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%) rotate(45deg);width:8px;height:8px;background:var(--tx)}
+  .yaxis{display:flex;justify-content:space-between;font-size:9px;font-weight:750;color:var(--fnt);margin-top:6px}
+
+  .savecard{position:relative;overflow:hidden;border-radius:var(--radius);padding:16px;margin-bottom:10px;color:#fff;background:linear-gradient(140deg,#047857,#059669 55%,#0d9488);box-shadow:0 14px 30px rgba(5,150,105,.32)}
+  .savecard .cap{color:rgba(255,255,255,.75)}
+  .savecard .big{display:block;font-size:26px;font-weight:800;margin-top:6px}
+  .savecard small{display:block;font-size:12px;font-weight:600;opacity:.92;margin-top:6px;line-height:1.5}
+  .savecard .bolt{position:absolute;right:-14px;top:-18px;font-size:92px;opacity:.12;transform:rotate(12deg);pointer-events:none}
+
+  .footnote{max-width:1500px;margin:0 auto;padding:0 20px 60px;font-size:12px;color:var(--mut);line-height:1.6}
+  .footnote b{color:var(--tx)}
+  @media(max-width:440px){.phone{border-width:8px;border-radius:34px}.grid{padding:20px 12px 60px}}
+</style>
+
+<div class="pagehead">
+  <div class="kick">EV Command · Cockpit Ledger</div>
+  <h1>Analytics page — 5 concepts</h1>
+  <p>A new tab dedicated to costs & kWh over time, filterable by charger type / month / year. Five different
+     layout &amp; UX directions, all built on the app's existing tokens (canvas #F3F5F7, emerald money accent,
+     steel instrumentation). Mobile app view only.</p>
+  <nav class="jump">
+    <a href="#c1"><b>1</b>The Statement</a>
+    <a href="#c2"><b>2</b>Instrument Cluster</a>
+    <a href="#c3"><b>3</b>Trend Explorer</a>
+    <a href="#c4"><b>4</b>Where It Goes</a>
+    <a href="#c5"><b>5</b>Head-to-Head</a>
+  </nav>
+</div>
+
+<div class="grid">
+
+  <!-- ============ CONCEPT 1 — THE STATEMENT ============ -->
+  <section class="concept" id="c1">
+    <div class="meta">
+      <span class="no">1</span><h2>The Statement</h2><span class="tag">ledger-first</span>
+      <p class="desc">Reads like an <b>annual bank statement</b>. A period toggle picks the year; a big total sits up
+        top, then every month is an itemised ledger row — cost, kWh, and a mini spend sparkline — footed by a
+        yearly total. For someone who thinks in <b>rows and running totals</b>. Tap any month to drill in.</p>
+    </div>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <div>
+            <p class="eyebrow">Statement</p>
+            <h1>Analytics</h1>
+            <span class="sub">2026 year to date</span>
+          </div>
+          <button class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg></button>
+        </header>
+
+        <div class="seg">
+          <button>2024</button><button class="on">2026</button><button>2025</button><button>All</button>
+        </div>
+
+        <section class="hero-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div><span class="cap">Spent · 2026 YTD</span><div class="hero-num">$172.57</div></div>
+            <span class="delta up">▲ 80% vs 2025</span>
+          </div>
+          <p class="hero-sub">944 kWh added over 122 charges · effective $0.18 / kWh</p>
+        </section>
+
+        <div class="sec-head"><h2 class="sec-h2">Monthly breakdown</h2><button class="text-btn">Cost ⌄</button></div>
+        <p class="sec-sub">Tap a month for its charges.</p>
+
+        <div class="ledger">
+          <div class="lhead"><span>Month</span><span>kWh</span><span style="text-align:right">Cost</span><span></span></div>
+          <div class="lrow"><div class="mo">Jun<small>19 charges</small></div><div class="num">162</div><div class="num">$34.11</div><div class="spk"><i style="height:60%"></i><i style="height:40%"></i><i style="height:80%"></i><i style="height:55%"></i></div></div>
+          <div class="lrow"><div class="mo">May<small>16 charges</small></div><div class="num">124</div><div class="num">$26.94</div><div class="spk"><i style="height:45%"></i><i style="height:70%"></i><i style="height:35%"></i><i style="height:50%"></i></div></div>
+          <div class="lrow"><div class="mo">Apr<small>17 charges</small></div><div class="num">127</div><div class="num">$25.04</div><div class="spk"><i style="height:50%"></i><i style="height:30%"></i><i style="height:65%"></i><i style="height:45%"></i></div></div>
+          <div class="lrow"><div class="mo">Mar<small>17 charges</small></div><div class="num">134</div><div class="num">$28.79</div><div class="spk"><i style="height:40%"></i><i style="height:75%"></i><i style="height:50%"></i><i style="height:60%"></i></div></div>
+          <div class="lrow"><div class="mo">Feb<small>21 charges</small></div><div class="num">194</div><div class="num">$41.19</div><div class="spk"><i style="height:70%"></i><i style="height:90%"></i><i style="height:60%"></i><i style="height:100%"></i></div></div>
+          <div class="lrow"><div class="mo">Jan<small>28 charges</small></div><div class="num">189</div><div class="num">$16.50</div><div class="spk"><i style="height:30%"></i><i style="height:20%"></i><i style="height:45%"></i><i style="height:25%"></i></div></div>
+          <div class="lrow tot"><div class="mo">2026 total</div><div class="num">944</div><div class="num">$172.57</div><div class="spk"></div></div>
+        </div>
+      </div>
+      <div class="tabbar-m">
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg>Home</div>
+        <div class="ti on"><svg viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg>Stats</div>
+        <div class="fab"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/></svg>Vehicle</div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>Settings</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONCEPT 2 — INSTRUMENT CLUSTER ============ -->
+  <section class="concept" id="c2">
+    <div class="meta">
+      <span class="no">2</span><h2>Instrument Cluster</h2><span class="tag">glanceable KPIs</span>
+      <p class="desc">A <b>gauge cluster</b> of stat tiles — total cost, kWh, avg rate, sessions, each with its own
+        micro-sparkline and a delta vs the prior period. One tap on the metric toggle re-skins the big chart below
+        between <b>cost and kWh</b>. Everything answerable <b>at a glance</b>, no scrolling to read the numbers.</p>
+    </div>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><p class="eyebrow">Instruments</p><h1>Analytics</h1><span class="sub">This year vs last</span></div>
+          <button class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg></button>
+        </header>
+
+        <div class="seg"><button class="on">Year</button><button>Quarter</button><button>Month</button></div>
+
+        <div class="metric-grid">
+          <div class="metric-card"><span>Total cost</span><strong>$172.57</strong><small class="negd">▲ 80% vs 2025</small></div>
+          <div class="metric-card"><span>Energy added</span><strong>944 kWh</strong><small class="negd">▼ 7% vs 2025</small></div>
+          <div class="metric-card"><span>Avg rate</span><strong>$0.18</strong><small>per kWh · incl. free</small></div>
+          <div class="metric-card"><span>Charges</span><strong>122</strong><small>7.7 kWh avg each</small></div>
+        </div>
+
+        <section class="chart-card">
+          <h4><span>Cost per month</span>
+            <span class="seg" style="margin:0;grid-auto-columns:auto;padding:3px"><button class="on" style="min-height:26px;padding:0 12px">$</button><button style="min-height:26px;padding:0 12px">kWh</button></span>
+          </h4>
+          <div class="bars">
+            <div class="b" style="height:40%"></div>
+            <div class="b" style="height:96%"></div>
+            <div class="b" style="height:68%"></div>
+            <div class="b" style="height:60%"></div>
+            <div class="b" style="height:64%"></div>
+            <div class="b hi" data-v="$34" style="height:80%"></div>
+          </div>
+          <div class="blbl"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span class="hi">Jun</span></div>
+        </section>
+
+        <div class="metric-grid" style="margin-bottom:0">
+          <div class="metric-card"><span>Priciest month</span><strong>Feb</strong><small>$41.19 · 194 kWh</small></div>
+          <div class="metric-card"><span>Free saved</span><strong>$360</strong><small class="pos">net, lifetime</small></div>
+        </div>
+      </div>
+      <div class="tabbar-m">
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg>Home</div>
+        <div class="ti on"><svg viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg>Stats</div>
+        <div class="fab"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/></svg>Vehicle</div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>Settings</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONCEPT 3 — TREND EXPLORER ============ -->
+  <section class="concept" id="c3">
+    <div class="meta">
+      <span class="no">3</span><h2>Trend Explorer</h2><span class="tag">chart-first</span>
+      <p class="desc">One <b>big line chart</b> owns the screen. A scrubber flag calls out the selected point; the
+        metric switch flips between <b>Cost / kWh / $-per-kWh</b>, and provider chips recolour what's plotted.
+        Below, plain-English delta cards ("June cost the most"). For <b>exploring the shape of the trend</b>, not
+        reading a table.</p>
+    </div>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><p class="eyebrow">Trends</p><h1>Analytics</h1><span class="sub">Last 6 months</span></div>
+          <button class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg></button>
+        </header>
+
+        <div class="seg"><button class="on">Cost</button><button>kWh</button><button>$/kWh</button></div>
+
+        <div class="chiprow">
+          <span class="chip on" style="--pc:var(--p-jolt)"><i class="dt"></i>All</span>
+          <span class="chip" style="--pc:var(--p-jolt)"><i class="dt"></i>Jolt</span>
+          <span class="chip" style="--pc:var(--p-sc)"><i class="dt"></i>Supercharger</span>
+          <span class="chip" style="--pc:var(--p-matty)"><i class="dt"></i>Matty</span>
+        </div>
+
+        <section class="chart-card" style="padding-top:22px">
+          <div class="scrub">
+            <div class="flag" style="left:82%;top:8px">Jun · $34.11</div>
+            <svg viewBox="0 0 300 150" preserveAspectRatio="none">
+              <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#059669" stop-opacity=".22"/>
+                <stop offset="1" stop-color="#059669" stop-opacity="0"/>
+              </linearGradient></defs>
+              <line class="gl" x1="0" y1="38" x2="300" y2="38"/>
+              <line class="gl" x1="0" y1="94" x2="300" y2="94"/>
+              <path class="area" d="M0 118 L60 60 L120 92 L180 100 L240 96 L300 62 L300 150 L0 150 Z"/>
+              <path class="ln" d="M0 118 L60 60 L120 92 L180 100 L240 96 L300 62"/>
+              <circle class="dot" cx="300" cy="62" r="5"/>
+            </svg>
+          </div>
+          <div class="yaxis"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span style="color:var(--tx)">Jun</span></div>
+        </section>
+
+        <div class="row">
+          <span class="mark" style="--pc:var(--money)">▲</span>
+          <span><strong>June cost the most</strong><small>$34.11 — up 27% on May</small></span>
+          <b class="amt">$34.11</b>
+        </div>
+        <div class="row">
+          <span class="mark" style="--pc:var(--steel)">≈</span>
+          <span><strong>Rate is holding steady</strong><small>~$0.18/kWh across the last 6 months</small></span>
+          <b class="amt">$0.18</b>
+        </div>
+        <div class="row">
+          <span class="mark" style="--pc:var(--p-jolt)">J</span>
+          <span><strong>Jolt drove 88% of energy</strong><small>1,725 of 1,959 kWh lifetime</small></span>
+          <b class="amt">88%</b>
+        </div>
+      </div>
+      <div class="tabbar-m">
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg>Home</div>
+        <div class="ti on"><svg viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg>Stats</div>
+        <div class="fab"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/></svg>Vehicle</div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>Settings</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONCEPT 4 — WHERE IT GOES ============ -->
+  <section class="concept" id="c4">
+    <div class="meta">
+      <span class="no">4</span><h2>Where It Goes</h2><span class="tag">composition</span>
+      <p class="desc">Answers <b>"where does it all go?"</b> — a donut splits cost by charger network, race bars rank
+        them, and a stacked column per month shows the <b>free-vs-paid</b> split of every kWh. Filter by month/year
+        up top. The natural home for the <b>free-energy story</b> that defines this app.</p>
+    </div>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><p class="eyebrow">Breakdown</p><h1>Analytics</h1><span class="sub">Lifetime · all networks</span></div>
+          <button class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg></button>
+        </header>
+
+        <div class="seg"><button class="on">Lifetime</button><button>2026</button><button>2025</button></div>
+
+        <section class="hero-card">
+          <span class="cap" style="margin-bottom:12px">Cost by charger network</span>
+          <div class="donutwrap">
+            <div class="donut" style="background:conic-gradient(var(--p-jolt) 0 65%,var(--p-sc) 65% 80%,var(--p-matty) 80% 94%,var(--p-cf) 94% 100%)">
+              <div class="din"><b>$268</b><small>total</small></div>
+            </div>
+            <div class="leg">
+              <div class="lr" style="--pc:var(--p-jolt)"><i></i><span class="nm">Jolt</span><span class="vl">$175</span></div>
+              <div class="lr" style="--pc:var(--p-sc)"><i></i><span class="nm">Supercharger</span><span class="vl">$39</span></div>
+              <div class="lr" style="--pc:var(--p-matty)"><i></i><span class="nm">Matty</span><span class="vl">$38</span></div>
+              <div class="lr" style="--pc:var(--p-cf)"><i></i><span class="nm">Chargefox</span><span class="vl">$16</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chart-card race">
+          <h4><span>Energy by network</span><em>kWh · 1,959 total</em></h4>
+          <div class="rrow" style="--pc:var(--p-jolt)"><div class="rl2"><b>Jolt</b><span>1,725 kWh</span></div><div class="bar"><i style="width:100%"></i></div></div>
+          <div class="rrow" style="--pc:var(--p-matty)"><div class="rl2"><b>Matty</b><span>109 kWh</span></div><div class="bar"><i style="width:12%"></i></div></div>
+          <div class="rrow" style="--pc:var(--p-sc)"><div class="rl2"><b>Supercharger</b><span>92 kWh</span></div><div class="bar"><i style="width:10%"></i></div></div>
+          <div class="rrow" style="--pc:var(--p-cf)"><div class="rl2"><b>Chargefox</b><span>33 kWh</span></div><div class="bar"><i style="width:5%"></i></div></div>
+        </section>
+
+        <section class="chart-card">
+          <h4><span>Free vs paid kWh</span><em>per month</em></h4>
+          <div class="sbars">
+            <div class="col"><i class="paid" style="height:14%"></i><i class="free" style="height:70%"></i></div>
+            <div class="col"><i class="paid" style="height:30%"></i><i class="free" style="height:66%"></i></div>
+            <div class="col"><i class="paid" style="height:22%"></i><i class="free" style="height:52%"></i></div>
+            <div class="col"><i class="paid" style="height:20%"></i><i class="free" style="height:50%"></i></div>
+            <div class="col"><i class="paid" style="height:21%"></i><i class="free" style="height:48%"></i></div>
+            <div class="col"><i class="paid" style="height:26%"></i><i class="free" style="height:60%"></i></div>
+          </div>
+          <div class="blbl"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div>
+          <div class="splitleg"><span><i style="background:#059669"></i>Free (Jolt 7 kWh/day)</span><span><i style="background:var(--steel)"></i>Paid</span></div>
+        </section>
+      </div>
+      <div class="tabbar-m">
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg>Home</div>
+        <div class="ti on"><svg viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg>Stats</div>
+        <div class="fab"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/></svg>Vehicle</div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>Settings</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONCEPT 5 — HEAD-TO-HEAD ============ -->
+  <section class="concept" id="c5">
+    <div class="meta">
+      <span class="no">5</span><h2>Head-to-Head</h2><span class="tag">comparison</span>
+      <p class="desc">Pick <b>two periods</b> and put them in the ring — this year vs last, or any two months. Each
+        metric (cost, kWh, rate, charges, free saved) shows as a <b>paired split bar</b> with the winner called out.
+        Built for the question <b>"am I doing better or worse than before?"</b></p>
+    </div>
+    <div class="phone">
+      <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <header class="appbar">
+          <div><p class="eyebrow">Compare</p><h1>Analytics</h1><span class="sub">Period vs period</span></div>
+          <button class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg></button>
+        </header>
+
+        <div class="seg" style="grid-template-columns:1fr auto 1fr;grid-auto-flow:unset">
+          <button class="on">2025</button>
+          <button style="min-height:34px;color:var(--fnt)">vs</button>
+          <button class="on" style="background:var(--money)">2026</button>
+        </div>
+
+        <section class="hero-card">
+          <div class="cmp-metric">Total cost</div>
+          <div class="cmp">
+            <div class="side"><div class="v">$95.75</div><div class="l">2025</div></div>
+            <div class="mid">+80%</div>
+            <div class="side"><div class="v" style="color:var(--money-deep)">$172.57</div><div class="l">2026 YTD</div></div>
+          </div>
+          <div class="cmpbar"><i class="b" style="width:36%"></i><i class="a" style="width:64%"></i></div>
+
+          <div class="cmp-metric">Energy added</div>
+          <div class="cmp">
+            <div class="side"><div class="v">1,015</div><div class="l">kWh 2025</div></div>
+            <div class="mid">−7%</div>
+            <div class="side"><div class="v">944</div><div class="l">kWh 2026</div></div>
+          </div>
+          <div class="cmpbar"><i class="b" style="width:52%"></i><i class="a" style="width:48%"></i></div>
+
+          <div class="cmp-metric">Effective rate</div>
+          <div class="cmp">
+            <div class="side"><div class="v">$0.09</div><div class="l">2025</div></div>
+            <div class="mid">▲ higher</div>
+            <div class="side"><div class="v">$0.18</div><div class="l">2026</div></div>
+          </div>
+          <div class="cmpbar"><i class="b" style="width:33%"></i><i class="a" style="width:67%"></i></div>
+        </section>
+
+        <div class="metric-grid" style="margin-bottom:0">
+          <div class="metric-card"><span>Charges</span><strong>127 → 122</strong><small>2025 → 2026</small></div>
+          <div class="metric-card"><span>Free saved</span><strong>$150 → $210</strong><small class="pos">▲ more free energy</small></div>
+        </div>
+      </div>
+      <div class="tabbar-m">
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg>Home</div>
+        <div class="ti on"><svg viewBox="0 0 24 24"><path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/></svg>Stats</div>
+        <div class="fab"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/></svg>Vehicle</div>
+        <div class="ti"><svg viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>Settings</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footnote">
+  <p>All numbers are real, pulled from <b>src/data/ev_data.json</b> (249 charges, May 2025 → Jul 2026): lifetime
+  <b>$268 / 1,959 kWh</b>, Jolt <b>88%</b> of energy, net free-energy benefit <b>~$360</b>. Filters shown as
+  segmented controls + provider chips reuse the existing <b>.seg</b> / chip patterns. Every concept keeps the
+  5-tab bar with a new <b>Stats</b> tab. Tell me which direction to build — or mix (e.g. Concept&nbsp;2's KPI
+  tiles + Concept&nbsp;3's chart).</p>
+</div>

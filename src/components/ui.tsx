@@ -10,6 +10,7 @@ const PATHS: Record<string, string> = {
   gear: 'M4 8h9 M17 8h3 M4 16h3 M11 16h9',
   bolt: 'M13 2 5 13h5l-1 9 8-11h-5l1-9z',
   dl: 'M12 3v12m0 0 4-4m-4 4-4-4 M4 21h16',
+  chart: 'M4 19V5 M9 19v-9 M14 19v-6 M19 19V9',
   chev: 'm9 6 6 6-6 6',
   back: 'm15 6-6 6 6 6',
   wallet: 'M16 12.5h5 M3 9h18',

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import type { EnrichedSession } from '../lib/savings'
 import { buildCsv, downloadCsv } from '../lib/data'
@@ -8,8 +9,12 @@ import ReceiptSheet from '../components/ReceiptSheet'
 
 export default function Statement() {
   const ev = useEv()
+  const loc = useLocation()
   const monthsDesc = useMemo(() => [...ev.months].reverse(), [ev.months])
-  const [ym, setYm] = useState(() => monthsDesc[0]?.month ?? thisMonth())
+  const [ym, setYm] = useState(() => {
+    const requested = (loc.state as { month?: string } | null)?.month
+    return requested ?? monthsDesc[0]?.month ?? thisMonth()
+  })
   const [receipt, setReceipt] = useState<EnrichedSession | null>(null)
 
   const idx = monthsDesc.findIndex(m => m.month === ym)
