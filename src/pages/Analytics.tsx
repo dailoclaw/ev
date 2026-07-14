@@ -160,7 +160,7 @@ export default function Analytics() {
       ) : view === 'cluster' ? (
         <ClusterView ev={ev} series={series} navigate={navigate} />
       ) : view === 'trends' ? (
-        <TrendsView ev={ev} series={series} provColor={provColor} />
+        <TrendsView ev={ev} series={series} provColor={provColor} navigate={navigate} />
       ) : view === 'split' ? (
         <SplitView ev={ev} provColor={provColor} />
       ) : (
@@ -454,10 +454,12 @@ function TrendsView({
   ev,
   series,
   provColor,
+  navigate,
 }: {
   ev: ReturnType<typeof useEv>
   series: (provider: string, metric: Metric) => { month: string; label: string; value: number }[]
   provColor: (name: string) => string
+  navigate: (to: string) => void
 }) {
   const [metric, setMetric] = useState<Metric>('cost')
   const [prov, setProv] = useState('All')
@@ -503,7 +505,13 @@ function TrendsView({
         ))}
       </div>
 
-      <section className="chart-card" style={{ paddingTop: 22 }}>
+      <button
+        type="button"
+        className="chart-card"
+        onClick={() => navigate('/analytics/chart')}
+        aria-label="Open 12-month chart detail"
+        style={{ display: 'block', width: '100%', textAlign: 'left', paddingTop: 22, cursor: 'pointer' }}
+      >
         <div className="scrub">
           {last && (
             <div className="flag" style={{ left: `${flagLeft}%`, top: 8 }}>
@@ -524,7 +532,10 @@ function TrendsView({
             </span>
           ))}
         </div>
-      </section>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <span className="text-btn">Open 12-month detail ›</span>
+        </div>
+      </button>
 
       {top && (
         <div className="row">

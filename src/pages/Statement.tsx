@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import type { EnrichedSession } from '../lib/savings'
-import { buildCsv, downloadCsv } from '../lib/data'
 import { aud, dayHeader, kwh, monthTitle, rate, thisMonth } from '../lib/format'
 import { FreeTag, Icon, Mark } from '../components/ui'
 import ReceiptSheet from '../components/ReceiptSheet'
@@ -10,6 +9,7 @@ import ReceiptSheet from '../components/ReceiptSheet'
 export default function Statement() {
   const ev = useEv()
   const loc = useLocation()
+  const navigate = useNavigate()
   const monthsDesc = useMemo(() => [...ev.months].reverse(), [ev.months])
   const [ym, setYm] = useState(() => {
     const requested = (loc.state as { month?: string } | null)?.month
@@ -41,10 +41,6 @@ export default function Statement() {
     return groups
   }, [monthSessions])
 
-  const exportMonth = () => {
-    downloadCsv(buildCsv(monthSessions), `ev-charging-${ym}.csv`)
-  }
-
   return (
     <main className="app-shell">
       <header className="appbar">
@@ -53,8 +49,8 @@ export default function Statement() {
           <h1>{cur ? monthTitle(cur.month) : monthTitle(ym)}</h1>
           <span className="sub">{cur ? `${cur.sessions} charges · ${kwh(cur.kwh)} kWh` : 'No charges this month'}</span>
         </div>
-        <button className="icon-btn" type="button" aria-label="Export month CSV" onClick={exportMonth}>
-          <Icon name="dl" />
+        <button className="icon-btn" type="button" aria-label="Back" onClick={() => navigate(-1)}>
+          <Icon name="back" />
         </button>
       </header>
 
@@ -132,12 +128,6 @@ export default function Statement() {
           })}
         </section>
       ))}
-
-      {monthSessions.length > 0 && (
-        <button className="ghost-btn" type="button" style={{ marginTop: 10 }} onClick={exportMonth}>
-          ⬇ Download {cur?.label ?? ym} CSV
-        </button>
-      )}
 
       {receipt && (
         <ReceiptSheet
