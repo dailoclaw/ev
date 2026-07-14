@@ -1,0 +1,392 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EV Command · Dark theme options</title>
+<style>
+  /* ===== gallery chrome (light) ===== */
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#e7ebef;color:#0f1a24;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
+  }
+  .pagehead{position:sticky;top:0;z-index:50;background:rgba(231,235,239,.9);backdrop-filter:blur(10px);
+    border-bottom:1px solid #d3dae0;padding:16px 22px 13px}
+  .pagehead .kick{color:#059669;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .pagehead h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:3px}
+  .pagehead p{font-size:13px;color:#4e5e6b;font-weight:600;margin-top:5px;max-width:720px;line-height:1.55}
+  .jump{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .jump a{font-size:11.5px;font-weight:800;text-decoration:none;color:#334155;background:#fff;border:1px solid #e3e8ec;
+    border-radius:999px;padding:6px 12px;box-shadow:0 1px 2px rgba(15,26,36,.05)}
+  .jump a b{margin-right:6px;display:inline-block;width:9px;height:9px;border-radius:3px;vertical-align:-1px}
+
+  .theme{padding:26px 22px 8px;max-width:1600px;margin:0 auto}
+  .thead{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+  .swatches{display:flex;gap:0;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(15,26,36,.18);flex:0 0 auto}
+  .swatches i{width:46px;height:64px;display:block}
+  .thead h2{font-size:20px;font-weight:800;letter-spacing:-.01em;display:inline}
+  .thead .ttag{display:inline-block;margin-left:9px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:#047857;background:#e7f6ef;border:1px solid #b8e6d0;border-radius:6px;padding:3px 8px;vertical-align:3px}
+  .thead p{font-size:12.5px;color:#4e5e6b;font-weight:600;line-height:1.5;margin-top:7px;max-width:640px}
+  .thead .hexrow{margin-top:6px;font-size:11px;color:#8496a3;font-weight:700;font-family:ui-monospace,Menlo,monospace}
+
+  .phones{display:flex;gap:20px;overflow-x:auto;padding:6px 2px 22px;scroll-snap-type:x proximity}
+  figure{flex:0 0 auto;scroll-snap-align:start;content-visibility:auto;contain-intrinsic-size:340px 820px}
+  figcaption{text-align:center;font-size:11.5px;font-weight:800;color:#4e5e6b;margin-top:10px;letter-spacing:.02em}
+
+  /* ===== device frame ===== */
+  .device{width:328px;height:748px;display:flex;flex-direction:column;border:10px solid var(--bezel);border-radius:40px;
+    overflow:hidden;background:var(--canvas);box-shadow:0 26px 54px rgba(15,26,36,.28),0 6px 16px rgba(15,26,36,.16)}
+  .statusbar{flex:0 0 auto;height:38px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px 0 26px;font-size:13px;font-weight:700;color:var(--tx);background:var(--canvas)}
+  .statusbar .dots{font-size:11px;letter-spacing:1px}
+  .screen{flex:1 1 auto;overflow:hidden;padding:4px 13px 0}
+  .tabbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-around;height:56px;background:var(--surf);
+    border-top:1px solid var(--bd);padding-bottom:4px}
+  .tabbar .ti{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--fnt);font-size:9.5px;font-weight:750}
+  .tabbar .ti.on{color:var(--money)}
+  .tabbar .ti svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar .fab{width:42px;height:42px;margin-top:-22px;border-radius:14px;display:grid;place-items:center;color:#fff;
+    background:var(--savegrad);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+  .tabbar .fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ===== app components (token-driven) ===== */
+  .appbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 2px 12px}
+  .eyebrow{color:var(--money);font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .appbar h1{margin:3px 0;font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--tx)}
+  .appbar .sub{color:var(--mut);font-size:12px;font-weight:600}
+  .icon-btn{display:inline-grid;width:38px;height:38px;place-items:center;border:1px solid var(--bd);border-radius:11px;
+    background:var(--surf);color:var(--steel);box-shadow:var(--cardshadow)}
+  .svgi{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;width:19px;height:19px}
+
+  .hero-card,.chart-card{border:1px solid var(--bd);border-radius:16px;background:var(--surf);box-shadow:var(--cardshadow);padding:15px;margin-bottom:9px}
+  .cap{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fnt)}
+  .hero-num{font-size:34px;font-weight:800;line-height:.95;margin-top:6px;letter-spacing:-.02em;color:var(--tx)}
+  .hero-sub{font-size:12px;font-weight:600;color:var(--mut);margin-top:7px}
+  .delta{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:5px 9px;border-radius:999px;
+    background:var(--money-soft);color:var(--money-deep);white-space:nowrap}
+  .delta.up{background:color-mix(in srgb,var(--neg) 18%,transparent);color:var(--neg)}
+
+  .savecard{position:relative;overflow:hidden;border-radius:16px;padding:15px;padding-right:96px;margin-bottom:9px;color:#fff;
+    background:var(--savegrad);box-shadow:0 14px 30px rgba(0,0,0,.45)}
+  .savecard .cap{color:rgba(255,255,255,.78)}
+  .savecard .big{display:block;font-size:24px;font-weight:800;margin-top:5px;white-space:nowrap}
+  .savecard small{display:block;font-size:11px;font-weight:600;opacity:.94;margin-top:6px;line-height:1.5}
+  .savecard .bolt{position:absolute;right:-12px;top:-16px;font-size:82px;opacity:.14;transform:rotate(12deg)}
+  .savecard .ringside{position:absolute;right:13px;top:50%;transform:translateY(-50%)}
+  .ringd{--v:60;width:74px;height:74px;border-radius:50%;display:grid;place-items:center;position:relative;
+    background:conic-gradient(#fff calc(var(--v)*1%),rgba(255,255,255,.22) 0)}
+  .ringd::before{content:'';position:absolute;inset:8px;border-radius:50%;background:rgba(0,0,0,.22)}
+  .ringd .in{position:relative;text-align:center;line-height:1.05;color:#fff}
+  .ringd .in b{font-size:15px;font-weight:800;display:block}
+  .ringd .in small{font-size:8px;font-weight:750;text-transform:uppercase;letter-spacing:.05em;opacity:.85}
+
+  .thermo{position:relative;height:13px;border-radius:9px;background:var(--surf2);border:1px solid var(--bd)}
+  .thermo .fill{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,var(--money),color-mix(in srgb,var(--money) 55%,#fff))}
+  .thermo .proj{position:absolute;top:-4px;bottom:-4px;width:2.5px;border-radius:2px;background:var(--warn)}
+  .thermo .cap100{position:absolute;right:0;top:-4px;bottom:-4px;width:2.5px;border-radius:2px;background:var(--neg)}
+  .thermoleg{display:flex;justify-content:space-between;font-size:10px;font-weight:750;color:var(--mut);margin-top:8px}
+  .thermoleg .warn{color:var(--warn)}
+
+  .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+  .metric-card{border:1px solid var(--bd);border-radius:12px;background:var(--surf);box-shadow:var(--cardshadow);padding:11px}
+  .metric-card .k{display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt)}
+  .metric-card strong{display:block;font-size:20px;font-weight:800;margin-top:5px;color:var(--tx)}
+  .metric-card .s{display:block;font-size:10.5px;color:var(--mut);font-weight:600;margin-top:3px}
+  .metric-card .s.pos{color:var(--money-deep);font-weight:750}
+  .metric-card .s.negd{color:var(--neg);font-weight:750}
+
+  .sec-h2{font-size:15px;font-weight:800;margin:14px 2px 3px;color:var(--tx)}
+  .sec-sub{font-size:11.5px;color:var(--mut);margin:0 2px 9px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px}
+  .text-btn{font-size:11.5px;font-weight:800;color:var(--money)}
+
+  .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;padding:11px;
+    border:1px solid var(--bd);border-radius:12px;background:var(--surf);box-shadow:var(--cardshadow);margin-bottom:7px;text-align:left}
+  .row strong{display:block;font-size:13px;font-weight:800;color:var(--tx)}
+  .row .sm{display:block;font-size:11px;color:var(--mut);font-weight:600;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .amt{font-size:13px;font-weight:800;color:var(--steel);text-align:right;white-space:nowrap}
+  .row .amt.chev{color:var(--fnt)}
+  .mark{width:32px;height:32px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;font-size:13px;font-weight:800;
+    color:#fff;background:var(--pc,var(--money));box-shadow:0 4px 10px color-mix(in srgb,var(--pc,var(--money)) 35%,transparent)}
+  .freetag{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:5px;
+    background:var(--money-soft);color:var(--money-deep);margin-left:5px;vertical-align:1px}
+
+  .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border:1px solid var(--bd);border-radius:12px;background:var(--surf2);margin-bottom:11px}
+  .seg .sb{min-height:32px;display:grid;place-items:center;border-radius:9px;font-size:12.5px;font-weight:750;color:var(--mut)}
+  .seg .sb.on{background:var(--steel);color:var(--canvas)}
+
+  .vtabs{display:flex;gap:2px;border-bottom:1px solid var(--bd);margin:0 0 12px}
+  .vtabs .vt{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;color:var(--fnt);position:relative}
+  .vtabs .vt svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .vtabs .vt span{font-size:8.5px;font-weight:800}
+  .vtabs .vt.on{color:var(--money)}
+  .vtabs .vt.on::after{content:'';position:absolute;left:14%;right:14%;bottom:-1px;height:2.5px;border-radius:3px;background:var(--money)}
+
+  .chart-card h4{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;margin-bottom:11px;color:var(--tx)}
+  .chart-card h4 em{font-style:normal;font-size:9.5px;color:var(--fnt);font-weight:700}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:92px}
+  .bars .b{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--money),color-mix(in srgb,var(--money) 30%,var(--surf)));min-height:4px;position:relative}
+  .bars .b.hi::after{content:attr(data-v);position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:var(--tx);white-space:nowrap}
+  .blbl{display:flex;gap:6px;margin-top:6px}
+  .blbl span{flex:1;text-align:center;font-size:8.5px;color:var(--fnt);font-weight:750}
+  .blbl span.hi{color:var(--tx)}
+
+  .race .rrow{margin-bottom:10px}
+  .race .rl2{display:flex;justify-content:space-between;font-size:11px;font-weight:750;color:var(--mut);margin-bottom:5px;gap:8px}
+  .race .rl2 b{color:var(--tx)}
+  .race .bar{height:14px;border-radius:8px;background:var(--surf2);border:1px solid var(--bd);overflow:hidden}
+  .race .bar i{display:block;height:100%;border-radius:8px}
+  .race .ev i{background:linear-gradient(90deg,var(--money),color-mix(in srgb,var(--money) 55%,#fff))}
+  .race .pet i{background:linear-gradient(90deg,var(--steel),color-mix(in srgb,var(--steel) 55%,var(--canvas)))}
+  .race .note{font-size:10px;color:var(--fnt);font-weight:700;margin-top:4px}
+
+  .dayhead{display:flex;justify-content:space-between;gap:10px;padding:8px 3px 6px;font-size:9.5px;font-weight:800;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--fnt)}
+  .paidsaved{display:flex;justify-content:space-between;align-items:center}
+  .paidsaved .v{font-size:23px;font-weight:800;margin-top:3px;color:var(--tx)}
+
+  .capslider{width:100%;height:6px;appearance:none;-webkit-appearance:none;border-radius:6px;
+    background:linear-gradient(90deg,var(--money-deep),var(--money) var(--pct,50%),var(--bd2) var(--pct,50%));outline:none}
+  .capslider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--surf);border:2.5px solid var(--money);box-shadow:var(--cardshadow)}
+  .sync-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:750;padding:5px 10px;border-radius:999px;
+    background:var(--money-soft);color:var(--money-deep);border:1px solid var(--money-line);white-space:nowrap}
+  .sync-badge .live{width:7px;height:7px;border-radius:50%;background:var(--money)}
+  .sync-badge.off{background:var(--surf2);color:var(--mut);border-color:var(--bd)}
+  .sync-badge.off .live{background:var(--fnt)}
+  .app-footer{margin:14px 0 4px;color:var(--fnt);font-size:10px;font-weight:720;letter-spacing:.08em;text-align:center;text-transform:uppercase}
+
+  /* ===== THEME 1 — Deep Slate ===== */
+  .t-slate{
+    --canvas:#0e151c;--surf:#161f28;--surf2:#1c2731;--bd:#293641;--bd2:#212d37;
+    --tx:#eef3f7;--mut:#9fb0bd;--fnt:#697a88;
+    --money:#10c98a;--money-deep:#34d399;--money-soft:rgba(16,201,138,.14);--money-line:rgba(16,201,138,.30);
+    --steel:#9fb0bd;--neg:#fb7185;--warn:#fbbf24;
+    --savegrad:linear-gradient(140deg,#065f46,#059669 55%,#0d9488);
+    --cardshadow:0 1px 0 rgba(255,255,255,.03),0 12px 26px rgba(0,0,0,.45);
+    --bezel:#05090d;
+  }
+  /* ===== THEME 2 — Carbon OLED ===== */
+  .t-carbon{
+    --canvas:#000000;--surf:#0c0f12;--surf2:#14181c;--bd:#262c32;--bd2:#191e22;
+    --tx:#f6f8f9;--mut:#98a4ac;--fnt:#5f6a72;
+    --money:#1fe08f;--money-deep:#4ade80;--money-soft:rgba(31,224,143,.13);--money-line:rgba(31,224,143,.35);
+    --steel:#aab6c0;--neg:#ff5c7a;--warn:#ffb020;
+    --savegrad:linear-gradient(140deg,#047857,#10b981 52%,#06b6a4);
+    --cardshadow:0 0 0 1px rgba(255,255,255,.02),0 10px 30px rgba(0,0,0,.6);
+    --bezel:#000000;
+  }
+  /* ===== THEME 3 — Midnight Emerald ===== */
+  .t-emerald{
+    --canvas:#0a1512;--surf:#0f1d18;--surf2:#132620;--bd:#22392e;--bd2:#1a2d24;
+    --tx:#e9f3ee;--mut:#9db5a9;--fnt:#6a8478;
+    --money:#2dd4a7;--money-deep:#5eead4;--money-soft:rgba(45,212,167,.15);--money-line:rgba(45,212,167,.30);
+    --steel:#8fb0a2;--neg:#f6788f;--warn:#eab308;
+    --savegrad:linear-gradient(140deg,#0b3d33,#0f766e 50%,#059669);
+    --cardshadow:0 1px 0 rgba(255,255,255,.03),0 14px 30px rgba(0,0,0,.5);
+    --bezel:#04100c;
+  }
+  @media(max-width:520px){.device{width:300px;height:700px}}
+</style>
+
+<div class="pagehead">
+  <div class="kick">EV Command · Cockpit Ledger</div>
+  <h1>Dark theme — 3 options</h1>
+  <p>Three dark directions, each built from the app's own tokens (emerald money accent, slate instrumentation) —
+     not just an inverted background. Every real page is rendered under each theme. Scroll each row sideways to see
+     all five pages.</p>
+  <nav class="jump">
+    <a href="#slate"><b style="background:#10c98a"></b>Deep Slate</a>
+    <a href="#carbon"><b style="background:#1fe08f"></b>Carbon OLED</a>
+    <a href="#emerald"><b style="background:#2dd4a7"></b>Midnight Emerald</a>
+  </nav>
+</div>
+
+<div id="root"></div>
+
+<script>
+const THEMES = [
+  { id:'slate', cls:'t-slate', name:'Deep Slate', tag:'refined · neutral',
+    desc:'A cool blue-slate ink, one step off pure black. Cards lift on a subtle lighter slate with soft depth shadows. The safe, premium-fintech default — reads calm and professional, emerald stays the only saturated colour.',
+    hex:'canvas #0E151C · card #161F28 · accent #10C98A',
+    sw:['#0e151c','#161f28','#10c98a','#eef3f7'] },
+  { id:'carbon', cls:'t-carbon', name:'Carbon OLED', tag:'true black · high-contrast',
+    desc:'Pure #000 for OLED battery saving and maximum punch. Near-black cards float on hairline borders instead of shadow; the emerald is pushed brighter, almost neon — a night-mode instrument cluster.',
+    hex:'canvas #000000 · card #0C0F12 · accent #1FE08F',
+    sw:['#000000','#0c0f12','#1fe08f','#f6f8f9'] },
+  { id:'emerald', cls:'t-emerald', name:'Midnight Emerald', tag:'brand-tinted · ambient',
+    desc:'The brand colour bleeds into the environment: a very dark green-slate canvas and green-tinted cards. Warmer and more characterful — the emerald savings card feels native rather than bolted on.',
+    hex:'canvas #0A1512 · card #0F1D18 · accent #2DD4A7',
+    sw:['#0a1512','#0f1d18','#2dd4a7','#e9f3ee'] },
+];
+
+const ICON = {
+  home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/>',
+  stats:'<path d="M4 19V5M9 19v-9M14 19v-6M19 19V9"/>',
+  car:'<path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>',
+  gear:'<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+};
+const tabbar = (active) => `
+  <div class="tabbar">
+    <div class="ti ${active==='home'?'on':''}"><svg viewBox="0 0 24 24">${ICON.home}</svg>Home</div>
+    <div class="ti ${active==='stats'?'on':''}"><svg viewBox="0 0 24 24">${ICON.stats}</svg>Stats</div>
+    <div class="fab"><svg viewBox="0 0 24 24">${ICON.plus}</svg></div>
+    <div class="ti ${active==='vehicle'?'on':''}"><svg viewBox="0 0 24 24">${ICON.car}</svg>Vehicle</div>
+    <div class="ti ${active==='settings'?'on':''}"><svg viewBox="0 0 24 24">${ICON.gear}</svg>Settings</div>
+  </div>`;
+
+const mark = (letter,color)=>`<span class="mark" style="--pc:${color}">${letter}</span>`;
+
+const PAGES = {
+  home: { active:'home', label:'Home', html:`
+    <div class="appbar">
+      <div><p class="eyebrow">EV Command</p><h1>July</h1><span class="sub">8 charges · 68 kWh</span></div>
+      <span class="icon-btn"><svg class="svgi" viewBox="0 0 24 24">${ICON.gear}</svg></span>
+    </div>
+    <section class="hero-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div><span class="cap">Spent this month</span><div class="hero-num">$27.88</div></div>
+        <span class="delta">▼ 18% vs last mo</span>
+      </div>
+      <p class="hero-sub">68 kWh added · 82% of it free</p>
+    </section>
+    <section class="savecard">
+      <span class="bolt">⚡</span>
+      <span class="cap">Free Jolt energy · July</span>
+      <b class="big">$13.52 saved</b>
+      <small>34.5 kWh free this month · lifetime <b>$360</b> net<br>Today: 4.2 of 7 kWh free used</small>
+      <span class="ringside"><div class="ringd" style="--v:60"><span class="in"><b>4.2</b><small>of 7</small></span></div></span>
+    </section>
+    <section class="hero-card" style="padding-bottom:13px">
+      <span class="cap" style="margin-bottom:10px">July budget · $60</span>
+      <div class="thermo"><span class="fill" style="width:46%"></span><span class="proj" style="left:70%"></span><span class="cap100"></span></div>
+      <div class="thermoleg"><span>$27.88 spent</span><span class="warn">projected $42</span><span>cap $60</span></div>
+    </section>
+    <div class="sec-head"><h2 class="sec-h2" style="margin-top:6px">Accounts</h2><span class="text-btn">View all</span></div>
+    <p class="sec-sub">Spend by charger network.</p>
+    <div class="row">${mark('J','#0d9488')}<span><strong>Jolt<span class="freetag">7 kWh/day FREE</span></strong><span class="sm">235 charges · effective $0.10/kWh</span></span><b class="amt">$175</b></div>
+  `},
+
+  analytics: { active:'stats', label:'Analytics · Cluster', html:`
+    <div class="appbar">
+      <div><p class="eyebrow">Instruments</p><h1>Analytics</h1><span class="sub">255 charges · 2,012 kWh all-time</span></div>
+      <span class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg></span>
+    </div>
+    <div class="vtabs">
+      <div class="vt on"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>Cluster</span></div>
+      <div class="vt"><svg viewBox="0 0 24 24"><path d="M3 16l5-5 4 3 8-8"/><path d="M17 6h4v4"/></svg><span>Trends</span></div>
+      <div class="vt"><svg viewBox="0 0 24 24"><path d="M12 3v9l7 4"/><circle cx="12" cy="12" r="9"/></svg><span>Split</span></div>
+      <div class="vt"><svg viewBox="0 0 24 24"><path d="M6 20V9M12 20V4M18 20v-7"/></svg><span>Compare</span></div>
+      <div class="vt"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Statement</span></div>
+    </div>
+    <div class="seg"><div class="sb on">Year</div><div class="sb">Quarter</div><div class="sb">Month</div></div>
+    <div class="metric-grid">
+      <div class="metric-card"><span class="k">Total cost</span><strong>$200.45</strong><span class="s negd">▲ 109% vs 2025</span></div>
+      <div class="metric-card"><span class="k">Energy added</span><strong>998 kWh</strong><span class="s">▼ 2% vs 2025</span></div>
+      <div class="metric-card"><span class="k">Avg rate</span><strong>$0.20</strong><span class="s">per kWh · incl. free</span></div>
+      <div class="metric-card"><span class="k">Charges</span><strong>126</strong><span class="s">7.9 kWh avg</span></div>
+    </div>
+    <section class="chart-card">
+      <h4><span>Cost per month</span><em>2026</em></h4>
+      <div class="bars">
+        <div class="b" style="height:40%"></div><div class="b" style="height:96%"></div><div class="b" style="height:68%"></div>
+        <div class="b" style="height:60%"></div><div class="b" style="height:64%"></div><div class="b hi" data-v="$34" style="height:80%"></div>
+      </div>
+      <div class="blbl"><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span class="hi">Jul</span></div>
+    </section>
+  `},
+
+  statement: { active:'stats', label:'Statement', html:`
+    <div class="appbar">
+      <div><p class="eyebrow">Statement</p><h1>July 2026</h1><span class="sub">8 charges · 68 kWh</span></div>
+      <span class="icon-btn"><svg class="svgi" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></span>
+    </div>
+    <div class="seg"><div class="sb">‹ June</div><div class="sb on">July</div><div class="sb">— ›</div></div>
+    <section class="hero-card paidsaved">
+      <div><span class="cap">Paid</span><div class="v">$27.88</div></div>
+      <div style="text-align:right"><span class="cap" style="color:var(--money-deep)">Saved free</span><div class="v" style="color:var(--money-deep)">$13.52</div></div>
+    </section>
+    <div class="dayhead"><span>Tue, 14 July</span><span>1 charge · $5.41 · saved $1.94</span></div>
+    <div class="row">${mark('J','#0d9488')}<span><strong>Jolt</strong><span class="sm">14.9 kWh · 7.0 free + 7.9 paid</span></span><b class="amt">$5.41</b></div>
+    <div class="dayhead"><span>Fri, 10 July</span><span>1 charge · $0.00 · saved $1.92</span></div>
+    <div class="row">${mark('J','#0d9488')}<span><strong>Jolt<span class="freetag">FREE</span></strong><span class="sm">6.9 kWh · allowance covered it</span></span><b class="amt">$0.00</b></div>
+    <div class="dayhead"><span>Wed, 8 July</span><span>1 charge · $15.00</span></div>
+    <div class="row">${mark('J','#0d9488')}<span><strong>Jolt membership</strong><span class="sm">monthly charge — funds the free allowance</span></span><b class="amt">$15.00</b></div>
+    <div class="dayhead"><span>Mon, 6 July</span><span>1 charge · $2.08 · saved $1.93</span></div>
+    <div class="row">${mark('M','#6366f1')}<span><strong>Matty</strong><span class="sm">10.0 kWh · 7.0 free + 3.0 paid</span></span><b class="amt">$2.08</b></div>
+  `},
+
+  vehicle: { active:'vehicle', label:'Vehicle', html:`
+    <div class="appbar">
+      <div><p class="eyebrow">Vehicle</p><h1>Cockpit</h1><span class="sub">Efficiency, cost & the petrol brag</span></div>
+      <span class="icon-btn"><svg class="svgi" viewBox="0 0 24 24">${ICON.gear}</svg></span>
+    </div>
+    <section class="hero-card">
+      <span class="cap">Estimated distance powered</span>
+      <div class="hero-num">13,789 <span style="font-size:15px;color:var(--fnt);font-weight:750">km</span></div>
+      <p class="hero-sub">1,959 kWh lifetime ÷ 14.2 kWh/100km</p>
+    </section>
+    <section class="metric-grid">
+      <div class="metric-card"><span class="k">Efficiency</span><strong>14.2</strong><span class="s">kWh / 100 km</span></div>
+      <div class="metric-card"><span class="k">All-in rate</span><strong>$0.137</strong><span class="s">/kWh incl. free</span></div>
+      <div class="metric-card"><span class="k">Energy cost</span><strong style="color:var(--money-deep)">$1.94</strong><span class="s">/100 km actual</span></div>
+      <div class="metric-card"><span class="k">Without free kWh</span><strong>$5.41</strong><span class="s">/100 km at paid rate</span></div>
+    </section>
+    <section class="chart-card race">
+      <h4>Cost per 100 km</h4>
+      <div class="rrow"><div class="rl2"><span>Petrol equiv (7.0 L @ $1.85)</span><b>$12.95</b></div><div class="bar pet"><i style="width:92%"></i></div></div>
+      <div class="rrow"><div class="rl2"><span>You (incl. free energy)</span><b style="color:var(--money-deep)">$1.94</b></div><div class="bar ev"><i style="width:14%"></i></div></div>
+      <p class="note">≈ $1,516 saved vs petrol across 13,789 km</p>
+    </section>
+  `},
+
+  settings: { active:'settings', label:'Settings', html:`
+    <div class="appbar">
+      <div><p class="eyebrow">Settings</p><h1>Manage</h1><span class="sub">Chargers · budget · data</span></div>
+      <span class="icon-btn"><svg class="svgi" viewBox="0 0 24 24">${ICON.gear}</svg></span>
+    </div>
+    <h2 class="sec-h2" style="margin-top:4px">Charger types</h2>
+    <p class="sec-sub">Free allowances drive every savings figure.</p>
+    <div class="row">${mark('J','#0d9488')}<span><strong>Jolt</strong><span class="sm">Free allowance: 7 kWh/day</span></span><b class="amt chev">›</b></div>
+    <div class="row">${mark('M','#6366f1')}<span><strong>Matty</strong><span class="sm">No free allowance</span></span><b class="amt chev">›</b></div>
+    <div class="row">${mark('S','#f43f5e')}<span><strong>Supercharger</strong><span class="sm">No free allowance</span></span><b class="amt chev">›</b></div>
+    <h2 class="sec-h2">Budget</h2>
+    <p class="sec-sub">Monthly cap for the home thermometer.</p>
+    <section class="hero-card">
+      <span class="cap" style="margin-bottom:12px">Monthly cap — $60</span>
+      <input type="range" class="capslider" min="20" max="150" value="60" style="--pct:31%" />
+      <div class="thermoleg" style="margin-top:10px"><span>$20</span><span>$150</span></div>
+    </section>
+    <h2 class="sec-h2">Data</h2>
+    <div class="row">${mark('☁','#059669')}<span><strong>Supabase sync</strong><span class="sm">255 sessions synced</span></span><span class="sync-badge"><span class="live"></span>Live</span></div>
+  `},
+};
+
+const PAGE_ORDER = ['home','analytics','statement','vehicle','settings'];
+
+const root = document.getElementById('root');
+root.innerHTML = THEMES.map(t => `
+  <section class="theme" id="${t.id}">
+    <div class="thead">
+      <div class="swatches">${t.sw.map(c=>`<i style="background:${c}"></i>`).join('')}</div>
+      <div>
+        <h2>${t.name}</h2><span class="ttag">${t.tag}</span>
+        <p>${t.desc}</p>
+        <div class="hexrow">${t.hex}</div>
+      </div>
+    </div>
+    <div class="phones">
+      ${PAGE_ORDER.map(pk => {
+        const p = PAGES[pk];
+        return `<figure>
+          <div class="device ${t.cls}">
+            <div class="statusbar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+            <div class="screen">${p.html}</div>
+            ${tabbar(p.active)}
+          </div>
+          <figcaption>${p.label}</figcaption>
+        </figure>`;
+      }).join('')}
+    </div>
+  </section>
+`).join('');
+</script>

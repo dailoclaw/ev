@@ -27,6 +27,59 @@
   --sheetshadow: 0 -14px 40px rgba(15, 26, 36, 0.3);
 }
 
+/* ============ Carbon OLED — dark theme ============ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #000000;
+  --surf: #0c0f12;
+  --surf2: #14181c;
+  --bd: #262c32;
+  --bd2: #191e22;
+  --tx: #f6f8f9;
+  --mut: #98a4ac;
+  --fnt: #5f6a72;
+  --money: #1fe08f;
+  --money-deep: #4ade80;
+  --money-soft: rgba(31, 224, 143, 0.13);
+  --money-line: rgba(31, 224, 143, 0.35);
+  --steel: #aab6c0;
+  --neg: #ff5c7a;
+  --warn: #ffb020;
+  --cardshadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 10px 30px rgba(0, 0, 0, 0.6);
+  --sheetshadow: 0 -14px 40px rgba(0, 0, 0, 0.65);
+}
+
+/* Dark fixes: where a token's role inverts (steel becomes light) or a colour
+   was hard-coded for the light theme. */
+:root[data-theme='dark'] .seg button.on,
+:root[data-theme='dark'] .chip.on,
+:root[data-theme='dark'] .provrow button.on,
+:root[data-theme='dark'] .scrub .flag {
+  color: var(--canvas);
+}
+:root[data-theme='dark'] .delta.up {
+  background: color-mix(in srgb, var(--neg) 20%, transparent);
+  color: var(--neg);
+}
+:root[data-theme='dark'] .ratebadge.mid {
+  background: color-mix(in srgb, var(--warn) 20%, transparent);
+  color: var(--warn);
+}
+:root[data-theme='dark'] .ratebadge.bad {
+  background: color-mix(in srgb, var(--neg) 20%, transparent);
+  color: var(--neg);
+}
+:root[data-theme='dark'] .dashed-btn,
+:root[data-theme='dark'] .emptybat .batt {
+  border-color: var(--bd);
+}
+:root[data-theme='dark'] .emptybat .batt::after {
+  background: var(--bd);
+}
+:root[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

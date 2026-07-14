@@ -23,6 +23,17 @@
     
     <title>EV Charging Dashboard</title>
     <meta name="description" content="Track your electric vehicle charging costs and usage patterns" />
+
+    <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+    <script>
+      try {
+        if (localStorage.getItem('ev.theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark'
+          var m = document.querySelector('meta[name="theme-color"]')
+          if (m) m.setAttribute('content', '#000000')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

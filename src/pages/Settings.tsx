@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useEv } from '../lib/useEv'
 import { buildCsv, downloadCsv, setBudgetCap, updateProvider } from '../lib/data'
 import { aud } from '../lib/format'
+import { useTheme } from '../lib/theme'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 
 export default function Settings() {
   const ev = useEv()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [exported, setExported] = useState(false)
+  const [theme, setTheme] = useTheme()
 
   const exportAll = () => {
     downloadCsv(buildCsv(ev.sessions), 'ev-charging-export.csv')
@@ -31,8 +33,19 @@ export default function Settings() {
       </header>
 
       <h2 className="sec-h2" style={{ marginTop: 4 }}>
-        Charger types
+        Appearance
       </h2>
+      <p className="sec-sub">Carbon OLED dark theme — easy on the eyes and the battery.</p>
+      <div className="seg" role="group" aria-label="Theme">
+        <button type="button" className={theme === 'light' ? 'on' : ''} onClick={() => setTheme('light')}>
+          ☀ Light
+        </button>
+        <button type="button" className={theme === 'dark' ? 'on' : ''} onClick={() => setTheme('dark')}>
+          ☾ Dark
+        </button>
+      </div>
+
+      <h2 className="sec-h2">Charger types</h2>
       <p className="sec-sub">Free allowances are per-charger settings — they drive every savings figure.</p>
       {ev.providers.map(p => (
         <div key={p.id}>
