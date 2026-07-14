@@ -1,0 +1,824 @@
+<meta charset="utf-8">
+<title>EV Command — Theme Direction Review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --ink:#0d1020; --ink2:#3a4056; --ink3:#6b7185; --line:#e7e9f2; --line2:#eef0f7;
+  --paper:#f7f8fc; --card:#ffffff; --brand:#4f46e5; --brand2:#06b6d4; --pos:#16a34a; --warn:#f59e0b;
+  --shadow-sm:0 1px 2px rgba(16,18,40,.06),0 4px 14px rgba(16,18,40,.05);
+  --shadow-md:0 8px 30px rgba(16,18,40,.10);
+  --shadow-lg:0 24px 70px rgba(16,18,40,.16);
+  --r:18px;
+  --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,'Cascadia Code',monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,h4{margin:0;letter-spacing:-.02em;line-height:1.08}
+p{margin:0}
+a{color:inherit}
+::selection{background:rgba(79,70,229,.18)}
+
+/* ---------- Top progress + nav ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;display:flex;align-items:center;gap:16px;
+  padding:0 20px;background:rgba(247,248,252,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line)}
+.topbar .brand{font-weight:800;font-size:14px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.topbar .dot{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 140deg,#4f46e5,#06b6d4,#16a34a,#4f46e5);box-shadow:0 4px 14px rgba(79,70,229,.4)}
+.toc{margin-left:auto;display:flex;gap:2px;overflow:auto;scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc a{font-size:12px;font-weight:650;color:var(--ink3);padding:7px 11px;border-radius:9px;white-space:nowrap;text-decoration:none;transition:.15s}
+.toc a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.progress{position:fixed;top:56px;left:0;height:2px;background:linear-gradient(90deg,#4f46e5,#06b6d4);z-index:101;width:0;transition:width .1s}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+section.slide{padding:96px 0 72px;border-bottom:1px solid var(--line2)}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.lead{font-size:18px;color:var(--ink2);max-width:70ch;margin-top:14px}
+.h-sec{font-size:clamp(28px,4vw,44px);font-weight:850;margin-top:12px}
+
+/* ---------- Hero ---------- */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;
+  background:
+   radial-gradient(680px 420px at 12% -6%,rgba(79,70,229,.14),transparent 60%),
+   radial-gradient(560px 400px at 92% 8%,rgba(6,182,212,.12),transparent 62%),
+   radial-gradient(520px 420px at 70% 100%,rgba(22,163,74,.10),transparent 60%),
+   var(--paper)}
+.hero .wrap{position:relative;z-index:2}
+.hero h1{font-size:clamp(40px,8vw,88px);font-weight:880;letter-spacing:-.035em;max-width:16ch}
+.hero .grad{background:linear-gradient(120deg,#4f46e5,#06b6d4 55%,#16a34a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{margin-top:26px;font-size:20px;color:var(--ink2);max-width:60ch}
+.hero .meta{margin-top:40px;display:flex;flex-wrap:wrap;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;font-size:13px;font-weight:650;box-shadow:var(--shadow-sm)}
+.pill b{font-weight:800}
+.scrolln{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--ink3);
+  letter-spacing:.1em;text-transform:uppercase;font-weight:700;z-index:2}
+
+/* ---------- generic layout ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+.panel h3{font-size:17px;font-weight:800}
+.muted{color:var(--ink3)}
+.tag{display:inline-block;font-size:11px;font-weight:750;letter-spacing:.02em;padding:4px 9px;border-radius:7px;background:#f0f1f8;color:var(--ink2)}
+ul.ticks{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:9px}
+ul.ticks li{position:relative;padding-left:26px;font-size:14px;color:var(--ink2)}
+ul.ticks li::before{content:"";position:absolute;left:0;top:6px;width:15px;height:15px;border-radius:5px;
+  background:radial-gradient(circle at 30% 30%,#4f46e5,#06b6d4);box-shadow:0 2px 6px rgba(79,70,229,.3)}
+ul.ticks.warnlist li::before{background:radial-gradient(circle at 30% 30%,#f59e0b,#ef4444)}
+.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:start}
+
+/* ---------- swatches ---------- */
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.sw{width:38px;height:38px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),var(--shadow-sm);position:relative}
+.sw span{position:absolute;bottom:-17px;left:0;right:0;text-align:center;font-size:8.5px;color:var(--ink3);font-family:var(--mono)}
+.swrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 22px}
+
+/* ---------- benchmark table ---------- */
+table.bm{width:100%;border-collapse:collapse;font-size:13.5px}
+table.bm th,table.bm td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line2)}
+table.bm th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:750}
+table.bm tr:hover td{background:#fafbff}
+table.bm td:first-child{font-weight:750}
+.chip-cat{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca}
+
+/* ============ PHONE MOCKUP (restyled clone of real app) ============ */
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px}
+.phone{
+  --bg:#f5f6fb; --canvas:#f5f6fb; --surf:#fff; --surf2:#f8f9fe; --bd:#e7e9f2; --bd2:#eef0f7;
+  --tx:#12142b; --mut:#5b6178; --fnt:#8a90a6; --acc:#4f46e5; --acc2:#7c6cf6; --en:#06b6d4;
+  --p1:#0d9488; --p2:#6366f1; --p3:#8b5cf6; --p4:#f43f5e; --pr:18px; --pr2:12px;
+  --cardshadow:0 1px 2px rgba(16,18,40,.05),0 10px 24px rgba(16,18,40,.07);
+  width:300px;border-radius:38px;padding:11px;background:#dfe2ee;
+  box-shadow:0 30px 70px rgba(16,18,40,.22),0 4px 10px rgba(16,18,40,.10),inset 0 0 0 1px rgba(255,255,255,.5);
+  flex:0 0 auto}
+.phone .screen{
+  border-radius:29px;overflow:hidden;height:600px;overflow-y:auto;position:relative;
+  background:var(--canvas);color:var(--tx);scrollbar-width:none}
+.phone .screen::-webkit-scrollbar{display:none}
+.phone.grad-canvas .screen{background:var(--canvasImg,var(--canvas))}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:26px;background:#0d1020;
+  border-radius:0 0 16px 16px;z-index:9}
+.phone.light-notch .notch{background:var(--acc)}
+.pad{padding:34px 15px 78px}
+
+/* app-bar */
+.p-appbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
+.p-eyebrow{color:var(--acc);font-size:9.5px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+.p-appbar h1{font-size:27px;font-weight:850;margin:3px 0 3px;color:var(--tx)}
+.p-appbar .p-sub{color:var(--mut);font-size:11px;font-weight:600}
+.p-icon{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:800;
+  background:var(--surf);border:1px solid var(--bd);color:var(--acc);box-shadow:var(--cardshadow)}
+.phone.solid-icon .p-icon{background:var(--acc);color:#fff;border-color:transparent}
+
+/* segmented */
+.p-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:4px;border-radius:12px;
+  background:var(--surf2);border:1px solid var(--bd);margin-bottom:13px}
+.p-seg button{border:0;background:transparent;font:inherit;color:var(--mut);font-size:11px;font-weight:750;
+  padding:7px 0;border-radius:8px;cursor:pointer}
+.p-seg button.on{background:var(--acc);color:#fff;box-shadow:0 6px 14px color-mix(in srgb,var(--acc) 40%,transparent)}
+.phone.softtoggle .p-seg button.on{background:var(--surf);color:var(--acc);box-shadow:var(--cardshadow)}
+
+/* hero ledger */
+.p-hero{border-radius:var(--pr);padding:17px;margin-bottom:11px;background:var(--surf);border:1px solid var(--bd);
+  box-shadow:var(--cardshadow);position:relative;overflow:hidden}
+.phone.accent-hero .p-hero{background:linear-gradient(140deg,var(--acc),var(--acc2));border-color:transparent;color:#fff}
+.phone.accent-hero .p-hero .p-cap,.phone.accent-hero .p-hero .p-heronum,.phone.accent-hero .p-hero .p-herosub{color:#fff}
+.p-cap{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fnt)}
+.p-heronum{font-size:44px;font-weight:850;line-height:.95;margin-top:7px;letter-spacing:-.02em;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-herosub{font-size:11px;font-weight:600;color:var(--mut);margin-top:8px}
+.p-hero .spark{position:absolute;right:14px;top:16px;bottom:16px;width:74px;opacity:.9}
+
+/* metric grid */
+.p-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px}
+.p-mc{background:var(--surf);border:1px solid var(--bd);border-radius:var(--pr2);padding:11px;box-shadow:var(--cardshadow)}
+.p-mc span{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt)}
+.p-mc strong{display:block;font-size:21px;font-weight:820;margin-top:6px;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-mc small{font-size:10px;color:var(--mut);font-weight:600}
+
+.p-h2{font-size:15px;font-weight:820;color:var(--tx);margin:16px 0 3px}
+.p-h2s{font-size:10.5px;color:var(--mut);margin-bottom:9px}
+
+/* provider chips */
+.p-chips{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.p-chip{display:flex;align-items:center;gap:8px;padding:9px;border-radius:var(--pr2);background:var(--surf);
+  border:1px solid var(--bd);box-shadow:var(--cardshadow)}
+.p-chip.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--surf))}
+.p-mark{width:30px;height:30px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:850;
+  color:#fff;background:var(--pc);box-shadow:0 4px 10px color-mix(in srgb,var(--pc) 40%,transparent)}
+.p-chip strong{font-size:11.5px;font-weight:800;color:var(--tx);display:block}
+.p-chip small{font-size:9.5px;color:var(--mut);font-weight:600}
+
+/* mini bar chart */
+.p-chart{background:var(--surf);border:1px solid var(--bd);border-radius:var(--pr);padding:13px 12px 8px;box-shadow:var(--cardshadow);margin-bottom:10px}
+.p-chart h4{font-size:12px;font-weight:800;color:var(--tx);margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:74px}
+.bars .b{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 45%,var(--surf)));position:relative}
+.bars .b.en{background:linear-gradient(180deg,var(--en),color-mix(in srgb,var(--en) 40%,var(--surf)))}
+.bars .lbl{display:flex;gap:7px;margin-top:6px}
+.bars .lbl span{flex:1;text-align:center;font-size:8px;color:var(--fnt);font-weight:700}
+
+/* sessions */
+.p-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border-radius:var(--pr2);
+  background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow);margin-bottom:7px}
+.p-row strong{font-size:12px;font-weight:800;color:var(--tx);display:block}
+.p-row small{font-size:9.5px;color:var(--mut);font-weight:600}
+.p-row b{font-size:12.5px;font-weight:850;color:var(--en);font-variant-numeric:tabular-nums}
+
+/* bottom nav */
+.p-nav{position:absolute;left:0;right:0;bottom:0;height:58px;display:grid;grid-template-columns:1fr 1fr;
+  background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--bd)}
+.p-nav button{border:0;background:transparent;font:inherit;color:var(--mut);font-size:12px;font-weight:750;display:grid;place-items:center;position:relative;cursor:pointer}
+.p-nav button.on{color:var(--acc)}
+.p-nav button.on::before{content:"";position:absolute;top:9px;width:16px;height:2px;border-radius:2px;background:var(--acc)}
+
+/* glass + neo variants */
+.phone.is-glass .p-hero,.phone.is-glass .p-mc,.phone.is-glass .p-chip,.phone.is-glass .p-chart,.phone.is-glass .p-row,.phone.is-glass .p-icon,.phone.is-glass .p-seg{
+  background:rgba(255,255,255,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-color:rgba(255,255,255,.75);
+  box-shadow:0 8px 24px rgba(60,70,120,.12),inset 0 1px 0 rgba(255,255,255,.7)}
+.phone.is-neo .p-hero,.phone.is-neo .p-mc,.phone.is-neo .p-chip,.phone.is-neo .p-chart,.phone.is-neo .p-row,.phone.is-neo .p-icon{
+  background:var(--canvas);border-color:transparent;
+  box-shadow:6px 6px 14px rgba(174,182,200,.55),-6px -6px 14px rgba(255,255,255,.9)}
+.phone.is-neo .p-seg{background:var(--canvas);box-shadow:inset 3px 3px 7px rgba(174,182,200,.5),inset -3px -3px 7px rgba(255,255,255,.9);border-color:transparent}
+.phone.sharp .p-hero,.phone.sharp .p-mc,.phone.sharp .p-chip,.phone.sharp .p-chart,.phone.sharp .p-row{border-radius:10px}
+.phone.sharp{--pr:12px;--pr2:9px}
+.phone.round .p-hero,.phone.round .p-chart{border-radius:24px}
+.phone.round{--pr:24px;--pr2:18px}
+
+.screen-label{font-size:12px;font-weight:750;color:var(--ink3)}
+.mock-cluster{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+
+/* modal mock */
+.modal-mock{width:300px;border-radius:24px 24px 16px 16px;padding:14px 15px 20px;background:var(--surf);
+  border:1px solid var(--bd);box-shadow:var(--shadow-lg);position:relative;color:var(--tx)}
+.modal-mock .handle{width:40px;height:5px;border-radius:9px;background:color-mix(in srgb,var(--tx) 18%,transparent);margin:0 auto 14px}
+
+/* theme header block */
+.theme-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+.theme-no{font-size:13px;font-weight:850;color:#fff;background:var(--brand);border-radius:10px;padding:6px 11px;letter-spacing:.02em}
+.mood{font-size:13px;font-weight:700;color:var(--ink2);padding:6px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.theme-why{font-size:14px;color:var(--ink2);margin-top:6px}
+
+/* spec rows */
+.spec{display:grid;gap:16px}
+.spec .row h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:800;margin-bottom:6px}
+.spec .row p{font-size:13.5px;color:var(--ink2)}
+.kv{font-family:var(--mono);font-size:12px}
+
+/* ============ COMPONENTS LAB ============ */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.lab{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.lab .num{position:absolute;top:14px;right:16px;font-size:12px;font-weight:800;color:#c3c7d6}
+.lab h4{font-size:15px;font-weight:800}
+.lab .desc{font-size:12.5px;color:var(--ink3);margin-top:4px;margin-bottom:16px;min-height:34px}
+.lab .demo{display:flex;align-items:center;justify-content:center;gap:12px;min-height:118px;background:
+  radial-gradient(circle at 50% 40%,#fbfbff,#f4f5fb);border-radius:14px;padding:16px;flex-wrap:wrap}
+
+/* 1 gradient pill */
+.btn-grad{border:0;cursor:pointer;font:inherit;font-weight:750;color:#fff;padding:13px 24px;border-radius:999px;font-size:14px;
+  background:linear-gradient(120deg,#4f46e5,#06b6d4);box-shadow:0 10px 24px rgba(79,70,229,.4);position:relative;overflow:hidden;transition:transform .2s}
+.btn-grad::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,.5),transparent 60%);
+  transform:translateX(-120%);transition:transform .6s}
+.btn-grad:hover{transform:translateY(-2px)}
+.btn-grad:hover::after{transform:translateX(120%)}
+
+/* 2 donut */
+.donut{--v:72;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#16a34a calc(var(--v)*1%),#e8ebf3 0);position:relative}
+.donut::before{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:#fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.05)}
+.donut b{position:relative;font-size:20px;font-weight:850;color:#0f1f14}
+.donut small{position:relative;font-size:9px;color:#6b7185;display:block;text-align:center;font-weight:700}
+
+/* 3 animated gradient border */
+.gborder{position:relative;border-radius:16px;padding:2px;background:linear-gradient(120deg,#8b5cf6,#ec4899,#06b6d4,#8b5cf6);
+  background-size:300% 300%;animation:gbmove 4s linear infinite}
+@keyframes gbmove{to{background-position:300% 0}}
+.gborder .inner{background:#fff;border-radius:14px;padding:16px 18px;min-width:150px}
+.gborder .inner b{font-size:18px;font-weight:850}
+.gborder .inner small{font-size:11px;color:#6b7185}
+
+/* 4 neomorphic press */
+.neo-btn{border:0;cursor:pointer;font:inherit;font-weight:800;color:#4f46e5;padding:14px 22px;border-radius:16px;font-size:14px;
+  background:#e8ebf3;box-shadow:6px 6px 12px rgba(174,182,200,.7),-6px -6px 12px #fff;transition:.15s}
+.neo-btn:active{box-shadow:inset 4px 4px 9px rgba(174,182,200,.8),inset -4px -4px 9px #fff}
+
+/* 5 glass */
+.glasswrap{background:linear-gradient(120deg,#a5b4fc,#67e8f9);border-radius:16px;padding:22px;display:flex;gap:10px}
+.glass-btn{background:rgba(255,255,255,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.5);
+  color:#fff;font-weight:750;padding:11px 18px;border-radius:12px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.12);cursor:pointer}
+
+/* 6 shimmer skeleton card */
+.skel{width:190px;background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)}
+.skel .s{height:12px;border-radius:6px;margin-bottom:9px;background:linear-gradient(90deg,#eef0f7 25%,#f7f8fc 37%,#eef0f7 63%);
+  background-size:400% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{to{background-position:-135% 0}}
+
+/* 7 sliding segmented */
+.slideseg{display:inline-grid;grid-auto-flow:column;background:#eef0f7;border-radius:12px;padding:4px;position:relative}
+.slideseg button{border:0;background:transparent;font:inherit;font-weight:750;font-size:12px;color:#5b6178;padding:8px 16px;
+  border-radius:9px;cursor:pointer;position:relative;z-index:2;transition:color .25s}
+.slideseg button.on{color:#0d1020}
+.slideseg .thumb{position:absolute;z-index:1;top:4px;bottom:4px;border-radius:9px;background:#fff;box-shadow:var(--shadow-sm);transition:.3s cubic-bezier(.4,1.3,.5,1)}
+
+/* 8 sparkline stat card */
+.spark-card{width:200px;background:#0d1020;color:#fff;border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.spark-card .cap{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a90a6;font-weight:800}
+.spark-card b{font-size:26px;font-weight:850;display:block;margin-top:4px}
+.spark-card .up{color:#4ade80;font-size:11px;font-weight:750}
+.spark-card svg{position:absolute;right:0;bottom:0;width:100%;height:44px}
+
+/* 9 glow hover */
+.glow-btn{position:relative;border:0;cursor:pointer;font:inherit;font-weight:800;color:#0d1020;background:#fff;padding:14px 24px;border-radius:14px;
+  font-size:14px;box-shadow:var(--shadow-sm);transition:.2s}
+.glow-btn::before{content:"";position:absolute;inset:-2px;border-radius:16px;background:conic-gradient(from 0deg,#4f46e5,#06b6d4,#16a34a,#f59e0b,#4f46e5);
+  z-index:-1;opacity:0;filter:blur(9px);transition:.3s}
+.glow-btn:hover{transform:translateY(-2px)}
+.glow-btn:hover::before{opacity:.9}
+
+/* 10 3D tilt / ticket */
+.ticket{width:210px;background:#fff;border-radius:14px;box-shadow:var(--shadow-md);position:relative;transition:transform .3s;
+  transform:perspective(700px) rotateY(-9deg) rotateX(4deg)}
+.ticket:hover{transform:perspective(700px) rotateY(0) rotateX(0)}
+.ticket .top{padding:14px 16px;border-bottom:2px dashed #e7e9f2;position:relative}
+.ticket .top::before,.ticket .top::after{content:"";position:absolute;bottom:-7px;width:14px;height:14px;border-radius:50%;background:#f4f5fb}
+.ticket .top::before{left:-7px}.ticket .top::after{right:-7px}
+.ticket .top b{font-size:17px;font-weight:850}.ticket .top small{font-size:10px;color:#6b7185}
+.ticket .bot{padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.ticket .bot .amt{font-weight:850;color:#16a34a}
+
+/* ---------- supabase ---------- */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin-top:10px}
+.flow .node{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow-sm)}
+.flow .node .ic{font-size:22px}
+.flow .node b{display:block;font-size:13px;font-weight:800;margin-top:6px}
+.flow .node small{font-size:11px;color:var(--ink3)}
+.flow .arr{font-size:20px;color:#b7bccb;text-align:center;font-weight:800}
+.reqcard{border-left:3px solid var(--brand)}
+.reqcard.g{border-left-color:var(--pos)}
+.reqcard.o{border-left-color:var(--warn)}
+pre.code{background:#0d1020;color:#e6e8f5;border-radius:14px;padding:16px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;margin-top:14px}
+pre.code .k{color:#c4b5fd}.pre .s{color:#86efac}
+pre.code .c{color:#6b7185}
+.opt-tbl td .yes{color:var(--pos);font-weight:800}
+.opt-tbl td .no{color:#ef4444;font-weight:800}
+
+.form-mock label{display:block;font-size:11px;font-weight:750;color:var(--ink2);margin:12px 0 5px}
+.form-mock .fld{background:#f7f8fc;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:13px;color:var(--ink);display:flex;justify-content:space-between;align-items:center}
+.form-mock .fld.picker span:last-child{color:#b7bccb}
+.form-mock .segbtns{display:flex;gap:6px}
+.form-mock .segbtns b{flex:1;text-align:center;font-size:12px;font-weight:750;padding:9px 0;border-radius:9px;background:#f0f1f8;color:var(--ink2)}
+.form-mock .segbtns b.on{background:var(--brand);color:#fff}
+.sync-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750;padding:7px 12px;border-radius:999px;background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
+.sync-badge .live{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 0 rgba(16,185,129,.5);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+@keyframes pulseSm{70%{box-shadow:0 0 0 6px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+
+.footer{padding:60px 0 80px;text-align:center;color:var(--ink3);font-size:13px}
+.big-num{font-size:13px;font-weight:800;color:var(--brand)}
+
+@media(max-width:900px){
+  .two-col,.grid2{grid-template-columns:1fr}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+  .flow{grid-template-columns:1fr;gap:6px}.flow .arr{transform:rotate(90deg)}
+  .toc{display:none}
+}
+@media(max-width:560px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> EV Command · Theme Review</div>
+  <nav class="toc" id="toc"></nav>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="kicker">Visual Design Direction · Stakeholder Review · Jul 2026</div>
+    <h1>Ten ways to make <span class="grad">EV Command</span> look like a product people pay for.</h1>
+    <p class="sub">A full visual audit of the current dark charging-tracker, benchmarked against 18 leading EV &amp; energy apps — then 10 distinct <b>light</b> theme directions, a components lab of 10 buildable UI patterns, and a Supabase data plan. Every mockup below is a live re-skin of your real screens.</p>
+    <div class="meta">
+      <span class="pill">📊 <b>249</b> sessions analysed</span>
+      <span class="pill">⚡ <b>1,959 kWh</b> · $268.32 tracked</span>
+      <span class="pill">🎨 <b>10</b> light themes</span>
+      <span class="pill">🧩 <b>10</b> component patterns</span>
+      <span class="pill">🗄️ Supabase sync + CSV export</span>
+    </div>
+  </div>
+  <div class="scrolln">scroll to explore ↓</div>
+</section>
+
+<!-- ===================== STEP 1: AUDIT ===================== -->
+<section class="slide" id="audit">
+  <div class="wrap">
+    <div class="kicker">Step 1 — Current UI Analysis</div>
+    <h2 class="h-sec">Where the product stands today</h2>
+    <p class="lead">The current build is a competent, mobile-first dark dashboard. It has genuine strengths — but reads more like a well-made side-project than a premium tool. Here's the honest audit.</p>
+
+    <div class="two-col" style="margin-top:34px">
+      <div>
+        <div class="grid2" style="grid-template-columns:1fr 1fr">
+          <div class="panel">
+            <h3>✅ Strengths</h3>
+            <ul class="ticks">
+              <li>Clean single-column mobile layout with a clear visual spine</li>
+              <li>Strong typographic hierarchy — big hero number, confident weights (820–880)</li>
+              <li>Sensible provider color-coding (Jolt / Matty / Chargefox / Supercharger)</li>
+              <li>Thoughtful details: safe-area insets, fixed tab bar, bottom-sheet modal, empty states</li>
+              <li>Consistent 8/14px radius system &amp; reusable metric cards</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>⚠️ Weaknesses</h3>
+            <ul class="ticks warnlist">
+              <li><b>Dark-only</b> — no light mode; feels dim and dated for a data tool</li>
+              <li>Low-opacity white-on-navy surfaces = muddy contrast, weak card separation</li>
+              <li>Single-hue indigo glow does a lot of work; little depth or accent variety</li>
+              <li>Letter-glyph provider marks (J/M/C/S) read as placeholder, not brand</li>
+              <li>Flat 8px radius + one shadow token = little tactility or hierarchy of depth</li>
+              <li>No micro-interactions beyond a 1px hover lift; charts feel generic</li>
+              <li>Version-footer &amp; "EV Command" eyebrow compete with real content</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:18px">
+          <h3>Design tokens in play today</h3>
+          <div class="swrow" style="margin-top:12px">
+            <div class="sw" style="background:#050507"><span>#050507</span></div>
+            <div class="sw" style="background:#0f1020"><span>#0f1020</span></div>
+            <div class="sw" style="background:rgba(255,255,255,.07);outline:1px solid #333"><span>surf .07</span></div>
+            <div class="sw" style="background:#6366f1"><span>#6366f1</span></div>
+            <div class="sw" style="background:#14b8a6"><span>#14b8a6</span></div>
+            <div class="sw" style="background:#f43f5e"><span>#f43f5e</span></div>
+          </div>
+          <p class="muted" style="font-size:13px;margin-top:22px">Type <b>Inter</b> · radius <b>8 / 14px</b> · one shadow token · accent <b>indigo</b>, energy <b>teal</b>. Everything hangs off two hues and a dark canvas — the ceiling on "premium" is low without a broader system.</p>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="screen-label">Current build — Overview (dark)</div>
+        <div class="phone" id="currentPhone" style="--bg:#0b0c18;--canvas:#0b0c18;--surf:rgba(255,255,255,.06);--surf2:rgba(255,255,255,.04);--bd:rgba(255,255,255,.12);--bd2:rgba(255,255,255,.1);--tx:#f5f7fb;--mut:#9aa1b8;--fnt:#727892;--acc:#6366f1;--acc2:#818cf8;--en:#14b8a6;--p1:#14b8a6;--p2:#6366f1;--p3:#8b5cf6;--p4:#f43f5e;--cardshadow:0 10px 30px rgba(0,0,0,.4)">
+          <div class="notch"></div>
+          <div class="screen" data-screen="overview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STEP 2: BENCHMARK ===================== -->
+<section class="slide" id="benchmark">
+  <div class="wrap">
+    <div class="kicker">Step 2 — Competitive Benchmarking</div>
+    <h2 class="h-sec">What premium looks like in this category</h2>
+    <p class="lead">18 leading products across EV charging, energy/solar monitoring, and fintech-grade tracking. The pattern is consistent: <b>bright, high-contrast light UIs</b>, one confident accent, real depth, animated data, and obsessive spacing.</p>
+
+    <div class="panel" style="margin-top:30px;padding:6px 6px 0;overflow:auto">
+      <table class="bm">
+        <thead><tr><th>Product</th><th>Category</th><th>What makes it read as premium</th><th>Steal this</th></tr></thead>
+        <tbody id="bmBody"></tbody>
+      </table>
+    </div>
+
+    <div class="grid3" style="margin-top:22px">
+      <div class="panel"><h3>🎨 Color systems</h3><p class="muted" style="font-size:13.5px;margin-top:8px">The best use a near-white canvas, one saturated accent, and 2–3 tints of it for states — not six competing hues. Semantic greens/ambers stay reserved for status.</p></div>
+      <div class="panel"><h3>✨ Depth &amp; motion</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Layered soft shadows, 16–24px radii, and micro-interactions: number count-ups, animated donuts/sparklines, spring-eased toggles. Data feels alive, not static.</p></div>
+      <div class="panel"><h3>🔤 Typography</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Tabular-figure numerics, a display face for hero metrics (or heavier Inter), and disciplined type scale. Numbers are the hero — they treat them like it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STEP 3+4: THEMES ===================== -->
+<section class="slide" id="themes-intro">
+  <div class="wrap">
+    <div class="kicker">Step 3 &amp; 4 — Ten Light Theme Directions + Mockups</div>
+    <h2 class="h-sec">10 directions, each a full re-skin</h2>
+    <p class="lead">Every theme keeps your exact layout, data and structure — only the visual system changes. No warm linen/ivory looks anywhere; these span cool minimal, clean-energy, glass, neomorphic, enterprise-data and bold sport-tech. Each card below renders your real Overview screen live in that theme.</p>
+  </div>
+</section>
+<div id="themeSlides"></div>
+
+<!-- ===================== COMPONENTS LAB ===================== -->
+<section class="slide" id="lab">
+  <div class="wrap">
+    <div class="kicker">Bonus — Components Lab</div>
+    <h2 class="h-sec">10 button &amp; card patterns worth building</h2>
+    <p class="lead">Reusable, theme-agnostic UI patterns — hover, tap and watch them. These are the "outside the normal" pieces: donut progress, animated borders, neomorphic press, sliding toggles, shimmer loaders, 3D tickets and more.</p>
+    <div class="lab-grid" id="labGrid" style="margin-top:34px"></div>
+  </div>
+</section>
+
+<!-- ===================== SUPABASE ===================== -->
+<section class="slide" id="supabase">
+  <div class="wrap">
+    <div class="kicker">Data Requirement — Supabase Integration</div>
+    <h2 class="h-sec">Live data: migrate, add &amp; sync, export</h2>
+    <p class="lead">Today all 249 sessions live in a static <span class="kv">ev_data.json</span> bundled into the build. Here's how to move to a real backend that meets all three requirements — with mockups of how each looks in-app.</p>
+
+    <div class="grid3" style="margin-top:30px">
+      <div class="panel reqcard"><span class="tag">Requirement 1</span><h3 style="margin-top:10px">Migrate JSON → Supabase</h3><p class="muted" style="font-size:13px;margin-top:8px">Seed a <span class="kv">charging_sessions</span> table with the existing 249 rows via a one-time import script. Source of truth moves from the bundle to Postgres.</p></div>
+      <div class="panel reqcard g"><span class="tag">Requirement 2</span><h3 style="margin-top:10px">Add data + live sync</h3><p class="muted" style="font-size:13px;margin-top:8px">An "Add session" sheet writes to Supabase and the UI updates instantly — optimistic insert, then realtime confirmation across devices.</p></div>
+      <div class="panel reqcard o"><span class="tag">Requirement 3</span><h3 style="margin-top:10px">Export to CSV</h3><p class="muted" style="font-size:13px;margin-top:8px">One tap exports the full (or filtered) ledger to an Excel-ready CSV, generated client-side and downloaded — no server round-trip needed.</p></div>
+    </div>
+
+    <h3 style="margin-top:44px;font-size:20px">Architecture</h3>
+    <div class="flow">
+      <div class="node"><div class="ic">📱</div><b>React App</b><small>Overview · History · Add · Export</small></div>
+      <div class="arr">⇄</div>
+      <div class="node"><div class="ic">🔌</div><b>supabase-js</b><small>select · insert · realtime</small></div>
+      <div class="arr">⇄</div>
+      <div class="node"><div class="ic">🗄️</div><b>Supabase Postgres</b><small>charging_sessions + RLS</small></div>
+    </div>
+
+    <div class="two-col" style="margin-top:44px">
+      <div>
+        <h3 style="font-size:19px">Recommended implementation</h3>
+        <p class="muted" style="font-size:14px;margin-top:8px">Direct <span class="kv">supabase-js</span> from the client with Row-Level Security — no custom backend to maintain. A tiny data layer replaces the static import so the rest of the app barely changes.</p>
+        <div class="panel" style="margin-top:16px">
+          <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Table schema · charging_sessions</h4>
+          <table class="bm" style="margin-top:8px"><tbody>
+            <tr><td>id</td><td class="muted">uuid · pk · default gen_random_uuid()</td></tr>
+            <tr><td>date</td><td class="muted">date · not null</td></tr>
+            <tr><td>type</td><td class="muted">text · Jolt|Matty|Chargefox|Supercharger</td></tr>
+            <tr><td>amount</td><td class="muted">numeric(8,3) · kWh</td></tr>
+            <tr><td>cost</td><td class="muted">numeric(8,2) · AUD</td></tr>
+            <tr><td>notes</td><td class="muted">text · nullable</td></tr>
+            <tr><td>created_at</td><td class="muted">timestamptz · default now()</td></tr>
+          </tbody></table>
+        </div>
+        <pre class="code"><span class="c">// src/data/sessions.ts — replaces the static JSON import</span>
+<span class="k">import</span> { createClient } <span class="k">from</span> '@supabase/supabase-js'
+<span class="k">const</span> db = createClient(URL, ANON_KEY)
+
+<span class="c">// read</span>
+<span class="k">const</span> { data } = <span class="k">await</span> db.from('charging_sessions')
+  .select('*').order('date',{ascending:<span class="k">false</span>})
+
+<span class="c">// add + optimistic sync</span>
+<span class="k">await</span> db.from('charging_sessions').insert(newSession)
+db.channel('sessions').on('postgres_changes',
+  {event:'*',schema:'public',table:'charging_sessions'},
+  refresh).subscribe()</pre>
+      </div>
+
+      <div>
+        <h3 style="font-size:19px">Options considered</h3>
+        <div class="panel" style="margin-top:16px;padding:6px 6px 0;overflow:auto">
+          <table class="bm opt-tbl">
+            <thead><tr><th>Approach</th><th>Sync</th><th>Backend</th><th>Best for</th></tr></thead>
+            <tbody>
+              <tr><td>supabase-js + RLS <span class="chip-cat">pick</span></td><td><span class="yes">Realtime</span></td><td><span class="yes">None</span></td><td>Ship fast, low ops</td></tr>
+              <tr><td>Edge Functions API</td><td><span class="yes">Realtime</span></td><td><span class="no">Some</span></td><td>Shared/validated writes</td></tr>
+              <tr><td>Local + periodic push</td><td><span class="no">Batch</span></td><td><span class="yes">None</span></td><td>Offline-first</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="margin-top:22px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">CSV export — client-side</h4>
+        <pre class="code"><span class="c">// one tap → Excel-ready file, no server</span>
+<span class="k">const</span> header = 'Date,Type,Amount,Cost,Notes\n'
+<span class="k">const</span> rows = sessions.map(s =&gt;
+  [s.date,s.type,s.amount,s.cost,s.notes??''].join(','))
+<span class="k">const</span> blob = <span class="k">new</span> Blob([header+rows.join('\n')],
+  {type:'text/csv'})
+downloadBlob(blob, 'ev-charging-export.csv')</pre>
+      </div>
+    </div>
+
+    <h3 style="margin-top:48px;font-size:20px">In-app mockups</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">How each requirement surfaces in the UI (shown in the recommended <b>Voltline</b> theme).</p>
+    <div class="mock-cluster" style="margin-top:24px">
+
+      <!-- Add session sheet -->
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        <div class="screen-label">➕ Add session sheet → writes to Supabase</div>
+        <div class="modal-mock form-mock" style="--surf:#fff;--bd:#e7e9f2;--tx:#12142b;--mut:#5b6178;--brand:#4f46e5">
+          <div class="handle"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-size:18px;font-weight:850">New charge</h3><span class="sync-badge"><span class="live"></span>Synced</span></div>
+          <label>Provider</label>
+          <div class="segbtns"><b class="on">Jolt</b><b>Matty</b><b>Chargefox</b><b>Supercharger</b></div>
+          <label>Date</label>
+          <div class="fld picker"><span>13 Jul 2026</span><span>▾</span></div>
+          <label>Energy (kWh)</label>
+          <div class="fld"><span>8.7</span><span style="color:#b7bccb">kWh</span></div>
+          <label>Cost (AUD)</label>
+          <div class="fld"><span>0.99</span><span style="color:#b7bccb">$</span></div>
+          <button class="btn-grad" style="width:100%;margin-top:18px;justify-content:center">Save &amp; sync ⚡</button>
+        </div>
+      </div>
+
+      <!-- Sync + export controls -->
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <div class="screen-label">⇅ Live sync status &amp; export bar</div>
+        <div class="panel" style="width:300px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">Cloud data</b><span class="sync-badge"><span class="live"></span>Live · Supabase</span></div>
+          <p class="muted" style="font-size:12px;margin-top:8px">249 sessions synced · last write 2s ago · realtime channel open across devices.</p>
+          <div style="height:1px;background:var(--line);margin:16px 0"></div>
+          <b style="font-size:14px">Export</b>
+          <p class="muted" style="font-size:12px;margin-top:6px">Download the current view as an Excel CSV.</p>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="glow-btn" style="flex:1;font-size:13px;padding:12px">⬇ Export CSV</button>
+            <button class="neo-btn" style="font-size:13px">Filtered only</button>
+          </div>
+        </div>
+        <div class="panel" style="width:300px;background:#0d1020;color:#fff;border-color:transparent">
+          <div class="kv" style="font-size:11px;color:#8a90a6">ev-charging-export.csv</div>
+          <div class="kv" style="font-size:11px;margin-top:8px;color:#cdd3e8;line-height:1.7">Date,Type,Amount,Cost,Notes<br>2026-07-13,Jolt,8.7,0.99,<br>2026-06-15,Supercharger,35.4,16.64,<br>2025-05-25,Matty,9.0,3.42,…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="footer wrap">
+  <p><span class="big-num">EV Command</span> · Theme Direction Review · prepared for stakeholder review · Jul 2026</p>
+  <p style="margin-top:8px">10 light themes · 10 component patterns · Supabase data plan — all mockups are live re-skins of the real app.</p>
+</div>
+
+<script>
+// ---------- shared mock data (real numbers) ----------
+const STAT = {total:'268.32', sessions:'249', kwh:'1,959', rate:'0.137', avg:'1.08'};
+const MONTHS = [{m:'Feb',c:41,k:194},{m:'Mar',c:29,k:134},{m:'Apr',c:25,k:127},{m:'May',c:27,k:124},{m:'Jun',c:34,k:162},{m:'Jul',c:8,k:14}];
+const PROVIDERS = [{k:'J',n:'Jolt',s:'235 sessions',v:'p1'},{k:'M',n:'Matty',s:'10 sessions',v:'p2'},{k:'C',n:'Chargefox',s:'1 session',v:'p3'},{k:'S',n:'Supercharger',s:'3 sessions',v:'p4'}];
+const RECENT = [
+  {k:'J',n:'Jolt',d:'12 Jul · 8.7 kWh · $0.114/kWh',c:'0.99',v:'p1'},
+  {k:'S',n:'Supercharger',d:'15 Jun · 35.4 kWh · $0.470/kWh',c:'16.64',v:'p4'},
+  {k:'M',n:'Matty',d:'30 May · 9.0 kWh · $0.380/kWh',c:'3.42',v:'p2'}
+];
+const maxC = Math.max(...MONTHS.map(m=>m.c));
+
+function barChart(cls){
+  return `<div class="bars">${MONTHS.map(m=>`<div class="b ${cls}" style="height:${18+(m.c/maxC)*56}px"></div>`).join('')}</div>
+    <div class="lbl">${MONTHS.map(m=>`<span>${m.m}</span>`).join('')}</div>`;
+}
+
+function overviewHTML(){
+  return `<div class="pad">
+    <div class="p-appbar">
+      <div><div class="p-eyebrow">EV Command</div><h1>Overview</h1><div class="p-sub">All chargers · 2026</div></div>
+      <div class="p-icon">→</div>
+    </div>
+    <div class="p-seg"><button class="on">All</button><button>2026</button><button>2025</button></div>
+    <div class="p-hero">
+      <div class="p-cap">Total spent</div>
+      <div class="p-heronum">$${STAT.total}</div>
+      <div class="p-herosub">${STAT.sessions} sessions · ${STAT.kwh} kWh added</div>
+    </div>
+    <div class="p-metrics">
+      <div class="p-mc"><span>Energy</span><strong>${STAT.kwh}</strong><small>kWh charged</small></div>
+      <div class="p-mc"><span>Sessions</span><strong>${STAT.sessions}</strong><small>recorded stops</small></div>
+      <div class="p-mc"><span>Rate</span><strong>$${STAT.rate}</strong><small>avg / kWh</small></div>
+      <div class="p-mc"><span>Avg stop</span><strong>$${STAT.avg}</strong><small>per session</small></div>
+    </div>
+    <div class="p-h2">Chargers</div><div class="p-h2s">Tap a provider to focus the ledger.</div>
+    <div class="p-chips">${PROVIDERS.map((p,i)=>`<div class="p-chip ${i===0?'on':''}" style="--pc:var(--${p.v})"><span class="p-mark">${p.k}</span><span><strong>${p.n}</strong><small>${p.s}</small></span></div>`).join('')}</div>
+    <div class="p-h2">Insights</div><div class="p-h2s">Cost trend · active filter.</div>
+    <div class="p-chart"><h4>Monthly cost</h4>${barChart('')}</div>
+    <div class="p-h2">Recent sessions</div><div class="p-h2s">Latest from your ledger.</div>
+    ${RECENT.map(r=>`<div class="p-row"><span class="p-mark" style="--pc:var(--${r.v})">${r.k}</span><span><strong>${r.n}</strong><small>${r.d}</small></span><b>$${r.c}</b></div>`).join('')}
+  </div>
+  <div class="p-nav"><button class="on"><span>Overview</span></button><button><span>History</span></button></div>`;
+}
+document.querySelectorAll('[data-screen="overview"]').forEach(el=>el.innerHTML=overviewHTML());
+
+// ---------- benchmark data ----------
+const BM = [
+  ['Tesla app','EV / OEM','Ruthless minimalism, huge whitespace, monochrome + one red accent','Restraint; let numbers breathe'],
+  ['ChargePoint','EV charging','Bright cards, clear status color, friendly rounded geometry','Semantic status colors'],
+  ['Electrify America','EV charging','Bold gradient headers, confident brand green, big CTAs','Gradient hero energy'],
+  ['A Better Routeplanner','EV routing','Data-dense but legible; excellent chart legibility','Chart clarity at density'],
+  ['Chargefox','EV charging (AU)','Calm teal system, generous spacing, trustworthy feel','Local, calm palette'],
+  ['PlugShare','EV charging','Map-first, crisp iconography, strong provider badges','Real provider marks'],
+  ['Tesla Powerwall / Energy','Home energy','Live animated flows, glowing accents on light','Animated data flows'],
+  ['Enphase Enlighten','Solar monitoring','Clean light dashboard, donut/ring metrics, soft depth','Donut ring metrics'],
+  ['Sense Energy','Energy monitor','Dark+light, real-time sparklines, premium type','Sparkline everywhere'],
+  ['Octopus Energy','Energy retail','Playful bold color, rounded, human microcopy','Personality + boldness'],
+  ['Arcadia','Clean energy','Editorial layout, big type, muted sophisticated palette','Editorial hierarchy'],
+  ['Monta','EV charging','Modern fintech-grade UI, tabular numerics, soft shadows','Fintech numerics'],
+  ['Wallbox','EV hardware','Neomorphic-leaning cards, tactile controls','Tactile depth'],
+  ['Zapmap','EV charging (UK)','Strong filtering UX, chip systems, clear IA','Chip / filter system'],
+  ['Stripe Dashboard','Fintech','Gold standard: layered shadows, precise spacing, one accent','Depth + spacing discipline'],
+  ['Linear','SaaS','Cool minimal, subtle gradients, crisp dark/light parity','Cool minimal accent'],
+  ['Mercury','Fintech','Premium light banking, restrained color, elegant tables','Elegant data tables'],
+  ['Copilot Money','Finance tracker','Beautiful charts, category color, delightful motion','Delightful chart motion'],
+];
+document.getElementById('bmBody').innerHTML = BM.map(r=>`<tr><td>${r[0]}</td><td><span class="chip-cat">${r[1]}</span></td><td class="muted">${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+// ---------- 10 THEMES ----------
+const THEMES = [
+  {no:1,name:'Voltline',mood:'Sleek corporate minimal',cls:'accent-hero solid-icon',
+   why:'A near-white canvas with one confident indigo→violet accent and layered soft shadows — the "Stripe/Linear of EV apps". Fixes the dark-only dimness and muddy contrast instantly.',
+   vars:{canvas:'#f5f6fb',surf:'#ffffff',surf2:'#f8f9fe',bd:'#e7e9f2',tx:'#12142b',mut:'#5b6178',fnt:'#8a90a6',acc:'#4f46e5',acc2:'#7c6cf6',en:'#06b6d4',p1:'#0d9488',p2:'#4f46e5',p3:'#8b5cf6',p4:'#f43f5e'},
+   pal:'Cloud-white #F5F6FB canvas · pure white surfaces · indigo #4F46E5 → violet accent · cyan energy',
+   type:'Inter, weights 600–850, tabular numerics for all figures',
+   comp:'White cards, 18px radius, dual soft shadow; gradient hero; solid accent icon buttons; pill toggles with accent fill',
+   depth:'Radius 18px · layered shadow (1px + 24px) · gradient hero card'},
+
+  {no:2,name:'Kilowatt',mood:'Vibrant clean-energy tech',cls:'solid-icon',
+   why:'Leans into the EV story: fresh electric-green energy accents on cool white. Reads optimistic and "clean-tech" without the dated dark look — great for growth/marketing screenshots.',
+   vars:{canvas:'#f3f8f3',surf:'#ffffff',surf2:'#f4faf5',bd:'#dcebe0',tx:'#0f1f14',mut:'#4b5f52',fnt:'#84988b',acc:'#16a34a',acc2:'#65a30d',en:'#059669',p1:'#16a34a',p2:'#0891b2',p3:'#7c3aed',p4:'#ea580c'},
+   pal:'Mint-white #F3F8F3 · white surfaces · green #16A34A → lime accent · emerald energy',
+   type:'Inter tight; heavier hero numerals; uppercase eyebrow in green',
+   comp:'Rounded 16px cards, green solid icons, lime-tinted active chips, leaf-soft shadows',
+   depth:'Radius 16px · soft green-cast shadow · crisp white separation'},
+
+  {no:3,name:'Nordic Frost',mood:'Calm enterprise trust',cls:'',
+   why:'Cool desaturated grey-blue, very Tesla/Scandinavian. Maximum calm and trust for a "serious money tracker". Solves the single-hue overload with a quiet, grown-up neutral system.',
+   vars:{canvas:'#eef1f6',surf:'#ffffff',surf2:'#f5f7fb',bd:'#e0e5ee',tx:'#1c2433',mut:'#5a6577',fnt:'#8b95a7',acc:'#2563eb',acc2:'#3b82f6',en:'#0891b2',p1:'#0891b2',p2:'#2563eb',p3:'#7c3aed',p4:'#e11d48'},
+   pal:'Frost-grey #EEF1F6 · white surfaces · muted royal-blue #2563EB accent · slate text',
+   type:'Inter, generous line-height, restrained weights (600–800)',
+   comp:'Quiet white cards, thin borders, subtle shadows, ghost icon buttons, understated toggles',
+   depth:'Radius 16px · minimal shadow · flat, airy, editorial'},
+
+  {no:4,name:'Aurora Glass',mood:'Subtle glassmorphic',cls:'is-glass grad-canvas',
+   why:'Frosted translucent panels over a soft mint→periwinkle gradient. Modern, premium, "iOS-lockscreen" feel — a huge leap from flat low-opacity cards, while keeping legibility.',
+   vars:{canvas:'#eaf0ff',canvasImg:'linear-gradient(160deg,#e9fbf3 0%,#eaf0ff 45%,#f3ecff 100%)',surf:'#ffffff',surf2:'#f6f8ff',bd:'#e3e8f5',tx:'#1a1f37',mut:'#586084',fnt:'#8890ab',acc:'#7c3aed',acc2:'#06b6d4',en:'#0ea5e9',p1:'#0d9488',p2:'#6366f1',p3:'#a855f7',p4:'#f43f5e'},
+   pal:'Aurora gradient (mint→periwinkle→lilac) · frosted white glass surfaces · violet+cyan accent',
+   type:'Inter; slightly translucent muted text; light hero weight',
+   comp:'Blur(10px) frosted cards, 1px light inner highlight, glass toggles, floating depth',
+   depth:'Radius 18px · backdrop-blur · glass borders + inner highlight'},
+
+  {no:5,name:'Cobalt Data',mood:'Bold corporate data',cls:'accent-hero solid-icon sharp',
+   why:'Crisp, sharp-radius, high-density enterprise look with deep cobalt. For power users who want a "dashboard that means business" — tighter geometry and stronger contrast than today.',
+   vars:{canvas:'#f4f6fa',surf:'#ffffff',surf2:'#eef2f8',bd:'#dde3ec',tx:'#0b1220',mut:'#4a5468',fnt:'#7c8598',acc:'#1d4ed8',acc2:'#2563eb',en:'#0e7490',p1:'#0e7490',p2:'#1d4ed8',p3:'#6d28d9',p4:'#be123c'},
+   pal:'Cool grey #F4F6FA · white surfaces · deep cobalt #1D4ED8 · teal-slate energy',
+   type:'Inter, condensed feel, strong 750–850 weights, mono for metadata',
+   comp:'Sharp 10px radius, cobalt gradient hero, solid icons, dense metric grid, hairline borders',
+   depth:'Radius 10px · tight shadow · high-contrast, data-dense'},
+
+  {no:6,name:'Neo Mint',mood:'Tactile soft-UI',cls:'is-neo softtoggle',
+   why:'Neomorphic extruded surfaces in soft mint-grey — everything looks physically pressable. Directly answers "more depth & tactility"; a distinctive, memorable feel competitors rarely ship.',
+   vars:{canvas:'#e9eef0',surf:'#e9eef0',surf2:'#e9eef0',bd:'transparent',tx:'#243230',mut:'#5c6b68',fnt:'#8496a0',acc:'#0d9488',acc2:'#14b8a6',en:'#0891b2',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+   pal:'Soft mint-grey #E9EEF0 mono canvas · same-tone extruded cards · teal #0D9488 accent',
+   type:'Inter, medium weights, low-contrast labels for softness',
+   comp:'Dual-shadow embossed cards, inset toggles, pillowy pressable buttons, teal accents only',
+   depth:'Neomorphic dual shadow (light + dark) · radius 16px · inset controls'},
+
+  {no:7,name:'Solaris',mood:'Warm energetic optimism',cls:'accent-hero',
+   why:'Warm coral→amber accent gradients on a COOL white base (not ivory) — energetic and human without going dim or beige. Great personality for a consumer-facing charging tracker.',
+   vars:{canvas:'#f6f7fb',surf:'#ffffff',surf2:'#f8f9fd',bd:'#e8e9f1',tx:'#1b1a2b',mut:'#5c5a72',fnt:'#8f8da4',acc:'#f97316',acc2:'#fb7185',en:'#f59e0b',p1:'#0d9488',p2:'#6366f1',p3:'#d946ef',p4:'#f43f5e'},
+   pal:'Cool white #F6F7FB base · white surfaces · coral #FB7185 → amber accent gradient',
+   type:'Inter, friendly, rounder feel; bold warm hero numerals',
+   comp:'Warm gradient hero + icons, 18px radius, coral-tinted active states, playful yet clean',
+   depth:'Radius 18px · warm-cast soft shadow · gradient accents on cool ground'},
+
+  {no:8,name:'Graphite',mood:'Precision monochrome',cls:'solid-icon sharp',
+   why:'Near-monochrome light grey with a single electric-blue accent and mono numerals. Ultra-precise, "instrument panel" aesthetic — maximum signal, zero decoration. Fixes hue overload entirely.',
+   vars:{canvas:'#f2f3f5',surf:'#ffffff',surf2:'#f7f8fa',bd:'#e4e6ea',tx:'#17181c',mut:'#565961',fnt:'#8a8d95',acc:'#2563eb',acc2:'#3b82f6',en:'#0d9488',p1:'#111318',p2:'#3f4350',p3:'#6b7280',p4:'#2563eb'},
+   pal:'Graphite-white #F2F3F5 · white surfaces · single electric-blue #2563EB accent · monochrome providers',
+   type:'Inter + monospace numerals; strict scale; uppercase micro-labels',
+   comp:'Sharp 10px cards, hairline borders, mono figures, single accent, no gradients',
+   depth:'Radius 10px · ultra-subtle shadow · flat precision'},
+
+  {no:9,name:'Ultraviolet',mood:'Bold creative sport-tech',cls:'accent-hero solid-icon round light-notch',
+   why:'Big rounded geometry, violet→magenta gradients, playful energy. A bold, shareable, "sporty EV" look for a younger audience — the most expressive of the set, with donut-ring potential.',
+   vars:{canvas:'#f6f4fd',surf:'#ffffff',surf2:'#f9f7fe',bd:'#eae6f6',tx:'#1e1633',mut:'#5f5578',fnt:'#928aa8',acc:'#8b5cf6',acc2:'#ec4899',en:'#d946ef',p1:'#06b6d4',p2:'#8b5cf6',p3:'#ec4899',p4:'#f43f5e'},
+   pal:'Lilac-white #F6F4FD · white surfaces · violet #8B5CF6 → magenta gradient accent',
+   type:'Inter heavy display weights for hero; punchy, confident',
+   comp:'Extra-round 24px cards, vivid gradient hero + icons, bold chips, lively motion cues',
+   depth:'Radius 24px · vivid gradient · playful colored shadows'},
+
+  {no:10,name:'Horizon',mood:'Airy modern SaaS',cls:'accent-hero round',
+   why:'Light sky-blue gradient ground, cyan accent, huge whitespace and 20px+ radii. Breezy, spacious, calm-but-modern — a fresh premium SaaS feel that photographs beautifully.',
+   vars:{canvas:'#eef6fc',canvasImg:'linear-gradient(180deg,#eef6fc 0%,#f4fafe 60%,#ffffff 100%)',surf:'#ffffff',surf2:'#f4fafe',bd:'#dceaf3',tx:'#122436',mut:'#4d6273',fnt:'#8399a8',acc:'#0ea5e9',acc2:'#06b6d4',en:'#0891b2',p1:'#0891b2',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+   cls2:'grad-canvas',
+   pal:'Sky-blue gradient #EEF6FC→white · white surfaces · cyan #0EA5E9 accent',
+   type:'Inter, airy line-height, light-to-bold contrast in hero',
+   comp:'Round 24px cards, cyan gradient hero, generous padding, soft blue shadows',
+   depth:'Radius 24px · airy spacing · soft sky-blue shadow'}
+];
+
+function themeStyle(v){
+  return Object.entries(v).map(([k,val])=>{
+    const map={canvas:'--canvas',canvasImg:'--canvasImg',surf:'--surf',surf2:'--surf2',bd:'--bd',tx:'--tx',mut:'--mut',fnt:'--fnt',acc:'--acc',acc2:'--acc2',en:'--en',p1:'--p1',p2:'--p2',p3:'--p3',p4:'--p4'};
+    return map[k]?`${map[k]}:${val}`:'';
+  }).filter(Boolean).join(';');
+}
+
+document.getElementById('themeSlides').innerHTML = THEMES.map((t,i)=>{
+  const bg = i%2 ? '#fff' : 'transparent';
+  const cls = `${t.cls||''} ${t.cls2||''}`;
+  return `<section class="slide" id="theme-${t.no}" style="background:${bg}">
+    <div class="wrap">
+      <div class="theme-head">
+        <span class="theme-no">Theme ${t.no}</span>
+        <h2 style="font-size:clamp(26px,3.6vw,38px);font-weight:850">${t.name}</h2>
+        <span class="mood">${t.mood}</span>
+      </div>
+      <p class="theme-why">${t.why}</p>
+      <div class="two-col" style="margin-top:30px">
+        <div class="spec">
+          <div class="swrow" style="margin:0 0 8px">
+            <div class="sw" style="background:${t.vars.canvasImg||t.vars.canvas}"><span>canvas</span></div>
+            <div class="sw" style="background:${t.vars.surf}"><span>surface</span></div>
+            <div class="sw" style="background:${t.vars.acc}"><span>accent</span></div>
+            <div class="sw" style="background:${t.vars.acc2}"><span>accent2</span></div>
+            <div class="sw" style="background:${t.vars.en}"><span>energy</span></div>
+            <div class="sw" style="background:${t.vars.tx}"><span>text</span></div>
+          </div>
+          <div class="row"><h4>Palette</h4><p>${t.pal}</p></div>
+          <div class="row"><h4>Typography</h4><p>${t.type}</p></div>
+          <div class="row"><h4>Buttons · cards · inputs · icons</h4><p>${t.comp}</p></div>
+          <div class="row"><h4>Radius · shadow · depth</h4><p>${t.depth}</p></div>
+          <div class="row"><h4>Why it beats the current design</h4><p>${t.why}</p></div>
+        </div>
+        <div class="stage">
+          <div class="screen-label">${t.name} — Overview (live re-skin)</div>
+          <div class="phone ${cls}" style="${themeStyle(t.vars)}">
+            <div class="notch"></div>
+            <div class="screen" data-screen="overview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}).join('');
+// fill re-skinned phones
+document.querySelectorAll('#themeSlides [data-screen="overview"]').forEach(el=>el.innerHTML=overviewHTML());
+
+// ---------- COMPONENTS LAB ----------
+const LAB = [
+  ['Gradient sheen pill','Primary CTA with a light-sweep on hover.','<button class="btn-grad">Add charge ⚡</button>'],
+  ['Donut progress ring','Budget / goal metric as an animated conic ring.','<div class="donut" style="--v:72"><b>72%</b><small>of budget</small></div>'],
+  ['Animated gradient border','Living border for "live/syncing" cards.','<div class="gborder"><div class="inner"><b>$268.32</b><br><small>syncing…</small></div></div>'],
+  ['Neomorphic press','Soft-UI button that physically depresses on tap.','<button class="neo-btn">Filter</button>'],
+  ['Glassmorphic control','Frosted button for gradient/photo backdrops.','<div class="glasswrap"><button class="glass-btn">This month</button><button class="glass-btn">All time</button></div>'],
+  ['Shimmer skeleton','Loading placeholder while Supabase fetches.','<div class="skel"><div class="s" style="width:60%"></div><div class="s" style="width:90%"></div><div class="s" style="width:75%"></div></div>'],
+  ['Sliding segmented','Spring-eased thumb that glides between tabs.','<div class="slideseg" id="ss"><span class="thumb"></span><button class="on" data-i="0">All</button><button data-i="1">2026</button><button data-i="2">2025</button></div>'],
+  ['Sparkline stat card','Dark KPI tile with an inline trend line.','<div class="spark-card"><div class="cap">Total spent</div><b>$268.32</b><span class="up">▲ 12% vs last mo</span><svg viewBox="0 0 200 44" preserveAspectRatio="none"><polyline points="0,34 30,28 60,30 90,18 120,22 150,10 200,14" fill="none" stroke="#4ade80" stroke-width="2.5"/><polyline points="0,34 30,28 60,30 90,18 120,22 150,10 200,14 200,44 0,44" fill="rgba(74,222,128,.15)" stroke="none"/></svg></div>'],
+  ['Glow-on-hover','Conic aura ignites behind the button on hover.','<button class="glow-btn">Export CSV ⬇</button>'],
+  ['3D tilt ticket card','Perspective session card that rights itself on hover.','<div class="ticket"><div class="top"><b>Jolt</b><br><small>12 Jul 2026 · 8.7 kWh</small></div><div class="bot"><small>$0.114/kWh</small><span class="amt">$0.99</span></div></div>'],
+];
+document.getElementById('labGrid').innerHTML = LAB.map((l,i)=>`<div class="lab"><div class="num">${String(i+1).padStart(2,'0')}</div><h4>${l[0]}</h4><div class="desc">${l[1]}</div><div class="demo">${l[2]}</div></div>`).join('');
+
+// sliding segmented interaction
+(function(){
+  const seg=document.getElementById('ss'); if(!seg)return;
+  const thumb=seg.querySelector('.thumb'); const btns=[...seg.querySelectorAll('button')];
+  function move(b){thumb.style.left=b.offsetLeft+'px';thumb.style.width=b.offsetWidth+'px';btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+  btns.forEach(b=>b.addEventListener('click',()=>move(b)));
+  requestAnimationFrame(()=>move(btns[0]));
+})();
+// donut hover cycle
+document.querySelectorAll('.donut').forEach(d=>{d.addEventListener('mouseenter',()=>{d.style.setProperty('--v',Math.floor(40+Math.random()*55));d.querySelector('b').textContent=d.style.getPropertyValue('--v')+'%';});});
+
+// ---------- TOC + progress ----------
+const SECTIONS=[['audit','Audit'],['benchmark','Benchmark'],['themes-intro','Themes'],...THEMES.map(t=>[`theme-${t.no}`,t.name]),['lab','Components'],['supabase','Supabase']];
+document.getElementById('toc').innerHTML=SECTIONS.map(s=>`<a href="#${s[0]}">${s[1]}</a>`).join('');
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{const h=document.documentElement;const sc=h.scrollTop/(h.scrollHeight-h.clientHeight);prog.style.width=(sc*100)+'%';},{passive:true});
+addEventListener('keydown',e=>{
+  if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+  const ids=['top',...SECTIONS.map(s=>s[0])];
+  const ys=ids.map(id=>document.getElementById(id)).filter(Boolean);
+  const cur=window.scrollY+70;
+  let idx=ys.findIndex(el=>el.offsetTop>cur+5);
+  if(e.key==='ArrowDown'){if(idx<0)idx=ys.length-1;ys[idx]?.scrollIntoView({behavior:'smooth'});}
+  else{const prev=[...ys].reverse().find(el=>el.offsetTop<cur-5);prev?.scrollIntoView({behavior:'smooth'});}
+});
+</script>

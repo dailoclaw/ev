@@ -1,0 +1,1661 @@
+<meta charset="utf-8">
+<title>EV Command — Product Redesign & Theme Review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --ink:#0d1020; --ink2:#3a4056; --ink3:#6b7185; --line:#e7e9f2; --line2:#eef0f7;
+  --paper:#f7f8fc; --card:#ffffff; --brand:#4f46e5; --brand2:#06b6d4; --pos:#16a34a; --warn:#f59e0b;
+  --shadow-sm:0 1px 2px rgba(16,18,40,.06),0 4px 14px rgba(16,18,40,.05);
+  --shadow-md:0 8px 30px rgba(16,18,40,.10);
+  --shadow-lg:0 24px 70px rgba(16,18,40,.16);
+  --r:18px;
+  --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,'Cascadia Code',monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:auto}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,h4{margin:0;letter-spacing:-.02em;line-height:1.08}
+p{margin:0}
+a{color:inherit}
+::selection{background:rgba(79,70,229,.18)}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;display:flex;align-items:center;gap:16px;
+  padding:0 20px;background:rgba(247,248,252,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line)}
+.topbar .brand{font-weight:800;font-size:14px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.topbar .dot{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 140deg,#4f46e5,#06b6d4,#16a34a,#4f46e5);box-shadow:0 4px 14px rgba(79,70,229,.4)}
+.toc{margin-left:auto;display:flex;gap:2px;overflow:auto;scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc a{font-size:12px;font-weight:650;color:var(--ink3);padding:7px 11px;border-radius:9px;white-space:nowrap;text-decoration:none;transition:.15s}
+.toc a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.progress{position:fixed;top:56px;left:0;height:2px;background:linear-gradient(90deg,#4f46e5,#06b6d4);z-index:101;width:0}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+section.slide{padding:96px 0 72px;border-bottom:1px solid var(--line2);content-visibility:auto;contain-intrinsic-size:auto 1400px}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.lead{font-size:18px;color:var(--ink2);max-width:72ch;margin-top:14px}
+.h-sec{font-size:clamp(28px,4vw,44px);font-weight:850;margin-top:12px}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;
+  background:
+   radial-gradient(680px 420px at 12% -6%,rgba(79,70,229,.14),transparent 60%),
+   radial-gradient(560px 400px at 92% 8%,rgba(6,182,212,.12),transparent 62%),
+   radial-gradient(520px 420px at 70% 100%,rgba(22,163,74,.10),transparent 60%),
+   var(--paper)}
+.hero .wrap{position:relative;z-index:2}
+.hero h1{font-size:clamp(38px,7.4vw,82px);font-weight:880;letter-spacing:-.035em;max-width:18ch}
+.hero .grad{background:linear-gradient(120deg,#4f46e5,#06b6d4 55%,#16a34a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{margin-top:26px;font-size:19px;color:var(--ink2);max-width:64ch}
+.hero .meta{margin-top:38px;display:flex;flex-wrap:wrap;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;font-size:13px;font-weight:650;box-shadow:var(--shadow-sm)}
+.pill b{font-weight:800}
+.scrolln{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--ink3);
+  letter-spacing:.1em;text-transform:uppercase;font-weight:700;z-index:2}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+.panel h3{font-size:17px;font-weight:800}
+.muted{color:var(--ink3)}
+.tag{display:inline-block;font-size:11px;font-weight:750;padding:4px 9px;border-radius:7px;background:#f0f1f8;color:var(--ink2)}
+ul.ticks{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:9px}
+ul.ticks li{position:relative;padding-left:26px;font-size:14px;color:var(--ink2)}
+ul.ticks li::before{content:"";position:absolute;left:0;top:6px;width:15px;height:15px;border-radius:5px;
+  background:radial-gradient(circle at 30% 30%,#4f46e5,#06b6d4);box-shadow:0 2px 6px rgba(79,70,229,.3)}
+ul.ticks.warnlist li::before{background:radial-gradient(circle at 30% 30%,#f59e0b,#ef4444)}
+.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:start}
+
+.swatches,.swrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 22px}
+.sw{width:38px;height:38px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),var(--shadow-sm);position:relative}
+.sw span{position:absolute;bottom:-17px;left:0;right:0;text-align:center;font-size:8.5px;color:var(--ink3);font-family:var(--mono)}
+
+table.bm{width:100%;border-collapse:collapse;font-size:13.5px}
+table.bm th,table.bm td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line2)}
+table.bm th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:750}
+table.bm tr:hover td{background:#fafbff}
+table.bm td:first-child{font-weight:750}
+.chip-cat{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#eef2ff;color:#4338ca}
+
+/* ============ PHONE MOCK SYSTEM ============ */
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px}
+.phone{
+  --canvas:#f5f6fb; --surf:#fff; --surf2:#f8f9fe; --bd:#e7e9f2; --bd2:#eef0f7;
+  --tx:#12142b; --mut:#5b6178; --fnt:#8a90a6; --acc:#4f46e5; --acc2:#7c6cf6; --en:#06b6d4;
+  --p1:#0d9488; --p2:#6366f1; --p3:#8b5cf6; --p4:#f43f5e; --pr:18px; --pr2:12px;
+  --cardshadow:0 1px 2px rgba(16,18,40,.05),0 10px 24px rgba(16,18,40,.07);
+  width:300px;border-radius:38px;padding:11px;background:#dfe2ee;
+  box-shadow:0 30px 70px rgba(16,18,40,.22),0 4px 10px rgba(16,18,40,.10),inset 0 0 0 1px rgba(255,255,255,.5);
+  flex:0 0 auto}
+.phone .screen{border-radius:29px;overflow:hidden;height:600px;overflow-y:auto;position:relative;
+  background:var(--canvasImg,var(--canvas));color:var(--tx);scrollbar-width:none}
+.phone .screen::-webkit-scrollbar{display:none}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:26px;background:#0d1020;
+  border-radius:0 0 16px 16px;z-index:9}
+.pad{padding:34px 15px 90px}
+.pad.nonav{padding-bottom:24px}
+
+.p-appbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
+.p-eyebrow{color:var(--acc);font-size:9.5px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+.p-appbar h1{font-size:25px;font-weight:850;margin:3px 0 3px;color:var(--tx)}
+.p-appbar .p-sub{color:var(--mut);font-size:11px;font-weight:600}
+.p-icon{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:800;
+  background:var(--surf);border:1px solid var(--bd);color:var(--acc);box-shadow:var(--cardshadow)}
+.phone.solid-icon .p-icon{background:var(--acc);color:#fff;border-color:transparent}
+
+.p-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:4px;border-radius:12px;
+  background:var(--surf2);border:1px solid var(--bd);margin-bottom:13px}
+.p-seg button{border:0;background:transparent;font:inherit;color:var(--mut);font-size:11px;font-weight:750;
+  padding:7px 0;border-radius:8px;cursor:pointer}
+.p-seg button.on{background:var(--acc);color:#fff;box-shadow:0 6px 14px color-mix(in srgb,var(--acc) 40%,transparent)}
+.phone.softtoggle .p-seg button.on{background:var(--surf);color:var(--acc);box-shadow:var(--cardshadow)}
+
+.p-hero{border-radius:var(--pr);padding:17px;margin-bottom:11px;background:var(--surf);border:1px solid var(--bd);
+  box-shadow:var(--cardshadow);position:relative;overflow:hidden}
+.phone.accent-hero .p-hero{background:linear-gradient(140deg,var(--acc),var(--acc2));border-color:transparent;color:#fff}
+.phone.accent-hero .p-hero .p-cap,.phone.accent-hero .p-hero .p-heronum,.phone.accent-hero .p-hero .p-herosub{color:#fff}
+.p-cap{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fnt)}
+.p-heronum{font-size:42px;font-weight:850;line-height:.95;margin-top:7px;letter-spacing:-.02em;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-herosub{font-size:11px;font-weight:600;color:var(--mut);margin-top:8px}
+
+.p-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px}
+.p-mc{background:var(--surf);border:1px solid var(--bd);border-radius:var(--pr2);padding:11px;box-shadow:var(--cardshadow)}
+.p-mc span{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt)}
+.p-mc strong{display:block;font-size:20px;font-weight:820;margin-top:6px;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-mc small{font-size:10px;color:var(--mut);font-weight:600}
+
+.p-h2{font-size:14.5px;font-weight:820;color:var(--tx);margin:15px 0 3px}
+.p-h2s{font-size:10.5px;color:var(--mut);margin-bottom:9px}
+
+.p-chips{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.p-chip{display:flex;align-items:center;gap:8px;padding:9px;border-radius:var(--pr2);background:var(--surf);
+  border:1px solid var(--bd);box-shadow:var(--cardshadow)}
+.p-chip.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--surf))}
+.p-mark{width:30px;height:30px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:850;
+  color:#fff;background:var(--pc,var(--acc));box-shadow:0 4px 10px color-mix(in srgb,var(--pc,var(--acc)) 40%,transparent)}
+.p-chip strong{font-size:11.5px;font-weight:800;color:var(--tx);display:block}
+.p-chip small{font-size:9.5px;color:var(--mut);font-weight:600}
+
+.p-chart{background:var(--surf);border:1px solid var(--bd);border-radius:var(--pr);padding:13px 12px 8px;box-shadow:var(--cardshadow);margin-bottom:10px}
+.p-chart h4{font-size:12px;font-weight:800;color:var(--tx);margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:74px}
+.bars .b{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 45%,var(--surf)))}
+.bars2 .lbl,.bars+.lbl{display:flex;gap:7px;margin-top:6px}
+.lbl{display:flex;gap:7px;margin-top:6px}
+.lbl span{flex:1;text-align:center;font-size:8px;color:var(--fnt);font-weight:700}
+
+.p-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border-radius:var(--pr2);
+  background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow);margin-bottom:7px}
+.p-row strong{font-size:12px;font-weight:800;color:var(--tx);display:block}
+.p-row small{font-size:9.5px;color:var(--mut);font-weight:600}
+.p-row b{font-size:12.5px;font-weight:850;color:var(--en);font-variant-numeric:tabular-nums}
+
+.p-nav{position:absolute;left:0;right:0;bottom:0;height:58px;display:grid;grid-template-columns:1fr 1fr;
+  background:var(--surf);border-top:1px solid var(--bd)}
+.p-nav button{border:0;background:transparent;font:inherit;color:var(--mut);font-size:12px;font-weight:750;display:grid;place-items:center;position:relative;cursor:pointer}
+.p-nav button.on{color:var(--acc)}
+.p-nav button.on::before{content:"";position:absolute;top:9px;width:16px;height:2px;border-radius:2px;background:var(--acc)}
+
+/* tab bar w/ icons for new concepts */
+.p-tabbar{position:sticky;bottom:0;margin-top:8px;height:60px;display:flex;z-index:5;
+  background:var(--surf);
+  border-top:1px solid var(--bd)}
+.p-tabbar .ti{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--fnt);font-size:8.5px;font-weight:750;letter-spacing:.02em}
+.p-tabbar .ti.on{color:var(--acc)}
+.p-tabbar .fabb{width:44px;height:44px;margin-top:-24px;border-radius:15px;background:linear-gradient(140deg,var(--acc),var(--acc2));
+  display:grid;place-items:center;color:#fff;box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 45%,transparent)}
+.svgi{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fabb .svgi{width:21px;height:21px;stroke-width:2.2}
+
+.phone.is-glass .p-hero,.phone.is-glass .p-mc,.phone.is-glass .p-chip,.phone.is-glass .p-chart,.phone.is-glass .p-row,.phone.is-glass .p-icon,.phone.is-glass .p-seg{
+  background:rgba(255,255,255,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-color:rgba(255,255,255,.75);
+  box-shadow:0 8px 24px rgba(60,70,120,.12),inset 0 1px 0 rgba(255,255,255,.7)}
+.phone.is-neo .p-hero,.phone.is-neo .p-mc,.phone.is-neo .p-chip,.phone.is-neo .p-chart,.phone.is-neo .p-row,.phone.is-neo .p-icon{
+  background:var(--canvas);border-color:transparent;
+  box-shadow:6px 6px 14px rgba(174,182,200,.55),-6px -6px 14px rgba(255,255,255,.9)}
+.phone.is-neo .p-seg{background:var(--canvas);box-shadow:inset 3px 3px 7px rgba(174,182,200,.5),inset -3px -3px 7px rgba(255,255,255,.9);border-color:transparent}
+.phone.sharp{--pr:12px;--pr2:9px}
+.phone.round{--pr:24px;--pr2:18px}
+
+.screen-label{font-size:12px;font-weight:750;color:var(--ink3);text-align:center;max-width:300px}
+.mock-cluster{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+
+.theme-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+.theme-no{font-size:13px;font-weight:850;color:#fff;background:var(--brand);border-radius:10px;padding:6px 11px}
+.theme-no.c{background:#0d9488}
+.mood{font-size:13px;font-weight:700;color:var(--ink2);padding:6px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.theme-why{font-size:14px;color:var(--ink2);margin-top:6px;max-width:90ch}
+.spec{display:grid;gap:16px}
+.spec .row h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:800;margin-bottom:6px}
+.spec .row p{font-size:13.5px;color:var(--ink2)}
+.kv{font-family:var(--mono);font-size:12px}
+
+/* concept index */
+.cidx{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:28px}
+.cidx a{display:block;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-decoration:none;box-shadow:var(--shadow-sm);transition:.15s}
+.cidx a:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.cidx b{font-size:14px;font-weight:800;display:block}
+.cidx small{font-size:11.5px;color:var(--ink3)}
+.cidx .n{font-size:10px;font-weight:800;color:var(--brand)}
+
+/* modal + form mock */
+.modal-mock{width:300px;border-radius:24px 24px 16px 16px;padding:14px 15px 20px;background:#fff;
+  border:1px solid var(--line);box-shadow:var(--shadow-lg);position:relative;color:var(--ink)}
+.modal-mock .handle{width:40px;height:5px;border-radius:9px;background:#d3d6e4;margin:0 auto 14px}
+.form-mock label{display:block;font-size:11px;font-weight:750;color:var(--ink2);margin:12px 0 5px}
+.form-mock .fld{background:#f7f8fc;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.form-mock .segbtns{display:flex;gap:6px;flex-wrap:wrap}
+.form-mock .segbtns b{flex:1 1 auto;text-align:center;font-size:11.5px;font-weight:750;padding:9px 10px;border-radius:9px;background:#f0f1f8;color:var(--ink2)}
+.form-mock .segbtns b.on{background:var(--brand);color:#fff}
+.form-mock .segbtns b.newp{border:1.5px dashed #b9bfd6;background:transparent;color:var(--brand)}
+.sync-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750;padding:7px 12px;border-radius:999px;background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
+.sync-badge .live{width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+
+/* supabase */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin-top:10px}
+.flow .node{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow-sm)}
+.flow .node .icx{font-size:22px}
+.flow .node b{display:block;font-size:13px;font-weight:800;margin-top:6px}
+.flow .node small{font-size:11px;color:var(--ink3)}
+.flow .arr{font-size:20px;color:#b7bccb;text-align:center;font-weight:800}
+.reqcard{border-left:3px solid var(--brand)}
+.reqcard.g{border-left-color:var(--pos)}
+.reqcard.o{border-left-color:var(--warn)}
+.reqcard.p{border-left-color:#8b5cf6}
+pre.code{background:#0d1020;color:#e6e8f5;border-radius:14px;padding:16px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;margin-top:14px}
+pre.code .k{color:#c4b5fd}
+pre.code .c{color:#6b7185}
+.opt-tbl td .yes{color:var(--pos);font-weight:800}
+.opt-tbl td .no{color:#ef4444;font-weight:800}
+
+.footer{padding:60px 0 80px;text-align:center;color:var(--ink3);font-size:13px}
+.big-num{font-size:13px;font-weight:800;color:var(--brand)}
+
+@media(max-width:900px){
+  .two-col,.grid2{grid-template-columns:1fr}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+  .flow{grid-template-columns:1fr;gap:6px}.flow .arr{transform:rotate(90deg)}
+  .toc{display:none}
+}
+@media(max-width:560px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+<style>
+/* ===== concept widgets ===== */
+.livecard{border-radius:var(--pr);padding:14px;margin-bottom:11px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,var(--acc),var(--acc2));box-shadow:0 14px 30px color-mix(in srgb,var(--acc) 35%,transparent)}
+.livecard .lv{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+.livecard .lv i{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 1.6s infinite}
+.livecard b{display:block;font-size:30px;font-weight:850;margin-top:6px;font-variant-numeric:tabular-nums}
+.livecard small{font-size:10.5px;opacity:.85;font-weight:600}
+.livecard .pb{height:5px;border-radius:9px;background:rgba(255,255,255,.25);margin-top:10px;overflow:hidden}
+.livecard .pb i{display:block;height:100%;width:64%;border-radius:9px;background:#fff;animation:charge 2.4s ease-in-out infinite alternate}
+@keyframes charge{from{width:58%}to{width:70%}}
+
+.ringd{--v:72;--rc:var(--acc);--sz:104px;width:var(--sz);height:var(--sz);border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--rc) calc(var(--v)*1%),color-mix(in srgb,var(--rc) 12%,var(--surf,#fff)) 0)}
+.ringd::before{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--surf,#fff)}
+.ringd .in{position:relative;text-align:center}
+.ringd .in b{font-size:22px;font-weight:850;color:var(--tx,#111);display:block;line-height:1}
+.ringd .in small{font-size:8.5px;color:var(--fnt,#888);font-weight:750;text-transform:uppercase;letter-spacing:.06em}
+
+.heatgrid{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+.heatgrid i{aspect-ratio:1;border-radius:3px;background:color-mix(in srgb,var(--acc) calc(var(--hv)*22%),var(--surf2,#f2f3f8))}
+
+.mapzone{position:relative;border-radius:0;height:300px;overflow:hidden;
+  background:
+   linear-gradient(35deg,transparent 46%,rgba(255,255,255,.9) 46% 50%,transparent 50%),
+   linear-gradient(-20deg,transparent 30%,rgba(255,255,255,.85) 30% 33%,transparent 33%),
+   linear-gradient(0deg,transparent 62%,rgba(255,255,255,.9) 62% 66%,transparent 66%),
+   radial-gradient(240px 140px at 80% 20%,#d9e6d3,transparent 70%),
+   radial-gradient(220px 160px at 10% 80%,#cfe0f2,transparent 70%),
+   #e4eae2}
+.mpin{position:absolute;width:26px;height:26px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  background:var(--pc);box-shadow:0 6px 14px color-mix(in srgb,var(--pc) 45%,transparent);display:grid;place-items:center}
+.mpin b{transform:rotate(45deg);color:#fff;font-size:10px;font-weight:850}
+.mpin::after{content:"";position:absolute;inset:-6px;border-radius:inherit;border:2px solid var(--pc);opacity:0;animation:pinripple 2.2s infinite}
+@keyframes pinripple{0%{opacity:.7;transform:scale(.7)}70%{opacity:0;transform:scale(1.3)}100%{opacity:0}}
+.searchpill{position:absolute;top:36px;left:14px;right:14px;z-index:4;display:flex;align-items:center;gap:8px;
+  background:#fff;border-radius:14px;padding:11px 13px;font-size:11.5px;color:#8a90a6;font-weight:650;box-shadow:0 10px 26px rgba(16,18,40,.16)}
+.sheetmini{position:relative;z-index:3;margin-top:-26px;border-radius:22px 22px 0 0;background:var(--surf);padding:10px 14px 90px;
+  box-shadow:0 -12px 30px rgba(16,18,40,.12)}
+.sheetmini .handle{width:38px;height:4px;border-radius:9px;background:var(--bd);margin:0 auto 10px}
+
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bento .tile{background:var(--surf);border:1px solid var(--bd);border-radius:16px;padding:12px;box-shadow:var(--cardshadow);position:relative}
+.bento .tile.s2{grid-column:span 2}
+.bento .tile .cap{font-size:8.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fnt)}
+.bento .tile b{font-size:19px;font-weight:850;color:var(--tx);display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+.bento .tile small{font-size:9.5px;color:var(--mut);font-weight:600}
+.bento.editing .tile{animation:jiggle .32s infinite alternate ease-in-out}
+.bento.editing .tile:nth-child(2n){animation-delay:.12s}
+@keyframes jiggle{from{transform:rotate(-.9deg)}to{transform:rotate(.9deg)}}
+.rm{position:absolute;top:-7px;left:-7px;width:18px;height:18px;border-radius:50%;background:#f43f5e;color:#fff;
+  display:grid;place-items:center;font-size:12px;font-weight:850;box-shadow:0 4px 10px rgba(244,63,94,.4)}
+
+.tlwrap{position:relative;padding-left:20px}
+.tlwrap::before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:2px;border-radius:2px;background:var(--bd)}
+.tlday{position:relative;margin-bottom:12px}
+.tlday::before{content:"";position:absolute;left:-19px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 20%,transparent)}
+.tlday .dt{font-size:9px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--fnt);margin-bottom:6px}
+.insight{border-radius:14px;padding:13px;color:#fff;background:linear-gradient(130deg,var(--acc),var(--acc2));
+  font-size:12px;font-weight:700;box-shadow:0 12px 26px color-mix(in srgb,var(--acc) 30%,transparent);margin-bottom:12px}
+.composer{position:sticky;bottom:70px;margin:0 0 8px;display:flex;align-items:center;gap:8px;background:var(--surf);
+  border:1px solid var(--bd);border-radius:999px;padding:10px 14px;font-size:11.5px;color:var(--fnt);font-weight:650;box-shadow:var(--shadow-md);z-index:4}
+
+.wrapped{height:600px;display:flex;flex-direction:column;justify-content:center;padding:30px 22px;color:#fff;
+  background:linear-gradient(160deg,#4f46e5 0%,#7c3aed 40%,#db2777 100%)}
+.wrapped .yr{font-size:11px;font-weight:850;letter-spacing:.2em;text-transform:uppercase;opacity:.8}
+.wrapped h2{font-size:38px;font-weight:880;letter-spacing:-.03em;margin:10px 0 22px}
+.wrapped .st{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:650}
+.wrapped .st b{font-weight:850;font-variant-numeric:tabular-nums}
+.wrapped .share{margin-top:26px;align-self:flex-start;background:#fff;color:#4f46e5;font-weight:800;font-size:12.5px;padding:11px 20px;border-radius:999px}
+
+/* console tablet */
+.tabframe{width:min(620px,100%);border-radius:26px;padding:10px;background:#dfe2ee;
+  box-shadow:0 30px 70px rgba(16,18,40,.2),inset 0 0 0 1px rgba(255,255,255,.5)}
+.tabframe .tscreen{border-radius:18px;overflow:hidden;height:420px;display:flex;background:var(--canvas,#f4f6fa);color:var(--tx,#0b1220)}
+.rail{width:52px;flex:0 0 auto;background:var(--surf,#fff);border-right:1px solid var(--bd,#dde3ec);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0}
+.rail .lg{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,var(--acc),var(--acc2));display:grid;place-items:center;color:#fff;margin-bottom:10px}
+.rail .ri{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--fnt)}
+.rail .ri.on{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc)}
+.cmain{flex:1;padding:14px;overflow:auto}
+.ctoolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.ctoolbar h3{font-size:15px;font-weight:850;margin-right:auto}
+.cchip{font-size:10px;font-weight:750;padding:6px 10px;border-radius:8px;background:var(--surf);border:1px solid var(--bd);color:var(--mut)}
+.cbtn{font-size:10.5px;font-weight:800;padding:7px 12px;border-radius:8px;background:var(--acc);color:#fff;box-shadow:0 6px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+.ckpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.ckpi{background:var(--surf);border:1px solid var(--bd);border-radius:10px;padding:9px 11px}
+.ckpi span{font-size:8px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fnt)}
+.ckpi b{display:block;font-size:16px;font-weight:850;margin-top:3px;font-variant-numeric:tabular-nums}
+table.ctab{width:100%;border-collapse:collapse;font-size:10.5px;background:var(--surf);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+table.ctab th,table.ctab td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd2,#eef0f7)}
+table.ctab th{font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--fnt);font-weight:800;background:var(--surf2)}
+table.ctab td{font-weight:650;color:var(--mut)}
+table.ctab td:first-child{color:var(--tx);font-weight:750}
+table.ctab td b{font-variant-numeric:tabular-nums;color:var(--tx)}
+.pdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--pc)}
+.cfoot{font-size:9px;color:var(--fnt);font-weight:700;margin-top:8px;display:flex;justify-content:space-between}
+
+/* orbit */
+.dialwrap{display:flex;flex-direction:column;align-items:center;padding-top:12px}
+.dial{--sz:206px;width:var(--sz);height:var(--sz);border-radius:50%;position:relative;display:grid;place-items:center;
+  background:conic-gradient(var(--p1) 0 65%,var(--p2) 65% 79%,var(--p4) 79% 94%,var(--p3) 94% 100%);
+  box-shadow:0 20px 46px rgba(16,18,40,.16);animation:dialspin 26s linear infinite}
+@keyframes dialspin{to{transform:rotate(360deg)}}
+.dial .hub{width:74%;height:74%;border-radius:50%;background:var(--surf);display:grid;place-items:center;text-align:center;
+  animation:dialspin 26s linear infinite reverse}
+.dial .hub b{font-size:26px;font-weight:850;display:block;color:var(--tx);font-variant-numeric:tabular-nums}
+.dial .hub small{font-size:9px;color:var(--fnt);font-weight:750;text-transform:uppercase;letter-spacing:.08em}
+.orbleg{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.orbleg span{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:750;color:var(--mut)}
+.orbleg i{width:8px;height:8px;border-radius:50%;background:var(--pc)}
+.radacts{display:flex;justify-content:center;gap:14px;margin-top:22px}
+.radacts .ra{width:52px;height:52px;border-radius:50%;background:var(--surf);border:1px solid var(--bd);display:grid;place-items:center;
+  color:var(--acc);box-shadow:var(--cardshadow)}
+.radacts .ra.main{background:linear-gradient(140deg,var(--acc),var(--acc2));color:#fff;transform:translateY(-8px) scale(1.12);border:0}
+.wheel12{--sz:190px;width:var(--sz);height:var(--sz);border-radius:50%;position:relative;display:grid;place-items:center;
+  background:conic-gradient(var(--acc) 0 30deg,color-mix(in srgb,var(--acc) 55%,#fff) 30deg 60deg,color-mix(in srgb,var(--acc) 25%,#fff) 60deg 90deg,color-mix(in srgb,var(--acc) 65%,#fff) 90deg 120deg,color-mix(in srgb,var(--acc) 35%,#fff) 120deg 150deg,color-mix(in srgb,var(--acc) 80%,#fff) 150deg 180deg,color-mix(in srgb,var(--acc) 30%,#fff) 180deg 210deg,color-mix(in srgb,var(--acc) 50%,#fff) 210deg 240deg,color-mix(in srgb,var(--acc) 20%,#fff) 240deg 270deg,color-mix(in srgb,var(--acc) 45%,#fff) 270deg 300deg,color-mix(in srgb,var(--acc) 60%,#fff) 300deg 330deg,color-mix(in srgb,var(--acc) 38%,#fff) 330deg 360deg)}
+.wheel12 .hub{width:66%;height:66%;border-radius:50%;background:var(--surf);display:grid;place-items:center;text-align:center;box-shadow:0 8px 22px rgba(16,18,40,.12)}
+
+/* zen */
+.zen{height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.zen .mo{font-size:11px;font-weight:850;letter-spacing:.28em;text-transform:uppercase;color:var(--fnt)}
+.zen .znum{font-size:64px;font-weight:880;letter-spacing:-.04em;color:var(--tx);margin:14px 0 8px;font-variant-numeric:tabular-nums}
+.zen .zsub{font-size:12.5px;color:var(--mut);font-weight:600}
+.zen .dots{display:flex;gap:7px;margin-top:34px}
+.zen .dots i{width:6px;height:6px;border-radius:50%;background:var(--bd)}
+.zen .dots i.on{background:var(--acc);width:18px;border-radius:9px}
+.zentabs{position:absolute;bottom:24px;left:0;right:0;display:flex;justify-content:center;gap:22px;font-size:11px;font-weight:750;color:var(--fnt)}
+.zentabs span.on{color:var(--tx);border-bottom:2px solid var(--acc);padding-bottom:3px}
+.zlist{padding:52px 20px 60px}
+.zlist .zmo{font-size:9px;font-weight:850;letter-spacing:.2em;text-transform:uppercase;color:var(--fnt);margin:18px 0 6px}
+.zlist .zr{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--bd2);font-size:12px;font-weight:650;color:var(--mut);font-variant-numeric:tabular-nums}
+.zlist .zr b{color:var(--tx);font-weight:800}
+
+/* misc concept bits */
+.badges{display:flex;gap:9px}
+.bdg{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:18px;
+  background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow)}
+.bdg.lock{opacity:.4;filter:grayscale(1)}
+.goalbar{height:8px;border-radius:9px;background:var(--surf2);overflow:hidden;border:1px solid var(--bd)}
+.goalbar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.podium{display:flex;align-items:flex-end;gap:8px;justify-content:center;margin-top:8px}
+.podium .po{flex:1;max-width:64px;border-radius:10px 10px 0 0;background:color-mix(in srgb,var(--acc) 18%,var(--surf));
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 4px;border:1px solid var(--bd);border-bottom:0}
+.podium .po b{font-size:10px;font-weight:800;color:var(--tx)}
+.podium .po small{font-size:8.5px;color:var(--fnt);font-weight:700}
+.podium .po.first{background:linear-gradient(160deg,var(--acc),var(--acc2));border:0}
+.podium .po.first b,.podium .po.first small{color:#fff}
+.carbody{display:flex;justify-content:center;margin:4px 0 10px;color:var(--acc)}
+.dim{position:absolute;inset:0;background:rgba(13,16,32,.45);z-index:6}
+.sheetup{position:absolute;left:8px;right:8px;bottom:8px;z-index:7;border-radius:20px;background:var(--surf);padding:12px 13px 14px;box-shadow:0 -14px 40px rgba(0,0,0,.3)}
+.sheetup .handle{width:36px;height:4px;border-radius:9px;background:var(--bd);margin:0 auto 10px}
+.sheetup label{display:block;font-size:9px;font-weight:800;color:var(--mut);margin:9px 0 4px;text-transform:uppercase;letter-spacing:.06em}
+.sheetup .fld{background:var(--surf2);border:1px solid var(--bd);border-radius:10px;padding:9px 11px;font-size:11.5px;color:var(--tx);display:flex;justify-content:space-between}
+.sheetup .provrow{display:flex;gap:5px;flex-wrap:wrap}
+.sheetup .provrow b{font-size:10px;font-weight:750;padding:7px 10px;border-radius:8px;background:var(--surf2);color:var(--mut);border:1px solid var(--bd)}
+.sheetup .provrow b.on{background:var(--acc);color:#fff;border-color:transparent}
+.sheetup .provrow b.newp{border-style:dashed;color:var(--acc);background:transparent}
+.sheetup .save{width:100%;margin-top:12px;border:0;font:inherit;font-size:12px;font-weight:800;color:#fff;padding:11px;border-radius:11px;
+  background:linear-gradient(120deg,var(--acc),var(--acc2));box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 40%,transparent)}
+</style>
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> EV Command · Redesign Review</div>
+  <nav class="toc" id="toc"></nav>
+</div>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="kicker">Product Redesign &amp; Visual Direction · Stakeholder Review · Jul 2026</div>
+    <h1>From a two-page tracker to a <span class="grad">fully-fledged EV app.</span></h1>
+    <p class="sub">Part I re-runs the full visual audit, 18-app benchmark and <b>10 light themes</b> on the current layout. Part II goes further: <b>10 brand-new app concepts</b> — new pages, tab-bar navigation, new layouts — plus <b>35 working component patterns</b> and a Supabase plan that handles <b>new charger types</b>. Every mockup is live HTML, not an image.</p>
+    <div class="meta">
+      <span class="pill">📊 <b>249</b> sessions · $268.32 · 1,959 kWh</span>
+      <span class="pill">🎨 <b>10</b> light themes</span>
+      <span class="pill">📱 <b>10</b> new app concepts · 24 screens</span>
+      <span class="pill">🧩 <b>35</b> working components</span>
+      <span class="pill">🗄️ Supabase + dynamic providers + CSV</span>
+    </div>
+  </div>
+  <div class="scrolln">scroll to explore ↓</div>
+</section>
+
+<section class="slide" id="audit">
+  <div class="wrap">
+    <div class="kicker">Part I · Step 1 — Current UI Analysis</div>
+    <h2 class="h-sec">Where the product stands today</h2>
+    <p class="lead">The current build is a competent, mobile-first dark dashboard — but it is structurally a one-and-a-half page app: Overview, History, one bottom sheet. The audit covers both the visual layer and the product layer.</p>
+    <div class="two-col" style="margin-top:34px">
+      <div>
+        <div class="grid2" style="grid-template-columns:1fr 1fr">
+          <div class="panel">
+            <h3>✅ Strengths</h3>
+            <ul class="ticks">
+              <li>Clean single-column mobile layout with a clear visual spine</li>
+              <li>Strong typographic hierarchy — big hero number, confident weights</li>
+              <li>Sensible provider color-coding across all four charger types</li>
+              <li>Thoughtful details: safe-area insets, fixed tab bar, bottom-sheet modal, empty states</li>
+              <li>Consistent radius system &amp; reusable metric cards</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>⚠️ Weaknesses</h3>
+            <ul class="ticks warnlist">
+              <li><b>Dark-only</b> — no light mode; dim and dated for a data tool</li>
+              <li>Low-opacity white-on-navy surfaces = muddy contrast</li>
+              <li><b>Only 2 pages</b> — no add-data flow, no insights hub, no settings, no per-charger pages</li>
+              <li>Letter-glyph provider marks (J/M/C/S) read as placeholder</li>
+              <li>Hard-coded charger types — adding a provider requires a code change</li>
+              <li>No micro-interactions beyond a 1px hover lift</li>
+              <li>Data is trapped in a bundled JSON — no sync, no export</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <h3>Design tokens in play today</h3>
+          <div class="swrow" style="margin-top:12px">
+            <div class="sw" style="background:#050507"><span>#050507</span></div>
+            <div class="sw" style="background:#0f1020"><span>#0f1020</span></div>
+            <div class="sw" style="background:rgba(255,255,255,.07);outline:1px solid #333"><span>surf .07</span></div>
+            <div class="sw" style="background:#6366f1"><span>#6366f1</span></div>
+            <div class="sw" style="background:#14b8a6"><span>#14b8a6</span></div>
+            <div class="sw" style="background:#f43f5e"><span>#f43f5e</span></div>
+          </div>
+          <p class="muted" style="font-size:13px;margin-top:22px">Type <b>Inter</b> · radius <b>8 / 14px</b> · one shadow token · accent <b>indigo</b>, energy <b>teal</b>. Two routes, one modal, zero data entry. The ceiling on "premium" — and on usefulness — is low.</p>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="screen-label">Current build — Overview (dark, 2-page app)</div>
+        <div class="phone" style="--canvas:#0b0c18;--surf:rgba(255,255,255,.06);--surf2:rgba(255,255,255,.04);--bd:rgba(255,255,255,.12);--bd2:rgba(255,255,255,.1);--tx:#f5f7fb;--mut:#9aa1b8;--fnt:#727892;--acc:#6366f1;--acc2:#818cf8;--en:#14b8a6;--cardshadow:0 10px 30px rgba(0,0,0,.4)">
+          <div class="notch"></div>
+          <div class="screen" data-screen="overview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="benchmark">
+  <div class="wrap">
+    <div class="kicker">Part I · Step 2 — Competitive Benchmarking</div>
+    <h2 class="h-sec">What premium looks like in this category</h2>
+    <p class="lead">18 leading products across EV charging, energy monitoring and fintech-grade tracking. The pattern: bright high-contrast light UIs, one confident accent, real depth, animated data, tab-bar IA with 4–5 destinations — and always a first-class add/log flow.</p>
+    <div class="panel" style="margin-top:30px;padding:6px 6px 0;overflow:auto">
+      <table class="bm">
+        <thead><tr><th>Product</th><th>Category</th><th>What makes it read as premium</th><th>Steal this</th></tr></thead>
+        <tbody id="bmBody"></tbody>
+      </table>
+    </div>
+    <div class="grid3" style="margin-top:22px">
+      <div class="panel"><h3>🎨 Color systems</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Near-white canvas, one saturated accent, 2–3 tints for states. Semantic greens/ambers reserved for status only.</p></div>
+      <div class="panel"><h3>✨ Depth &amp; motion</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Layered soft shadows, 16–24px radii, count-ups, animated rings and sparklines, spring-eased toggles.</p></div>
+      <div class="panel"><h3>🧭 Information architecture</h3><p class="muted" style="font-size:13.5px;margin-top:8px">4–5 tab destinations, a centre FAB for the core action, detail pages per entity, and settings/profile as a first-class page.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="themes-intro">
+  <div class="wrap">
+    <div class="kicker">Part I · Steps 3 &amp; 4 — Ten Light Themes + Mockups</div>
+    <h2 class="h-sec">10 theme directions on the current layout</h2>
+    <p class="lead">These keep your exact structure and re-skin it — the fastest path to a visual upgrade. All light, zero warm linen/ivory. Each renders your real Overview live. (Part II then rethinks the layout itself.)</p>
+  </div>
+</section>
+<div id="themeSlides"></div>
+
+<section class="slide" id="concepts-intro">
+  <div class="wrap">
+    <div class="kicker">Part II — Ten New App Concepts</div>
+    <h2 class="h-sec">10 new UI/UX directions — new pages, new layouts, new navigation</h2>
+    <p class="lead">Each concept is a different product shape: a real information architecture with 4–5 destinations, tab-bar or rail navigation, an add-session flow, detail pages and settings. Every concept below shows 2–3 live screens with a "how it works" breakdown. Any of the Part I themes can be applied over any concept.</p>
+    <div class="cidx" id="cidx"></div>
+  </div>
+</section>
+<div id="conceptSlides"></div>
+
+<section class="slide" id="lab">
+  <div class="wrap">
+    <div class="kicker">Components Lab · Part 1</div>
+    <h2 class="h-sec">10 core button &amp; card patterns</h2>
+    <p class="lead">The original set — hover, tap and watch. Donut progress, animated borders, neomorphic press, sliding toggles, shimmer loaders, 3D tickets.</p>
+    <div class="lab-grid" id="labGrid" style="margin-top:34px"></div>
+  </div>
+</section>
+
+<section class="slide" id="lab2">
+  <div class="wrap">
+    <div class="kicker">Components Lab · Part 2 — 25 new patterns</div>
+    <h2 class="h-sec">25 components built for the new app concepts</h2>
+    <p class="lead">Purpose-built for the Part II designs: live charging cards, gauges, heat calendars, odometers, hold-to-confirm, radial FABs, tariff clocks, confetti saves, flip cards and more. All working — interact with them.</p>
+    <div class="lab-grid" id="labGrid2" style="margin-top:34px"></div>
+  </div>
+</section>
+<section class="slide" id="supabase">
+  <div class="wrap">
+    <div class="kicker">Data Requirement — Supabase Integration v2</div>
+    <h2 class="h-sec">Live data: migrate, add &amp; sync, export — and new charger types</h2>
+    <p class="lead">All 249 sessions currently live in a bundled <span class="kv">ev_data.json</span>. The plan below meets all four requirements — including the new one: <b>charger types must be dynamic</b>, so a new provider can be added in-app without a code change.</p>
+
+    <div class="grid4" style="margin-top:30px">
+      <div class="panel reqcard"><span class="tag">Requirement 1</span><h3 style="margin-top:10px;font-size:15px">Migrate JSON → Supabase</h3><p class="muted" style="font-size:12.5px;margin-top:8px">One-time seed script inserts providers first, then the 249 sessions with FK links. Postgres becomes the source of truth.</p></div>
+      <div class="panel reqcard g"><span class="tag">Requirement 2</span><h3 style="margin-top:10px;font-size:15px">Add data + live sync</h3><p class="muted" style="font-size:12.5px;margin-top:8px">"Add session" sheet writes via supabase-js; optimistic insert + realtime channel keeps every device in step.</p></div>
+      <div class="panel reqcard o"><span class="tag">Requirement 3</span><h3 style="margin-top:10px;font-size:15px">Export to CSV</h3><p class="muted" style="font-size:12.5px;margin-top:8px">One tap exports the full or filtered ledger (with provider names joined) to an Excel-ready CSV, generated client-side.</p></div>
+      <div class="panel reqcard p"><span class="tag">Requirement 4 · NEW</span><h3 style="margin-top:10px;font-size:15px">Dynamic charger types</h3><p class="muted" style="font-size:12.5px;margin-top:8px">A <span class="kv">providers</span> table replaces the hard-coded list. "+ New" in the add flow creates a provider with an auto-assigned colour; chips, filters and charts pick it up instantly.</p></div>
+    </div>
+
+    <h3 style="margin-top:44px;font-size:20px">Architecture</h3>
+    <div class="flow">
+      <div class="node"><div class="icx">📱</div><b>React App</b><small>chips &amp; filters rendered from the providers table</small></div>
+      <div class="arr">⇄</div>
+      <div class="node"><div class="icx">🔌</div><b>supabase-js</b><small>select · insert · realtime on both tables</small></div>
+      <div class="arr">⇄</div>
+      <div class="node"><div class="icx">🗄️</div><b>Supabase Postgres</b><small>providers ← charging_sessions (FK) + RLS</small></div>
+    </div>
+
+    <div class="two-col" style="margin-top:44px">
+      <div>
+        <h3 style="font-size:19px">Schema — now two tables</h3>
+        <div class="panel" style="margin-top:16px">
+          <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">providers</h4>
+          <table class="bm" style="margin-top:8px"><tbody>
+            <tr><td>id</td><td class="muted">uuid · pk · gen_random_uuid()</td></tr>
+            <tr><td>name</td><td class="muted">text · unique · e.g. "Jolt", "Evie"</td></tr>
+            <tr><td>color</td><td class="muted">text · hex, auto-assigned from palette</td></tr>
+            <tr><td>created_at</td><td class="muted">timestamptz · default now()</td></tr>
+          </tbody></table>
+          <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-top:18px">charging_sessions</h4>
+          <table class="bm" style="margin-top:8px"><tbody>
+            <tr><td>id</td><td class="muted">uuid · pk</td></tr>
+            <tr><td>provider_id</td><td class="muted">uuid · FK → providers.id · not null</td></tr>
+            <tr><td>date</td><td class="muted">date · not null</td></tr>
+            <tr><td>amount</td><td class="muted">numeric(8,3) · kWh</td></tr>
+            <tr><td>cost</td><td class="muted">numeric(8,2) · AUD</td></tr>
+            <tr><td>notes</td><td class="muted">text · nullable</td></tr>
+            <tr><td>created_at</td><td class="muted">timestamptz · default now()</td></tr>
+          </tbody></table>
+        </div>
+        <pre class="code"><span class="c">-- migration: seed providers from existing JSON types,</span>
+<span class="c">-- then sessions with FK lookups</span>
+<span class="k">insert into</span> providers (name,color) <span class="k">values</span>
+ ('Jolt','#0d9488'),('Matty','#6366f1'),
+ ('Chargefox','#8b5cf6'),('Supercharger','#f43f5e');
+
+<span class="c">// app: chips render from the table — never hard-coded</span>
+<span class="k">const</span> { data: providers } =
+  <span class="k">await</span> db.from('providers').select('*').order('name')
+
+<span class="c">// adding a NEW charger type from the app</span>
+<span class="k">const</span> { data: p } = <span class="k">await</span> db.from('providers')
+  .insert({ name:'Evie', color: nextPaletteColor() })
+  .select().single()
+<span class="k">await</span> db.from('charging_sessions')
+  .insert({ provider_id: p.id, date, amount, cost })</pre>
+      </div>
+      <div>
+        <h3 style="font-size:19px">Options considered</h3>
+        <div class="panel" style="margin-top:16px;padding:6px 6px 0;overflow:auto">
+          <table class="bm opt-tbl">
+            <thead><tr><th>Approach</th><th>Sync</th><th>New types</th><th>Best for</th></tr></thead>
+            <tbody>
+              <tr><td>supabase-js + RLS, providers table <span class="chip-cat">pick</span></td><td><span class="yes">Realtime</span></td><td><span class="yes">In-app</span></td><td>Ship fast, zero backend</td></tr>
+              <tr><td>Edge Functions API</td><td><span class="yes">Realtime</span></td><td><span class="yes">Validated</span></td><td>Multi-user/shared data</td></tr>
+              <tr><td>enum column for type</td><td><span class="yes">Realtime</span></td><td><span class="no">Migration each time</span></td><td>Rejected — fails Req 4</td></tr>
+              <tr><td>Local + periodic push</td><td><span class="no">Batch</span></td><td><span class="yes">In-app</span></td><td>Offline-first later</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 style="margin-top:22px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">CSV export — provider names joined</h4>
+        <pre class="code"><span class="k">const</span> { data } = <span class="k">await</span> db.from('charging_sessions')
+  .select('date, amount, cost, notes, providers(name)')
+  .csv()  <span class="c">// supabase-js can return CSV directly</span>
+downloadBlob(<span class="k">new</span> Blob([data],{type:'text/csv'}),
+  'ev-charging-export.csv')</pre>
+        <div class="panel" style="margin-top:18px">
+          <h3 style="font-size:15px">Colour auto-assignment</h3>
+          <p class="muted" style="font-size:13px;margin-top:8px">New providers pull the next unused hue from a curated 10-colour palette (teal → indigo → violet → rose → amber → cyan → lime → fuchsia → sky → orange), so charts and chips stay distinct without user effort — with an optional colour picker in Manage chargers.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:48px;font-size:20px">In-app mockups</h3>
+    <p class="muted" style="font-size:14px;margin-top:6px">The add flow with a "+ New charger" path, the manage-chargers page, and sync/export — all live below.</p>
+    <div class="mock-cluster" style="margin-top:24px" id="supaMocks"></div>
+  </div>
+</section>
+
+<div class="footer wrap">
+  <p><span class="big-num">EV Command</span> · Product Redesign &amp; Theme Review · Jul 2026</p>
+  <p style="margin-top:8px">10 light themes · 10 app concepts · 35 working components · Supabase with dynamic charger types.</p>
+</div>
+<style>
+/* ===== lab shared ===== */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.lab{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.lab .num{position:absolute;top:14px;right:16px;font-size:12px;font-weight:800;color:#c3c7d6}
+.lab h4{font-size:15px;font-weight:800}
+.lab .desc{font-size:12.5px;color:var(--ink3);margin-top:4px;margin-bottom:16px;min-height:34px}
+.lab .demo{display:flex;align-items:center;justify-content:center;gap:12px;min-height:126px;background:
+  radial-gradient(circle at 50% 40%,#fbfbff,#f4f5fb);border-radius:14px;padding:16px;flex-wrap:wrap;position:relative;overflow:hidden}
+
+/* lab part 1 (originals) */
+.btn-grad{border:0;cursor:pointer;font:inherit;font-weight:750;color:#fff;padding:13px 24px;border-radius:999px;font-size:14px;
+  background:linear-gradient(120deg,#4f46e5,#06b6d4);box-shadow:0 10px 24px rgba(79,70,229,.4);position:relative;overflow:hidden;transition:transform .2s}
+.btn-grad::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,.5),transparent 60%);
+  transform:translateX(-120%);transition:transform .6s}
+.btn-grad:hover{transform:translateY(-2px)}
+.btn-grad:hover::after{transform:translateX(120%)}
+.donut{--v:72;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(#16a34a calc(var(--v)*1%),#e8ebf3 0);position:relative}
+.donut::before{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:#fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.05)}
+.donut b{position:relative;font-size:20px;font-weight:850;color:#0f1f14}
+.donut small{position:relative;font-size:9px;color:#6b7185;display:block;text-align:center;font-weight:700}
+.gborder{position:relative;border-radius:16px;padding:2px;background:linear-gradient(120deg,#8b5cf6,#ec4899,#06b6d4,#8b5cf6);
+  background-size:300% 300%;animation:gbmove 4s linear infinite}
+@keyframes gbmove{to{background-position:300% 0}}
+.gborder .inner{background:#fff;border-radius:14px;padding:16px 18px;min-width:150px}
+.gborder .inner b{font-size:18px;font-weight:850}
+.gborder .inner small{font-size:11px;color:#6b7185}
+.neo-btn{border:0;cursor:pointer;font:inherit;font-weight:800;color:#4f46e5;padding:14px 22px;border-radius:16px;font-size:14px;
+  background:#e8ebf3;box-shadow:6px 6px 12px rgba(174,182,200,.7),-6px -6px 12px #fff;transition:.15s}
+.neo-btn:active{box-shadow:inset 4px 4px 9px rgba(174,182,200,.8),inset -4px -4px 9px #fff}
+.glasswrap{background:linear-gradient(120deg,#a5b4fc,#67e8f9);border-radius:16px;padding:22px;display:flex;gap:10px}
+.glass-btn{background:rgba(255,255,255,.28);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.5);
+  color:#fff;font-weight:750;padding:11px 18px;border-radius:12px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.12);cursor:pointer}
+.skel{width:190px;background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm)}
+.skel .s{height:12px;border-radius:6px;margin-bottom:9px;background:linear-gradient(90deg,#eef0f7 25%,#f7f8fc 37%,#eef0f7 63%);
+  background-size:400% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{to{background-position:-135% 0}}
+.slideseg{display:inline-grid;grid-auto-flow:column;background:#eef0f7;border-radius:12px;padding:4px;position:relative}
+.slideseg button{border:0;background:transparent;font:inherit;font-weight:750;font-size:12px;color:#5b6178;padding:8px 16px;
+  border-radius:9px;cursor:pointer;position:relative;z-index:2;transition:color .25s}
+.slideseg button.on{color:#0d1020}
+.slideseg .thumb{position:absolute;z-index:1;top:4px;bottom:4px;border-radius:9px;background:#fff;box-shadow:var(--shadow-sm);transition:.3s cubic-bezier(.4,1.3,.5,1)}
+.spark-card{width:200px;background:#0d1020;color:#fff;border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.spark-card .cap{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a90a6;font-weight:800}
+.spark-card b{font-size:26px;font-weight:850;display:block;margin-top:4px}
+.spark-card .up{color:#4ade80;font-size:11px;font-weight:750}
+.spark-card svg{position:absolute;right:0;bottom:0;width:100%;height:44px}
+.glow-btn{position:relative;border:0;cursor:pointer;font:inherit;font-weight:800;color:#0d1020;background:#fff;padding:14px 24px;border-radius:14px;
+  font-size:14px;box-shadow:var(--shadow-sm);transition:.2s}
+.glow-btn::before{content:"";position:absolute;inset:-2px;border-radius:16px;background:conic-gradient(from 0deg,#4f46e5,#06b6d4,#16a34a,#f59e0b,#4f46e5);
+  z-index:-1;opacity:0;filter:blur(9px);transition:.3s}
+.glow-btn:hover{transform:translateY(-2px)}
+.glow-btn:hover::before{opacity:.9}
+.ticket{width:210px;background:#fff;border-radius:14px;box-shadow:var(--shadow-md);position:relative;transition:transform .3s;
+  transform:perspective(700px) rotateY(-9deg) rotateX(4deg)}
+.ticket:hover{transform:perspective(700px) rotateY(0) rotateX(0)}
+.ticket .top{padding:14px 16px;border-bottom:2px dashed #e7e9f2;position:relative}
+.ticket .top::before,.ticket .top::after{content:"";position:absolute;bottom:-7px;width:14px;height:14px;border-radius:50%;background:#f4f5fb}
+.ticket .top::before{left:-7px}.ticket .top::after{right:-7px}
+.ticket .top b{font-size:17px;font-weight:850}.ticket .top small{font-size:10px;color:#6b7185}
+.ticket .bot{padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.ticket .bot .amt{font-weight:850;color:#16a34a}
+
+/* ===== lab part 2 (25 new) ===== */
+.bat-btn{border:2px solid #16a34a;cursor:pointer;font:inherit;font-weight:800;color:#14532d;background:#fff;padding:13px 26px;
+  border-radius:12px;font-size:14px;position:relative;overflow:hidden;transition:color .35s}
+.bat-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#86efac,#22c55e);width:0;transition:width .5s ease;z-index:0}
+.bat-btn:hover::before{width:100%}
+.bat-btn span{position:relative;z-index:1}
+.bat-btn::after{content:"";position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:5px;height:16px;background:#16a34a;border-radius:0 3px 3px 0}
+
+.cable{display:flex;align-items:center;gap:0;color:#4f46e5}
+.cable .nodeic{width:44px;height:44px;border-radius:13px;background:#fff;box-shadow:var(--shadow-sm);display:grid;place-items:center}
+.cable svg.line{width:110px;height:24px}
+.cable svg.line path{stroke:#4f46e5;stroke-width:3;fill:none;stroke-linecap:round;stroke-dasharray:7 8;animation:cabledash 1s linear infinite}
+@keyframes cabledash{to{stroke-dashoffset:-15}}
+
+.gauge{width:150px;text-align:center}
+.gauge .arc{width:150px;height:78px;position:relative;overflow:hidden}
+.gauge .arc::before{content:"";position:absolute;inset:0 0 -78px;border-radius:50%;
+  background:conic-gradient(from 270deg,#22c55e 0 60deg,#f59e0b 60deg 120deg,#ef4444 120deg 180deg,transparent 180deg);
+  -webkit-mask:radial-gradient(circle at 50% 100%,transparent 52px,#000 53px);mask:radial-gradient(circle at 50% 100%,transparent 52px,#000 53px)}
+.gauge .needle{position:absolute;left:50%;bottom:0;width:3px;height:62px;background:#0d1020;border-radius:3px;
+  transform-origin:bottom center;transform:rotate(-64deg);transition:transform .9s cubic-bezier(.3,1.4,.4,1)}
+.gauge:hover .needle{transform:rotate(38deg)}
+.gauge b{font-size:15px;font-weight:850}
+.gauge small{display:block;font-size:10px;color:#6b7185;font-weight:700}
+
+.streak{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(120deg,#fff7ed,#ffedd5);
+  border:1px solid #fed7aa;padding:11px 18px;border-radius:999px;font-weight:800;color:#9a3412;font-size:14px}
+.streak .fl{font-size:20px;display:inline-block;animation:flame 1s ease-in-out infinite alternate}
+@keyframes flame{from{transform:scale(1) rotate(-4deg)}to{transform:scale(1.18) rotate(4deg)}}
+
+.heatlab{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);width:250px}
+.heatlab .cap{font-size:10px;font-weight:800;color:#6b7185;text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px}
+.heatlab .hg{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+.heatlab .hg i{aspect-ratio:1;border-radius:3px;background:rgba(22,163,74,calc(var(--hv)*.24 + .05));transition:transform .15s}
+.heatlab .hg i:hover{transform:scale(1.35)}
+
+.countup{background:#fff;border-radius:16px;padding:18px 24px;box-shadow:var(--shadow-sm);text-align:center}
+.countup b{font-size:32px;font-weight:880;font-variant-numeric:tabular-nums;color:#0d1020;display:block}
+.countup small{font-size:11px;color:#6b7185;font-weight:700}
+
+.liquid{width:150px;height:110px;border-radius:16px;background:#fff;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;text-align:center}
+.liquid .wv{position:absolute;left:-50%;right:-50%;bottom:0;height:62%;background:rgba(6,182,212,.35);border-radius:42% 46% 0 0/60px 52px 0 0;animation:wob 3.4s ease-in-out infinite}
+.liquid .wv.w2{height:58%;background:rgba(6,182,212,.5);animation-duration:2.6s;animation-direction:reverse}
+@keyframes wob{0%,100%{transform:translateX(-4%) }50%{transform:translateX(4%)}}
+.liquid .lq{position:relative;z-index:2;padding-top:26px}
+.liquid .lq b{font-size:22px;font-weight:850}
+.liquid .lq small{display:block;font-size:9.5px;color:#155e75;font-weight:750}
+
+.swiperow{width:250px;border-radius:14px;overflow:hidden;position:relative;box-shadow:var(--shadow-sm);cursor:pointer}
+.swiperow .under{position:absolute;inset:0;display:flex;justify-content:flex-end;align-items:center;background:#f43f5e;color:#fff;font-weight:800;font-size:12px;padding-right:20px}
+.swiperow .over{position:relative;background:#fff;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;transition:transform .3s cubic-bezier(.3,1.2,.4,1)}
+.swiperow.open .over{transform:translateX(-84px)}
+.swiperow .over b{font-size:13px;font-weight:800}
+.swiperow .over small{font-size:10px;color:#6b7185;display:block}
+.swiperow .over .amt{font-weight:850;color:#0d9488}
+
+.holdbtn{--hp:0;border:0;cursor:pointer;font:inherit;font-weight:800;font-size:13.5px;color:#fff;padding:14px 26px;border-radius:999px;
+  background:linear-gradient(90deg,#dc2626 calc(var(--hp)*1%),#f43f5e 0);box-shadow:0 10px 24px rgba(244,63,94,.35);user-select:none;-webkit-user-select:none}
+.holdbtn.done{background:#16a34a;box-shadow:0 10px 24px rgba(22,163,74,.35)}
+
+.flipc{width:200px;height:120px;perspective:800px;cursor:pointer}
+.flipc .fin{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.3,1.1,.4,1);transform-style:preserve-3d}
+.flipc.flip .fin{transform:rotateY(180deg)}
+.flipc .face{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;padding:16px;box-shadow:var(--shadow-sm)}
+.flipc .front{background:#fff}
+.flipc .back{background:#0d1020;color:#fff;transform:rotateY(180deg)}
+.flipc .cap{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#8a90a6}
+.flipc b{font-size:24px;font-weight:850;display:block;margin-top:6px}
+.flipc .back small{font-size:10.5px;color:#9aa1b8;display:block;margin-top:4px}
+
+.odo{display:flex;gap:3px;background:#0d1020;padding:12px 16px;border-radius:14px;cursor:pointer}
+.odo .dcol{width:22px;height:34px;overflow:hidden;border-radius:6px;background:#1c2033;position:relative}
+.odo .dstk{display:flex;flex-direction:column;transition:transform .55s cubic-bezier(.35,1.1,.4,1)}
+.odo .dstk span{height:34px;display:grid;place-items:center;color:#7dd3fc;font-family:var(--mono);font-size:19px;font-weight:800}
+.odo .unit{align-self:center;color:#8a90a6;font-size:11px;font-weight:800;margin-left:7px}
+
+.tclock{width:120px;height:120px;border-radius:50%;position:relative;display:grid;place-items:center;
+  background:conic-gradient(#e8ebf3 0 275deg,#4ade80 275deg 350deg,#e8ebf3 350deg 360deg)}
+.tclock::before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff;box-shadow:inset 0 2px 8px rgba(0,0,0,.06)}
+.tclock .hand{position:absolute;left:50%;top:50%;width:2.5px;height:42px;background:#0d1020;border-radius:3px;transform-origin:top center;animation:tick 8s linear infinite}
+@keyframes tick{to{transform:rotate(360deg)}}
+.tclock .lb{position:relative;font-size:9px;font-weight:800;color:#166534;text-align:center;z-index:2}
+
+.fabr{position:relative;width:170px;height:130px;display:grid;place-items:end center}
+.fabr .fmain{width:54px;height:54px;border-radius:18px;border:0;cursor:pointer;background:linear-gradient(140deg,#4f46e5,#7c6cf6);
+  color:#fff;font-size:24px;font-weight:800;box-shadow:0 12px 26px rgba(79,70,229,.4);transition:transform .3s;position:relative;z-index:2}
+.fabr.open .fmain{transform:rotate(45deg)}
+.fabr .fmini{position:absolute;bottom:8px;left:50%;width:40px;height:40px;margin-left:-20px;border-radius:50%;border:0;background:#fff;
+  box-shadow:var(--shadow-md);cursor:pointer;font-size:15px;transition:.35s cubic-bezier(.3,1.3,.4,1);opacity:0;z-index:1}
+.fabr.open .f1{transform:translate(-58px,-38px);opacity:1}
+.fabr.open .f2{transform:translate(0,-64px);opacity:1}
+.fabr.open .f3{transform:translate(58px,-38px);opacity:1}
+
+.wavec{width:220px;border-radius:18px;padding:16px;background:linear-gradient(140deg,#0d9488,#06b6d4);color:#fff;position:relative;overflow:hidden}
+.wavec::before,.wavec::after{content:"";position:absolute;right:-24px;top:-24px;width:90px;height:90px;border-radius:50%;border:2px solid rgba(255,255,255,.4);animation:ripple2 2.6s ease-out infinite}
+.wavec::after{animation-delay:1.3s}
+@keyframes ripple2{from{transform:scale(.4);opacity:.9}to{transform:scale(1.6);opacity:0}}
+.wavec .lv{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;opacity:.95}
+.wavec .lv i{width:7px;height:7px;border-radius:50%;background:#bbf7d0;animation:pulse 1.6s infinite}
+.wavec b{font-size:26px;font-weight:850;display:block;margin-top:6px}
+.wavec small{font-size:10.5px;opacity:.9}
+
+.splitbar{width:250px}
+.splitbar .lbls{display:flex;justify-content:space-between;font-size:10.5px;font-weight:750;color:#5b6178;margin-bottom:7px}
+.splitbar .trk{display:flex;height:26px;border-radius:9px;overflow:hidden}
+.splitbar .trk i{display:grid;place-items:center;font-size:10px;font-weight:850;color:#fff;transition:width 1.1s cubic-bezier(.3,1,.4,1)}
+.splitbar .trk .a{background:linear-gradient(90deg,#4f46e5,#7c6cf6);width:20%}
+.splitbar .trk .b2{background:#c7cbdc;color:#3a4056;width:80%}
+.splitbar.go .trk .a{width:58%}
+.splitbar.go .trk .b2{width:42%}
+
+.confbtn{border:0;cursor:pointer;font:inherit;font-weight:800;color:#fff;background:#16a34a;padding:14px 28px;border-radius:14px;font-size:14px;
+  box-shadow:0 10px 24px rgba(22,163,74,.35);position:relative}
+.confp{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:2px;pointer-events:none;
+  animation:confl .9s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes confl{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rr));opacity:0}}
+
+.toastwrap{position:relative;width:100%;display:flex;justify-content:center}
+.toaststack{position:absolute;bottom:54px;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%;pointer-events:none}
+.toastx{background:#0d1020;color:#fff;font-size:11.5px;font-weight:700;padding:9px 16px;border-radius:999px;box-shadow:var(--shadow-md);
+  animation:toastin .3s cubic-bezier(.3,1.3,.4,1),toastout .3s ease-in 2s forwards}
+@keyframes toastin{from{transform:translateY(14px);opacity:0}}
+@keyframes toastout{to{transform:translateY(8px);opacity:0}}
+
+.chipcar{max-width:260px;display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px;scrollbar-width:none;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 8% 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8% 92%,transparent)}
+.chipcar::-webkit-scrollbar{display:none}
+.chipcar b{scroll-snap-align:start;flex:0 0 auto;font-size:11.5px;font-weight:750;padding:9px 15px;border-radius:999px;background:#fff;
+  color:#3a4056;box-shadow:var(--shadow-sm);cursor:pointer}
+.chipcar b.on{background:#4f46e5;color:#fff}
+
+.ldb{width:240px;display:grid;gap:8px}
+.ldb .lr{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;font-size:11.5px;font-weight:750;color:#3a4056}
+.ldb .lr .barr{height:16px;border-radius:6px;background:linear-gradient(90deg,#4f46e5,#06b6d4);width:8%;transition:width 1s cubic-bezier(.3,1,.4,1)}
+.ldb .lr:nth-child(2) .barr{background:linear-gradient(90deg,#0d9488,#4ade80)}
+.ldb .lr:nth-child(3) .barr{background:linear-gradient(90deg,#8b5cf6,#ec4899)}
+.ldb.go .lr:nth-child(1) .barr{width:96%}
+.ldb.go .lr:nth-child(2) .barr{width:58%}
+.ldb.go .lr:nth-child(3) .barr{width:33%}
+
+.dleg{display:flex;align-items:center;gap:16px}
+.dleg .dn{--v1:65;--v2:14;--v3:15;width:104px;height:104px;border-radius:50%;position:relative;
+  background:conic-gradient(#0d9488 0 65%,#6366f1 65% 79%,#f43f5e 79% 94%,#8b5cf6 94% 100%)}
+.dleg .dn::before{content:"";position:absolute;inset:15px;border-radius:50%;background:#fff}
+.dleg .dn span{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:850}
+.dleg .lg{display:grid;gap:6px}
+.dleg .lg b{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:750;color:#3a4056;cursor:pointer;padding:3px 6px;border-radius:7px;transition:.15s}
+.dleg .lg b:hover{background:#eef0f7;transform:translateX(2px)}
+.dleg .lg i{width:9px;height:9px;border-radius:3px}
+
+.skmorph{width:230px;cursor:pointer}
+.skmorph .card2{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);position:relative;min-height:86px}
+.skmorph .sk .s{height:11px;border-radius:6px;margin-bottom:8px;background:linear-gradient(90deg,#eef0f7 25%,#f7f8fc 37%,#eef0f7 63%);background-size:400% 100%;animation:shimmer 1.4s infinite}
+.skmorph .real{position:absolute;inset:14px;opacity:0;transition:opacity .4s}
+.skmorph.loaded .sk{opacity:0}
+.skmorph.loaded .real{opacity:1}
+.skmorph .real b{font-size:16px;font-weight:850}
+.skmorph .real small{font-size:11px;color:#6b7185;display:block;margin-top:3px}
+.skmorph .hint{text-align:center;font-size:10px;color:#8a90a6;font-weight:700;margin-top:8px}
+
+.pindemo{position:relative;width:200px;height:110px;border-radius:14px;overflow:hidden;
+  background:linear-gradient(35deg,transparent 46%,rgba(255,255,255,.9) 46% 50%,transparent 50%),#e4eae2}
+.pindemo .mpin{--pc:#0d9488;left:40px;top:30px;animation:pindrop 2.4s ease-in-out infinite}
+.pindemo .mpin.b{--pc:#f43f5e;left:120px;top:55px;animation-delay:.8s}
+@keyframes pindrop{0%,100%{transform:rotate(-45deg) translate(0,0)}12%{transform:rotate(-45deg) translate(-6px,-6px)}24%{transform:rotate(-45deg) translate(0,0)}}
+
+.cgraph{display:grid;gap:0;width:210px}
+.cgraph .cg{display:grid;grid-template-columns:26px 1fr;align-items:center;min-height:34px;position:relative}
+.cgraph .cg::before{content:"";position:absolute;left:12px;top:0;bottom:0;width:2px;background:#e0e3ef}
+.cgraph .cg i{width:12px;height:12px;border-radius:50%;background:var(--cc,#4f46e5);z-index:1;margin-left:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--cc,#4f46e5) 22%,transparent)}
+.cgraph .cg b{font-size:11px;font-weight:750;color:#3a4056}
+.cgraph .cg small{font-size:9.5px;color:#8a90a6;display:block}
+
+.stepr{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:var(--shadow-sm)}
+.stepr button{width:36px;height:36px;border:0;border-radius:11px;background:#eef0f7;color:#4f46e5;font-size:18px;font-weight:850;cursor:pointer;transition:.12s}
+.stepr button:active{transform:scale(.92);background:#4f46e5;color:#fff}
+.stepr .val{min-width:74px;text-align:center}
+.stepr .val b{font-size:20px;font-weight:850;font-variant-numeric:tabular-nums}
+.stepr .val small{display:block;font-size:9px;color:#8a90a6;font-weight:800;text-transform:uppercase}
+
+.tmorph{width:220px;border-radius:16px;padding:16px;cursor:pointer;transition:.45s;box-shadow:var(--shadow-sm);background:#fff;color:#12142b}
+.tmorph .cap{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.6}
+.tmorph b{font-size:24px;font-weight:850;display:block;margin-top:5px}
+.tmorph small{font-size:10.5px;opacity:.7}
+.tmorph.t2{background:linear-gradient(140deg,#4f46e5,#7c6cf6);color:#fff;box-shadow:0 14px 30px rgba(79,70,229,.4)}
+.tmorph.t3{background:#0d1020;color:#fff}
+.tmorph .hint2{display:block;font-size:9px;font-weight:800;margin-top:10px;opacity:.5;text-transform:uppercase;letter-spacing:.06em}
+</style>
+<script>
+/* ---------- icons ---------- */
+const IC={
+ home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/>',
+ clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ chart:'<path d="M5 20v-6M11 20V8M17 20V10M3 20h18"/>',
+ gear:'<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.2"/><circle cx="9" cy="16" r="2.2"/>',
+ map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
+ pin:'<path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>',
+ car:'<path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4v-4z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>',
+ user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/>',
+ bolt:'<path d="M13 2 5 13h5l-1 9 8-11h-5l1-9z"/>',
+ bell:'<path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2.5H4.5L6 16z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+ search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/>',
+ dl:'<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/>',
+ heart:'<path d="M12 20s-7-4.6-9-9a4.8 4.8 0 0 1 9-2.2A4.8 4.8 0 0 1 21 11c-2 4.4-9 9-9 9z"/>',
+ list:'<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+ grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+ trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 5H5a3 3 0 0 0 3 4M16 5h3a3 3 0 0 1-3 4M12 13v4M8 21h8M12 17v4"/>',
+ flame:'<path d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-2 1-3.5 2-5 .5 1.5 1.5 2 2 2-.5-2 0-4.5 1-6z"/>',
+ wallet:'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12.5h5"/><path d="M3 9h18"/>',
+ book:'<path d="M4 5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h8M8 11h8"/>'
+};
+const ic=n=>'<svg viewBox="0 0 24 24" class="svgi">'+(IC[n]||IC.bolt)+'</svg>';
+
+/* ---------- shared real data ---------- */
+const STAT={total:'268.32',sessions:'249',kwh:'1,959',rate:'0.137',avg:'1.08'};
+const MONTHS=[{m:'Feb',c:41},{m:'Mar',c:29},{m:'Apr',c:25},{m:'May',c:27},{m:'Jun',c:34},{m:'Jul',c:8}];
+const PROVIDERS=[{k:'J',n:'Jolt',s:'235 sessions',v:'p1'},{k:'M',n:'Matty',s:'10 sessions',v:'p2'},{k:'C',n:'Chargefox',s:'1 session',v:'p3'},{k:'S',n:'Supercharger',s:'3 sessions',v:'p4'}];
+const RECENT=[
+ {k:'J',n:'Jolt',d:'12 Jul · 8.7 kWh · $0.114/kWh',c:'0.99',v:'p1'},
+ {k:'S',n:'Supercharger',d:'15 Jun · 35.4 kWh · $0.470/kWh',c:'16.64',v:'p4'},
+ {k:'M',n:'Matty',d:'30 May · 9.0 kWh · $0.380/kWh',c:'3.42',v:'p2'}];
+const maxC=Math.max(...MONTHS.map(m=>m.c));
+const mark=(k,v)=>`<span class="p-mark" style="--pc:var(--${v})">${k}</span>`;
+const rowHTML=r=>`<div class="p-row">${mark(r.k,r.v)}<span><strong>${r.n}</strong><small>${r.d}</small></span><b>$${r.c}</b></div>`;
+function barChart(){return `<div class="bars">${MONTHS.map(m=>`<div class="b" style="height:${18+(m.c/maxC)*56}px"></div>`).join('')}</div><div class="lbl">${MONTHS.map(m=>`<span>${m.m}</span>`).join('')}</div>`}
+function tabbar(tabs,act){return `<div class="p-tabbar">${tabs.map((t,i)=>t.fab?`<div class="ti"><span class="fabb">${ic('plus')}</span></div>`:`<div class="ti ${i===act?'on':''}">${ic(t.i)}<span>${t.l}</span></div>`).join('')}</div>`}
+function ring(v,color,inner,sz){return `<div class="ringd" style="--v:${v};--rc:${color}${sz?';--sz:'+sz+'px':''}"><span class="in">${inner}</span></div>`}
+function heat(n){let s='';for(let i=0;i<n;i++){s+=`<i style="--hv:${(i*5+3)%7>4?((i*3)%4)+1:((i*7)%3)}"></i>`}return s}
+
+/* ---------- current-app clone (Part I) ---------- */
+function overviewHTML(){
+ return `<div class="pad">
+  <div class="p-appbar"><div><div class="p-eyebrow">EV Command</div><h1>Overview</h1><div class="p-sub">All chargers · 2026</div></div><div class="p-icon">→</div></div>
+  <div class="p-seg"><button class="on">All</button><button>2026</button><button>2025</button></div>
+  <div class="p-hero"><div class="p-cap">Total spent</div><div class="p-heronum">$${STAT.total}</div><div class="p-herosub">${STAT.sessions} sessions · ${STAT.kwh} kWh added</div></div>
+  <div class="p-metrics">
+   <div class="p-mc"><span>Energy</span><strong>${STAT.kwh}</strong><small>kWh charged</small></div>
+   <div class="p-mc"><span>Sessions</span><strong>${STAT.sessions}</strong><small>recorded stops</small></div>
+   <div class="p-mc"><span>Rate</span><strong>$${STAT.rate}</strong><small>avg / kWh</small></div>
+   <div class="p-mc"><span>Avg stop</span><strong>$${STAT.avg}</strong><small>per session</small></div>
+  </div>
+  <div class="p-h2">Chargers</div><div class="p-h2s">Tap a provider to focus the ledger.</div>
+  <div class="p-chips">${PROVIDERS.map((p,i)=>`<div class="p-chip ${i===0?'on':''}" style="--pc:var(--${p.v})">${mark(p.k,p.v)}<span><strong>${p.n}</strong><small>${p.s}</small></span></div>`).join('')}</div>
+  <div class="p-h2">Insights</div><div class="p-h2s">Cost trend · active filter.</div>
+  <div class="p-chart"><h4>Monthly cost</h4>${barChart()}</div>
+  <div class="p-h2">Recent sessions</div><div class="p-h2s">Latest from your ledger.</div>
+  ${RECENT.map(rowHTML).join('')}
+ </div>
+ <div class="p-nav" style="position:sticky;bottom:0"><button class="on"><span>Overview</span></button><button><span>History</span></button></div>`;
+}
+document.querySelectorAll('[data-screen="overview"]').forEach(el=>el.innerHTML=overviewHTML());
+
+/* ---------- benchmark ---------- */
+const BM=[
+ ['Tesla app','EV / OEM','Ruthless minimalism, huge whitespace, monochrome + one red accent','Restraint; let numbers breathe'],
+ ['ChargePoint','EV charging','Bright cards, clear status color, friendly rounded geometry','Semantic status colors'],
+ ['Electrify America','EV charging','Bold gradient headers, confident brand green, big CTAs','Gradient hero energy'],
+ ['A Better Routeplanner','EV routing','Data-dense but legible; excellent chart legibility','Chart clarity at density'],
+ ['Chargefox','EV charging (AU)','Calm teal system, generous spacing, trustworthy feel','Local, calm palette'],
+ ['PlugShare','EV charging','Map-first, crisp iconography, strong provider badges','Map-first IA'],
+ ['Tesla Energy','Home energy','Live animated flows, glowing accents on light','Animated data flows'],
+ ['Enphase Enlighten','Solar monitoring','Clean light dashboard, donut/ring metrics, soft depth','Donut ring metrics'],
+ ['Sense Energy','Energy monitor','Dark+light, real-time sparklines, premium type','Sparkline everywhere'],
+ ['Octopus Energy','Energy retail','Playful bold color, rounded, human microcopy','Personality + boldness'],
+ ['Arcadia','Clean energy','Editorial layout, big type, muted sophisticated palette','Editorial hierarchy'],
+ ['Monta','EV charging','Modern fintech-grade UI, tabular numerics, soft shadows','Fintech numerics'],
+ ['Wallbox','EV hardware','Neomorphic-leaning cards, tactile controls','Tactile depth'],
+ ['Zapmap','EV charging (UK)','Strong filtering UX, chip systems, clear IA','Chip / filter system'],
+ ['Stripe Dashboard','Fintech','Gold standard: layered shadows, precise spacing, one accent','Depth + spacing discipline'],
+ ['Linear','SaaS','Cool minimal, subtle gradients, crisp dark/light parity','Cool minimal accent'],
+ ['Mercury','Fintech','Premium light banking, restrained color, elegant tables','Elegant data tables'],
+ ['Copilot Money','Finance tracker','Beautiful charts, category color, delightful motion','Budget + statement IA'],
+];
+document.getElementById('bmBody').innerHTML=BM.map(r=>`<tr><td>${r[0]}</td><td><span class="chip-cat">${r[1]}</span></td><td class="muted">${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+/* ---------- 10 themes (Part I) ---------- */
+const THEMES=[
+ {no:1,name:'Voltline',mood:'Sleek corporate minimal',cls:'accent-hero solid-icon',
+  why:'Near-white canvas, one confident indigo→violet accent, layered soft shadows — the "Stripe/Linear of EV apps". Fixes the dark-only dimness instantly.',
+  vars:{canvas:'#f5f6fb',surf:'#ffffff',surf2:'#f8f9fe',bd:'#e7e9f2',tx:'#12142b',mut:'#5b6178',fnt:'#8a90a6',acc:'#4f46e5',acc2:'#7c6cf6',en:'#06b6d4',p1:'#0d9488',p2:'#4f46e5',p3:'#8b5cf6',p4:'#f43f5e'},
+  pal:'Cloud-white #F5F6FB canvas · white surfaces · indigo #4F46E5 → violet accent · cyan energy',
+  type:'Inter 600–850, tabular numerics for all figures',
+  comp:'White cards, 18px radius, dual soft shadow; gradient hero; solid accent icon buttons; accent-fill toggles',
+  depth:'Radius 18px · layered shadow · gradient hero card'},
+ {no:2,name:'Kilowatt',mood:'Vibrant clean-energy tech',cls:'solid-icon',
+  why:'Fresh electric-green on cool white — optimistic clean-tech without the dated dark look. Great for marketing screenshots.',
+  vars:{canvas:'#f3f8f3',surf:'#ffffff',surf2:'#f4faf5',bd:'#dcebe0',tx:'#0f1f14',mut:'#4b5f52',fnt:'#84988b',acc:'#16a34a',acc2:'#65a30d',en:'#059669',p1:'#16a34a',p2:'#0891b2',p3:'#7c3aed',p4:'#ea580c'},
+  pal:'Mint-white #F3F8F3 · white surfaces · green #16A34A → lime accent',
+  type:'Inter tight; heavier hero numerals; green uppercase eyebrow',
+  comp:'16px cards, green solid icons, lime-tinted active chips',
+  depth:'Radius 16px · soft green-cast shadow'},
+ {no:3,name:'Nordic Frost',mood:'Calm enterprise trust',cls:'',
+  why:'Cool desaturated grey-blue, Scandinavian calm. Maximum trust for a "serious money tracker"; quiets the single-hue overload.',
+  vars:{canvas:'#eef1f6',surf:'#ffffff',surf2:'#f5f7fb',bd:'#e0e5ee',tx:'#1c2433',mut:'#5a6577',fnt:'#8b95a7',acc:'#2563eb',acc2:'#3b82f6',en:'#0891b2',p1:'#0891b2',p2:'#2563eb',p3:'#7c3aed',p4:'#e11d48'},
+  pal:'Frost-grey #EEF1F6 · white surfaces · muted royal-blue accent',
+  type:'Inter, generous line-height, restrained 600–800 weights',
+  comp:'Quiet white cards, thin borders, ghost icon buttons',
+  depth:'Radius 16px · minimal shadow · airy, editorial'},
+ {no:4,name:'Aurora Glass',mood:'Subtle glassmorphic',cls:'is-glass',
+  why:'Frosted translucent panels over a mint→periwinkle gradient. Modern, premium, iOS-lockscreen feel with full legibility.',
+  vars:{canvas:'#eaf0ff',canvasImg:'linear-gradient(160deg,#e9fbf3 0%,#eaf0ff 45%,#f3ecff 100%)',surf:'#ffffff',surf2:'#f6f8ff',bd:'#e3e8f5',tx:'#1a1f37',mut:'#586084',fnt:'#8890ab',acc:'#7c3aed',acc2:'#06b6d4',en:'#0ea5e9',p1:'#0d9488',p2:'#6366f1',p3:'#a855f7',p4:'#f43f5e'},
+  pal:'Aurora gradient (mint→periwinkle→lilac) · frosted glass surfaces · violet+cyan',
+  type:'Inter; slightly translucent muted text',
+  comp:'Blur(10px) frosted cards, light inner highlight, glass toggles',
+  depth:'Radius 18px · backdrop-blur · glass borders'},
+ {no:5,name:'Cobalt Data',mood:'Bold corporate data',cls:'accent-hero solid-icon sharp',
+  why:'Sharp-radius, high-density enterprise look in deep cobalt. A dashboard that means business — tighter geometry, stronger contrast.',
+  vars:{canvas:'#f4f6fa',surf:'#ffffff',surf2:'#eef2f8',bd:'#dde3ec',tx:'#0b1220',mut:'#4a5468',fnt:'#7c8598',acc:'#1d4ed8',acc2:'#2563eb',en:'#0e7490',p1:'#0e7490',p2:'#1d4ed8',p3:'#6d28d9',p4:'#be123c'},
+  pal:'Cool grey #F4F6FA · white surfaces · deep cobalt #1D4ED8',
+  type:'Inter condensed feel, 750–850 weights, mono metadata',
+  comp:'Sharp 10px radius, cobalt gradient hero, dense metric grid, hairline borders',
+  depth:'Radius 10px · tight shadow · data-dense'},
+ {no:6,name:'Neo Mint',mood:'Tactile soft-UI',cls:'is-neo softtoggle',
+  why:'Neomorphic extruded surfaces in soft mint-grey — everything looks pressable. Distinctive depth competitors rarely ship.',
+  vars:{canvas:'#e9eef0',surf:'#e9eef0',surf2:'#e9eef0',bd:'transparent',tx:'#243230',mut:'#5c6b68',fnt:'#8496a0',acc:'#0d9488',acc2:'#14b8a6',en:'#0891b2',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  pal:'Soft mint-grey #E9EEF0 mono canvas · extruded same-tone cards · teal accent',
+  type:'Inter medium weights, low-contrast labels',
+  comp:'Dual-shadow embossed cards, inset toggles, pillowy buttons',
+  depth:'Neomorphic dual shadow · radius 16px · inset controls'},
+ {no:7,name:'Solaris',mood:'Warm energetic optimism',cls:'accent-hero',
+  why:'Coral→amber accents on a COOL white base (not ivory) — energetic and human without going dim or beige.',
+  vars:{canvas:'#f6f7fb',surf:'#ffffff',surf2:'#f8f9fd',bd:'#e8e9f1',tx:'#1b1a2b',mut:'#5c5a72',fnt:'#8f8da4',acc:'#f97316',acc2:'#fb7185',en:'#f59e0b',p1:'#0d9488',p2:'#6366f1',p3:'#d946ef',p4:'#f43f5e'},
+  pal:'Cool white #F6F7FB base · coral #FB7185 → amber gradient accents',
+  type:'Inter, friendly and round; bold warm hero numerals',
+  comp:'Warm gradient hero + icons, coral-tinted active states',
+  depth:'Radius 18px · warm-cast soft shadow'},
+ {no:8,name:'Graphite',mood:'Precision monochrome',cls:'solid-icon sharp',
+  why:'Near-monochrome grey with one electric-blue accent and mono numerals. Instrument-panel precision; kills hue overload entirely.',
+  vars:{canvas:'#f2f3f5',surf:'#ffffff',surf2:'#f7f8fa',bd:'#e4e6ea',tx:'#17181c',mut:'#565961',fnt:'#8a8d95',acc:'#2563eb',acc2:'#3b82f6',en:'#0d9488',p1:'#111318',p2:'#3f4350',p3:'#6b7280',p4:'#2563eb'},
+  pal:'Graphite-white #F2F3F5 · one electric-blue accent · monochrome providers',
+  type:'Inter + monospace numerals; strict scale; uppercase micro-labels',
+  comp:'Sharp 10px cards, hairline borders, no gradients',
+  depth:'Radius 10px · ultra-subtle shadow · flat precision'},
+ {no:9,name:'Ultraviolet',mood:'Bold creative sport-tech',cls:'accent-hero solid-icon round',
+  why:'Big rounded geometry, violet→magenta gradients, playful energy. The most expressive of the set — shareable, sporty.',
+  vars:{canvas:'#f6f4fd',surf:'#ffffff',surf2:'#f9f7fe',bd:'#eae6f6',tx:'#1e1633',mut:'#5f5578',fnt:'#928aa8',acc:'#8b5cf6',acc2:'#ec4899',en:'#d946ef',p1:'#06b6d4',p2:'#8b5cf6',p3:'#ec4899',p4:'#f43f5e'},
+  pal:'Lilac-white #F6F4FD · violet #8B5CF6 → magenta gradient accent',
+  type:'Inter heavy display weights; punchy',
+  comp:'Extra-round 24px cards, vivid gradient hero + icons, bold chips',
+  depth:'Radius 24px · vivid gradient · colored shadows'},
+ {no:10,name:'Horizon',mood:'Airy modern SaaS',cls:'accent-hero round',
+  why:'Sky-blue gradient ground, cyan accent, huge whitespace, 20px+ radii. Breezy, spacious, photographs beautifully.',
+  vars:{canvas:'#eef6fc',canvasImg:'linear-gradient(180deg,#eef6fc 0%,#f4fafe 60%,#ffffff 100%)',surf:'#ffffff',surf2:'#f4fafe',bd:'#dceaf3',tx:'#122436',mut:'#4d6273',fnt:'#8399a8',acc:'#0ea5e9',acc2:'#06b6d4',en:'#0891b2',p1:'#0891b2',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  pal:'Sky gradient #EEF6FC→white · cyan #0EA5E9 accent',
+  type:'Inter, airy line-height, light-to-bold hero contrast',
+  comp:'Round 24px cards, cyan gradient hero, generous padding',
+  depth:'Radius 24px · airy spacing · soft sky shadow'}
+];
+const VMAP={canvas:'--canvas',canvasImg:'--canvasImg',surf:'--surf',surf2:'--surf2',bd:'--bd',tx:'--tx',mut:'--mut',fnt:'--fnt',acc:'--acc',acc2:'--acc2',en:'--en',p1:'--p1',p2:'--p2',p3:'--p3',p4:'--p4'};
+const themeStyle=v=>Object.entries(v).map(([k,val])=>VMAP[k]?`${VMAP[k]}:${val}`:'').filter(Boolean).join(';');
+document.getElementById('themeSlides').innerHTML=THEMES.map((t,i)=>`
+<section class="slide" id="theme-${t.no}" style="background:${i%2?'#fff':'transparent'}">
+ <div class="wrap">
+  <div class="theme-head"><span class="theme-no">Theme ${t.no}</span><h2 style="font-size:clamp(26px,3.6vw,38px);font-weight:850">${t.name}</h2><span class="mood">${t.mood}</span></div>
+  <p class="theme-why">${t.why}</p>
+  <div class="two-col" style="margin-top:30px">
+   <div class="spec">
+    <div class="swrow" style="margin:0 0 8px">
+     <div class="sw" style="background:${t.vars.canvasImg||t.vars.canvas}"><span>canvas</span></div>
+     <div class="sw" style="background:${t.vars.surf}"><span>surface</span></div>
+     <div class="sw" style="background:${t.vars.acc}"><span>accent</span></div>
+     <div class="sw" style="background:${t.vars.acc2}"><span>accent2</span></div>
+     <div class="sw" style="background:${t.vars.en}"><span>energy</span></div>
+     <div class="sw" style="background:${t.vars.tx}"><span>text</span></div>
+    </div>
+    <div class="row"><h4>Palette</h4><p>${t.pal}</p></div>
+    <div class="row"><h4>Typography</h4><p>${t.type}</p></div>
+    <div class="row"><h4>Buttons · cards · inputs · icons</h4><p>${t.comp}</p></div>
+    <div class="row"><h4>Radius · shadow · depth</h4><p>${t.depth}</p></div>
+   </div>
+   <div class="stage">
+    <div class="screen-label">${t.name} — Overview (live re-skin)</div>
+    <div class="phone ${t.cls}" style="${themeStyle(t.vars)}"><div class="notch"></div><div class="screen">${overviewHTML()}</div></div>
+   </div>
+  </div>
+ </div>
+</section>`).join('');
+</script>
+<script>
+/* ================= PART II — 10 APP CONCEPTS ================= */
+const T5=[{i:'home',l:'Home'},{i:'clock',l:'History'},{fab:true},{i:'chart',l:'Insights'},{i:'user',l:'Profile'}];
+
+/* ---- 1. PULSE ---- */
+function pulseHome(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Monday 13 Jul</div><h1>G'day, Chris</h1><div class="p-sub">14-day charging streak 🔥</div></div><div class="p-icon">${ic('bell')}</div></div>
+ <div class="livecard"><span class="lv"><i></i>Charging now · Jolt Norwood</span><b>6.2 kWh</b><small>23 min elapsed · $0.71 so far · est. full 4:10pm</small><span class="pb"><i></i></span></div>
+ <div class="p-hero"><div class="p-cap">July so far</div><div class="p-heronum">$8.14</div><div class="p-herosub">6 sessions · 44 kWh · tracking 21% under June</div></div>
+ <div class="p-metrics" style="grid-template-columns:1fr 1fr 1fr">
+  <div class="p-mc"><span>kWh</span><strong>162</strong><small>past 30d</small></div>
+  <div class="p-mc"><span>Rate</span><strong>$0.14</strong><small>avg /kWh</small></div>
+  <div class="p-mc"><span>Free</span><strong>38%</strong><small>of energy</small></div>
+ </div>
+ <div class="p-h2">Recent</div><div class="p-h2s">Your latest charges.</div>
+ ${RECENT.slice(0,2).map(rowHTML).join('')}
+</div>${tabbar(T5,0)}`}
+function pulseInsights(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Analytics</div><h1>Insights</h1><div class="p-sub">All chargers · 2026</div></div><div class="p-icon">${ic('dl')}</div></div>
+ <div class="p-seg"><button class="on">Cost</button><button>Energy</button><button>Rate</button></div>
+ <div class="p-chart"><h4>Monthly cost</h4>${barChart()}</div>
+ <div class="p-chart"><h4>Charging activity · last 14 weeks</h4><div class="heatgrid">${heat(70)}</div></div>
+ <div class="p-chart" style="display:flex;gap:14px;align-items:center">
+  ${ring(65,'var(--p1)','<b>65%</b><small>Jolt</small>','92')}
+  <div style="flex:1"><h4 style="margin-bottom:8px">By provider</h4>
+   ${PROVIDERS.map(p=>`<div style="display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;color:var(--mut);margin-bottom:5px"><i style="width:8px;height:8px;border-radius:3px;background:var(--${p.v})"></i>${p.n}<span style="margin-left:auto;font-variant-numeric:tabular-nums">${p.s.split(' ')[0]}</span></div>`).join('')}
+  </div>
+ </div>
+</div>${tabbar(T5,3)}`}
+function pulseAdd(){return `<div class="pad" style="padding-bottom:8px;filter:blur(1px)">
+ <div class="p-appbar"><div><div class="p-eyebrow">Monday 13 Jul</div><h1>G'day, Chris</h1></div><div class="p-icon">${ic('bell')}</div></div>
+ <div class="p-hero"><div class="p-cap">July so far</div><div class="p-heronum">$8.14</div></div>
+ <div class="p-metrics"><div class="p-mc"><span>kWh</span><strong>162</strong></div><div class="p-mc"><span>Rate</span><strong>$0.14</strong></div></div>
+</div>
+<div class="dim"></div>
+<div class="sheetup"><div class="handle"></div>
+ <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px;font-weight:850">New charge</b><span class="sync-badge" style="font-size:9px;padding:4px 9px"><span class="live" style="width:6px;height:6px"></span>Syncs live</span></div>
+ <label>Provider</label><div class="provrow"><b class="on">Jolt</b><b>Matty</b><b>Chargefox</b><b>Supercharger</b><b class="newp">+ New</b></div>
+ <label>Date</label><div class="fld"><span>13 Jul 2026</span><span style="opacity:.4">▾</span></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+  <div><label>Energy</label><div class="fld"><span>8.7</span><span style="opacity:.4">kWh</span></div></div>
+  <div><label>Cost</label><div class="fld"><span>0.99</span><span style="opacity:.4">AUD</span></div></div>
+ </div>
+ <button class="save">Save & sync ⚡</button>
+</div>`}
+
+/* ---- 2. ATLAS ---- */
+const TAT=[{i:'map',l:'Map'},{i:'clock',l:'Sessions'},{i:'heart',l:'Saved'},{i:'user',l:'Profile'}];
+function atlasMap(){return `
+ <div class="searchpill">${ic('search')}<span>Search chargers, places…</span></div>
+ <div class="mapzone" style="height:360px">
+  <span class="mpin" style="--pc:var(--p1);left:74px;top:130px"><b>J</b></span>
+  <span class="mpin" style="--pc:var(--p3);left:180px;top:90px"><b>C</b></span>
+  <span class="mpin" style="--pc:var(--p4);left:210px;top:210px"><b>S</b></span>
+  <span class="mpin" style="--pc:var(--p2);left:120px;top:250px"><b>M</b></span>
+ </div>
+ <div class="sheetmini"><div class="handle"></div>
+  <div class="p-h2" style="margin-top:0">Nearby chargers</div><div class="p-h2s">Sorted by distance · live availability</div>
+  <div class="p-row">${mark('J','p1')}<span><strong>Jolt — Norwood</strong><small>0.4 km · $0.09/kWh · 7 kWh free daily</small></span><b style="color:#16a34a;font-size:10px">● Available</b></div>
+  <div class="p-row">${mark('C','p3')}<span><strong>Chargefox — CBD</strong><small>1.2 km · $0.48/kWh · DC 50kW</small></span><b style="color:#f59e0b;font-size:10px">● 2 in use</b></div>
+  <div class="p-row">${mark('S','p4')}<span><strong>Supercharger — Kent Town</strong><small>2.1 km · $0.47/kWh · 120kW</small></span><b style="color:#16a34a;font-size:10px">● Available</b></div>
+ </div>${tabbar(TAT,0)}`}
+function atlasDetail(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Charger detail</div><h1>Jolt — Norwood</h1><div class="p-sub">The Parade · DC 50 kW · 2 plugs</div></div><div class="p-icon">←</div></div>
+ <div class="livecard" style="background:linear-gradient(140deg,var(--p1),#0fb5a4)"><span class="lv"><i></i>Available now</span><b>$0.09/kWh</b><small>First 7 kWh free daily · CCS2 + Type 2</small></div>
+ <div class="p-metrics" style="grid-template-columns:1fr 1fr 1fr">
+  <div class="p-mc"><span>Visits</span><strong>41</strong><small>all time</small></div>
+  <div class="p-mc"><span>Avg</span><strong>$0.32</strong><small>per stop</small></div>
+  <div class="p-mc"><span>Last</span><strong>3d</strong><small>ago</small></div>
+ </div>
+ <div class="p-h2">Your history here</div><div class="p-h2s">Recent sessions at this location.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>12 Jul</strong><small>8.7 kWh · 41 min</small></span><b>$0.99</b></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>9 Jul</strong><small>7.5 kWh · 36 min</small></span><b>$0.50</b></div>
+ <button class="save" style="border:0;font:inherit;width:100%;margin-top:10px;font-size:12px;font-weight:800;color:#fff;padding:12px;border-radius:12px;background:linear-gradient(120deg,var(--acc),var(--acc2));box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 40%,transparent)">Log a session here</button>
+</div>${tabbar(TAT,0)}`}
+
+/* ---- 3. LEDGER ---- */
+const TLG=[{i:'wallet',l:'Overview'},{i:'book',l:'Statement'},{fab:true},{i:'chart',l:'Budgets'},{i:'gear',l:'Settings'}];
+function ledgerHome(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">EV Ledger</div><h1>Overview</h1><div class="p-sub">Financial year 2026</div></div><div class="p-icon">${ic('user')}</div></div>
+ <div class="p-hero"><div class="p-cap">Spent this year</div><div class="p-heronum">$${STAT.total}</div><div class="p-herosub"><span style="color:#16a34a;font-weight:800">▼ 8%</span> vs 2025 · ${STAT.kwh} kWh</div></div>
+ <div class="p-chart"><h4>July budget</h4>
+  <div class="goalbar" style="margin-top:4px"><i style="width:68%"></i></div>
+  <div style="display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:var(--mut);margin-top:6px"><span>$34.20 of $50</span><span>18 days left</span></div>
+ </div>
+ <div class="insight" style="margin-bottom:10px">💡 Free Jolt energy saved you <b>$18.20</b> this month — 38% of your kWh cost nothing.</div>
+ <div class="p-h2">Provider accounts</div><div class="p-h2s">Lifetime spend by charger network.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>235 transactions</small></span><b>$175.09</b></div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>3 transactions</small></span><b>$38.99</b></div>
+ <div class="p-row">${mark('M','p2')}<span><strong>Matty</strong><small>10 transactions</small></span><b>$38.33</b></div>
+ <div class="p-row">${mark('C','p3')}<span><strong>Chargefox</strong><small>1 transaction</small></span><b>$15.90</b></div>
+</div>${tabbar(TLG,0)}`}
+function ledgerStatement(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Monthly statement</div><h1>June 2026</h1><div class="p-sub">24 sessions · 162 kWh</div></div><div class="p-icon">${ic('dl')}</div></div>
+ <div class="p-seg"><button>‹ May</button><button class="on">June</button><button>Jul ›</button></div>
+ <div class="p-h2s" style="margin:2px 0 6px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px">Sun 15 Jun</div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>35.4 kWh · $0.470/kWh</small></span><b>$16.64</b></div>
+ <div class="p-row">${mark('M','p2')}<span><strong>Matty</strong><small>9.0 kWh · overnight</small></span><b>$3.42</b></div>
+ <div class="p-h2s" style="margin:8px 0 6px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px">Fri 13 Jun</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>7.0 kWh · free session</small></span><b>$0.00</b></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>8.7 kWh · $0.114/kWh</small></span><b>$0.99</b></div>
+ <div class="p-hero" style="margin-top:10px"><div class="p-cap">June total</div><div class="p-heronum" style="font-size:30px">$33.51</div><div class="p-herosub">Avg $1.40/session · 38% free energy</div></div>
+ <button style="border:0;font:inherit;width:100%;font-size:12px;font-weight:800;color:var(--acc);padding:12px;border-radius:12px;background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow)">⬇ Download June CSV</button>
+</div>${tabbar(TLG,1)}`}
+
+/* ---- 4. GARAGE ---- */
+const TGR=[{i:'car',l:'Garage'},{i:'bolt',l:'Charges'},{i:'map',l:'Trips'},{i:'gear',l:'More'}];
+function garageHome(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">My garage</div><h1>Tesla Model 3</h1><div class="p-sub">RWD · 2023 · ADL-EV-249</div></div><div class="p-icon">${ic('gear')}</div></div>
+ <div class="p-hero" style="text-align:center;padding:20px 16px">
+  <div class="carbody"><svg viewBox="0 0 24 24" style="width:120px;height:60px;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round">${IC.car}</svg></div>
+  <div style="display:flex;justify-content:center;gap:18px;align-items:center">
+   ${ring(78,'#22c55e','<b>78%</b><small>battery</small>','96')}
+   <div style="text-align:left"><div class="p-cap">Est. range</div><div style="font-size:26px;font-weight:850;color:var(--tx)">312 km</div>
+   <span class="sync-badge" style="font-size:9px;padding:4px 9px;margin-top:6px"><span class="live" style="width:6px;height:6px"></span>Plugged in — Jolt</span></div>
+  </div>
+ </div>
+ <div class="p-chart"><h4>This week</h4>${barChart()}</div>
+ <div class="p-metrics"><div class="p-mc"><span>Added</span><strong>44 kWh</strong><small>this week</small></div><div class="p-mc"><span>Spent</span><strong>$8.14</strong><small>this week</small></div></div>
+</div>${tabbar(TGR,0)}`}
+function garageStats(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Vehicle</div><h1>Statistics</h1><div class="p-sub">Lifetime · since Mar 2025</div></div><div class="p-icon">${ic('chart')}</div></div>
+ <div class="p-metrics">
+  <div class="p-mc"><span>Efficiency</span><strong>14.2</strong><small>kWh/100km</small></div>
+  <div class="p-mc"><span>Energy cost</span><strong>$1.95</strong><small>per 100km</small></div>
+  <div class="p-mc"><span>Battery health</span><strong>96%</strong><small>vs new</small></div>
+  <div class="p-mc"><span>Lifetime</span><strong>1,959</strong><small>kWh charged</small></div>
+ </div>
+ <div class="p-chart"><h4>Cost per 100 km · trend</h4>${barChart()}</div>
+ <div class="insight">🚗 Equivalent petrol cost for the same distance: <b>$1,105</b>. You've saved <b>$837</b> going electric.</div>
+</div>${tabbar(TGR,0)}`}
+
+/* ---- 5. FLOW ---- */
+const TFL=[{i:'list',l:'Feed'},{i:'chart',l:'Insights'},{i:'user',l:'Profile'}];
+function flowFeed(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Charging journal</div><h1>Your story</h1><div class="p-sub">249 charges and counting</div></div><div class="p-icon">${ic('search')}</div></div>
+ <div class="tlwrap">
+  <div class="tlday"><div class="dt">Today</div>
+   <div class="p-row" style="margin-bottom:0">${mark('J','p1')}<span><strong>Jolt — Norwood</strong><small>8.7 kWh · 41 min · $0.114/kWh</small></span><b>$0.99</b></div>
+  </div>
+  <div class="tlday"><div class="dt">Streak</div><div class="insight" style="margin-bottom:0">🔥 14-day charging streak — your longest yet. 38% of this week's energy was free.</div></div>
+  <div class="tlday"><div class="dt">Sat 12 Jul</div>
+   <div class="p-row" style="margin-bottom:0">${mark('J','p1')}<span><strong>Jolt — CBD</strong><small>7.0 kWh · free session</small></span><b>$0.00</b></div>
+  </div>
+  <div class="tlday"><div class="dt">Monthly recap</div>
+   <div class="insight" style="background:linear-gradient(130deg,#7c3aed,#db2777);margin-bottom:0">✨ June Wrapped is ready — 24 charges, $33.51, top charger Jolt. Tap to view →</div>
+  </div>
+ </div>
+ <div class="composer">${ic('bolt')}<span>Log a charge…</span></div>
+</div>${tabbar(TFL,0)}`}
+function flowWrapped(){return `<div class="wrapped">
+ <div class="yr">EV Command · Monthly recap</div>
+ <h2>June<br>Wrapped</h2>
+ <div class="st"><span>Energy added</span><b>162 kWh</b></div>
+ <div class="st"><span>Total spent</span><b>$33.51</b></div>
+ <div class="st"><span>Charges</span><b>24</b></div>
+ <div class="st"><span>Top charger</span><b>Jolt · 18×</b></div>
+ <div class="st"><span>Free energy</span><b>38%</b></div>
+ <div class="share">Share ↗</div>
+</div>`}
+</script>
+<script>
+/* ---- 6. GRID ---- */
+function bentoTiles(edit){const rm=edit?'<span class="rm">−</span>':'';return `
+ <div class="tile s2">${rm}<span class="cap">Total spent · 2026</span><b style="font-size:26px">$268.32</b><small>249 sessions · 1,959 kWh</small></div>
+ <div class="tile">${rm}<span class="cap">Budget</span><div style="display:flex;justify-content:center;margin-top:6px">${ring(68,'var(--acc)','<b style="font-size:16px">68%</b>','74')}</div></div>
+ <div class="tile">${rm}<span class="cap">Streak</span><b>🔥 14</b><small>days</small><div style="margin-top:8px"><span class="cap">Rate</span><b style="font-size:15px">$0.137</b></div></div>
+ <div class="tile s2">${rm}<span class="cap">Activity · 14 weeks</span><div class="heatgrid" style="margin-top:8px">${heat(42)}</div></div>
+ <div class="tile">${rm}<span class="cap">Top provider</span><div style="display:flex;align-items:center;gap:7px;margin-top:7px">${mark('J','p1')}<span><b style="font-size:13px;margin:0">Jolt</b><small>235×</small></span></div></div>
+ <div class="tile">${rm}<span class="cap">Nearest</span><div class="mapzone" style="height:52px;border-radius:9px;margin-top:7px"><span class="mpin" style="--pc:var(--p1);left:44%;top:12px;width:20px;height:20px"><b style="font-size:8px">J</b></span></div></div>`}
+const TGD=[{i:'grid',l:'Home'},{i:'clock',l:'History'},{fab:true},{i:'chart',l:'Insights'},{i:'user',l:'Profile'}];
+function gridHome(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Dashboard</div><h1>Widgets</h1><div class="p-sub">Long-press to customise</div></div><div class="p-icon">✎</div></div>
+ <div class="bento">${bentoTiles(false)}</div>
+</div>${tabbar(TGD,0)}`}
+function gridEdit(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Edit mode</div><h1>Customise</h1><div class="p-sub">Drag to reorder · − to remove</div></div><div class="p-icon" style="background:var(--acc);color:#fff;border:0">Done</div></div>
+ <div class="bento editing">${bentoTiles(true)}</div>
+ <div class="p-h2" style="margin-top:14px">Widget tray</div><div class="p-h2s">Tap to add to your dashboard.</div>
+ <div class="p-chips" style="grid-template-columns:1fr 1fr 1fr">
+  <div class="p-chip" style="justify-content:center;border-style:dashed"><small style="color:var(--acc);font-weight:800">+ Donut</small></div>
+  <div class="p-chip" style="justify-content:center;border-style:dashed"><small style="color:var(--acc);font-weight:800">+ Map</small></div>
+  <div class="p-chip" style="justify-content:center;border-style:dashed"><small style="color:var(--acc);font-weight:800">+ CO₂</small></div>
+ </div>
+</div>${tabbar(TGD,0)}`}
+
+/* ---- 7. COACH ---- */
+const TCO=[{i:'home',l:'Home'},{i:'trophy',l:'Challenges'},{i:'chart',l:'Rank'},{i:'user',l:'Profile'}];
+function coachHome(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Your coach</div><h1>Eco score</h1><div class="p-sub">Better than 82% of EV drivers</div></div><div class="p-icon">${ic('bell')}</div></div>
+ <div class="p-hero" style="display:flex;gap:16px;align-items:center">
+  ${ring(86,'var(--acc)','<b>86</b><small>score</small>','104')}
+  <div><div class="p-cap">This week</div>
+   <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-weight:800;color:var(--tx)">🔥 14-day streak</div>
+   <div style="font-size:10px;color:var(--mut);font-weight:600;margin-top:3px">Personal best: 21 days</div>
+  </div>
+ </div>
+ <div class="p-chart"><h4>Weekly goal — stay under $12</h4>
+  <div class="goalbar" style="margin-top:4px"><i style="width:82%"></i></div>
+  <div style="display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:var(--mut);margin-top:6px"><span>$9.84 spent</span><span>2 days left</span></div>
+ </div>
+ <div class="p-h2">Badges</div><div class="p-h2s">3 of 12 unlocked this season.</div>
+ <div class="badges"><span class="bdg">⚡</span><span class="bdg">🌙</span><span class="bdg">💰</span><span class="bdg lock">🏆</span><span class="bdg lock">🚀</span></div>
+ <div class="insight" style="margin-top:12px">💡 Charge after 11pm on Matty and save ≈ <b>$4.10/week</b> at off-peak rates.</div>
+</div>${tabbar(TCO,0)}`}
+function coachChallenges(){return `<div class="pad" style="padding-bottom:8px">
+ <div class="p-appbar"><div><div class="p-eyebrow">Season 3</div><h1>Challenges</h1><div class="p-sub">Earn badges · climb the board</div></div><div class="p-icon">${ic('trophy')}</div></div>
+ <div class="p-chart"><h4>🌙 Off-peak week</h4><div class="goalbar" style="margin-top:2px"><i style="width:60%"></i></div><div style="font-size:9.5px;font-weight:700;color:var(--mut);margin-top:6px">3 of 5 overnight charges done</div></div>
+ <div class="p-chart"><h4>⚡ Free-energy hunter</h4><div class="goalbar" style="margin-top:2px"><i style="width:70%"></i></div><div style="font-size:9.5px;font-weight:700;color:var(--mut);margin-top:6px">7 of 10 free kWh banked</div></div>
+ <div class="p-chart"><h4>🧭 Provider explorer</h4><div class="goalbar" style="margin-top:2px"><i style="width:75%"></i></div><div style="font-size:9.5px;font-weight:700;color:var(--mut);margin-top:6px">3 of 4 networks used this month</div></div>
+ <div class="p-h2">Leaderboard</div><div class="p-h2s">Adelaide EV club · this month.</div>
+ <div class="podium">
+  <div class="po" style="height:58px"><b>Sam</b><small>1,240</small></div>
+  <div class="po first" style="height:78px"><b>Chris</b><small>1,395</small></div>
+  <div class="po" style="height:46px"><b>Alex</b><small>1,080</small></div>
+ </div>
+</div>${tabbar(TCO,1)}`}
+
+/* ---- 8. CONSOLE (tablet) ---- */
+function consoleTable(){return `
+ <div class="rail"><span class="lg">${ic('bolt')}</span><span class="ri">${ic('home')}</span><span class="ri on">${ic('list')}</span><span class="ri">${ic('chart')}</span><span class="ri">${ic('gear')}</span></div>
+ <div class="cmain">
+  <div class="ctoolbar"><h3>Sessions</h3><span class="cchip">${'2026 ▾'}</span><span class="cchip">All providers ▾</span><span class="cchip">${ic('search')}</span><span class="cbtn">⬇ Export CSV</span></div>
+  <div class="ckpis">
+   <div class="ckpi"><span>Sessions</span><b>249</b></div>
+   <div class="ckpi"><span>Total cost</span><b>$268.32</b></div>
+   <div class="ckpi"><span>Energy</span><b>1,959 kWh</b></div>
+   <div class="ckpi"><span>Avg rate</span><b>$0.137</b></div>
+  </div>
+  <table class="ctab">
+   <thead><tr><th>Date</th><th>Provider</th><th>kWh</th><th>Cost</th><th>$/kWh</th></tr></thead>
+   <tbody>
+    <tr><td>12 Jul 26</td><td><i class="pdot" style="--pc:var(--p1)"></i>Jolt</td><td><b>8.70</b></td><td><b>$0.99</b></td><td>0.114</td></tr>
+    <tr><td>15 Jun 26</td><td><i class="pdot" style="--pc:var(--p4)"></i>Supercharger</td><td><b>35.41</b></td><td><b>$16.64</b></td><td>0.470</td></tr>
+    <tr><td>15 Jun 26</td><td><i class="pdot" style="--pc:var(--p2)"></i>Matty</td><td><b>9.00</b></td><td><b>$3.42</b></td><td>0.380</td></tr>
+    <tr><td>13 Jun 26</td><td><i class="pdot" style="--pc:var(--p1)"></i>Jolt</td><td><b>7.00</b></td><td><b>$0.00</b></td><td>0.000</td></tr>
+    <tr><td>27 May 25</td><td><i class="pdot" style="--pc:var(--p3)"></i>Chargefox</td><td><b>33.13</b></td><td><b>$15.90</b></td><td>0.480</td></tr>
+    <tr><td>25 May 25</td><td><i class="pdot" style="--pc:var(--p2)"></i>Matty</td><td><b>9.00</b></td><td><b>$3.42</b></td><td>0.380</td></tr>
+   </tbody>
+  </table>
+  <div class="cfoot"><span>249 rows · filtered from 249</span><span>‹ Page 1 of 42 ›</span></div>
+ </div>`}
+function consoleAnalytics(){return `
+ <div class="rail"><span class="lg">${ic('bolt')}</span><span class="ri">${ic('home')}</span><span class="ri">${ic('list')}</span><span class="ri on">${ic('chart')}</span><span class="ri">${ic('gear')}</span></div>
+ <div class="cmain">
+  <div class="ctoolbar"><h3>Analytics</h3><span class="cchip">Last 6 months ▾</span><span class="cbtn">Save view</span></div>
+  <div class="ckpis">
+   <div class="ckpi"><span>Spend / mo</span><b>$31.10</b></div>
+   <div class="ckpi"><span>kWh / mo</span><b>149</b></div>
+   <div class="ckpi"><span>Free energy</span><b>38%</b></div>
+   <div class="ckpi"><span>Best rate</span><b>$0.00</b></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px">
+   <div class="p-chart" style="margin:0"><h4>Monthly cost</h4>${barChart()}</div>
+   <div class="p-chart" style="margin:0;display:grid;place-items:center">${ring(65,'var(--p1)','<b>65%</b><small>Jolt</small>','98')}</div>
+  </div>
+  <table class="ctab" style="margin-top:10px">
+   <thead><tr><th>Provider</th><th>Sessions</th><th>kWh</th><th>Spend</th><th>Share</th></tr></thead>
+   <tbody>
+    <tr><td><i class="pdot" style="--pc:var(--p1)"></i>Jolt</td><td>235</td><td><b>1,725</b></td><td><b>$175.09</b></td><td>65%</td></tr>
+    <tr><td><i class="pdot" style="--pc:var(--p4)"></i>Supercharger</td><td>3</td><td><b>92</b></td><td><b>$38.99</b></td><td>15%</td></tr>
+    <tr><td><i class="pdot" style="--pc:var(--p2)"></i>Matty</td><td>10</td><td><b>109</b></td><td><b>$38.33</b></td><td>14%</td></tr>
+   </tbody>
+  </table>
+ </div>`}
+
+/* ---- 9. ORBIT ---- */
+function orbitHome(){return `<div class="pad nonav" style="text-align:center">
+ <div class="p-eyebrow" style="margin-top:6px">Orbit · 2026</div>
+ <div class="dialwrap">
+  <div class="dial"><div class="hub"><div><b>$268.32</b><small>1,959 kWh</small></div></div></div>
+  <div class="orbleg">
+   <span><i style="--pc:var(--p1);background:var(--p1)"></i>Jolt 65%</span>
+   <span><i style="background:var(--p2)"></i>Matty 14%</span>
+   <span><i style="background:var(--p4)"></i>Super 15%</span>
+   <span><i style="background:var(--p3)"></i>Cfox 6%</span>
+  </div>
+  <div class="radacts">
+   <span class="ra">${ic('chart')}</span>
+   <span class="ra main">${ic('plus')}</span>
+   <span class="ra">${ic('dl')}</span>
+  </div>
+  <div style="margin-top:22px;font-size:10px;font-weight:750;color:var(--fnt)">Rotate the dial to change year · tap a segment to filter</div>
+ </div>
+ <div class="zentabs" style="position:static;margin-top:26px"><span class="on">Orbit</span><span>Sessions</span><span>Profile</span></div>
+</div>`}
+function orbitYear(){return `<div class="pad nonav" style="text-align:center">
+ <div class="p-eyebrow" style="margin-top:6px">Year wheel</div>
+ <div class="dialwrap">
+  <div class="wheel12"><div class="hub"><div><b style="font-size:20px;font-weight:850;display:block">Jun</b><small style="font-size:10px;color:var(--fnt);font-weight:750">$33.51 · 162 kWh</small></div></div></div>
+  <div class="p-seg" style="margin-top:20px;width:100%"><button>Apr</button><button>May</button><button class="on">Jun</button><button>Jul</button></div>
+  <div class="p-metrics" style="width:100%">
+   <div class="p-mc" style="text-align:left"><span>Sessions</span><strong>24</strong><small>in June</small></div>
+   <div class="p-mc" style="text-align:left"><span>Free</span><strong>38%</strong><small>of energy</small></div>
+  </div>
+ </div>
+ <div class="zentabs" style="position:static;margin-top:8px"><span class="on">Orbit</span><span>Sessions</span><span>Profile</span></div>
+</div>`}
+
+/* ---- 10. ZEN ---- */
+function zenHome(){return `<div class="zen">
+ <div class="mo">July</div>
+ <div class="znum">$8.14</div>
+ <div class="zsub">6 charges · 44 kWh · $0.19/kWh</div>
+ <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+ <div style="margin-top:10px;font-size:10px;color:var(--fnt);font-weight:700">swipe for energy →</div>
+ <div class="zentabs"><span class="on">Now</span><span>History</span><span>Add</span></div>
+</div>`}
+function zenList(){return `<div class="zlist">
+ <div class="mo" style="font-size:11px;font-weight:850;letter-spacing:.28em;text-transform:uppercase;color:var(--fnt);text-align:center">History</div>
+ <div class="zmo">July 2026</div>
+ <div class="zr"><span>12 Jul · Jolt</span><span>8.7 kWh</span><b>$0.99</b></div>
+ <div class="zr"><span>9 Jul · Jolt</span><span>7.5 kWh</span><b>$0.50</b></div>
+ <div class="zmo">June 2026</div>
+ <div class="zr"><span>15 Jun · Supercharger</span><span>35.4 kWh</span><b>$16.64</b></div>
+ <div class="zr"><span>15 Jun · Matty</span><span>9.0 kWh</span><b>$3.42</b></div>
+ <div class="zr"><span>13 Jun · Jolt</span><span>7.0 kWh</span><b>$0.00</b></div>
+ <div class="zr"><span>9 Jun · Jolt</span><span>7.5 kWh</span><b>$0.50</b></div>
+ <div class="zentabs"><span>Now</span><span class="on">History</span><span>Add</span></div>
+</div>`}
+</script>
+<script>
+const CONCEPTS=[
+ {no:1,name:'Pulse',mood:'The flagship 5-tab app',
+  vars:{canvas:'#f5f6fb',surf:'#fff',surf2:'#f8f9fe',bd:'#e7e9f2',tx:'#12142b',mut:'#5b6178',fnt:'#8a90a6',acc:'#4f46e5',acc2:'#7c6cf6',en:'#06b6d4',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Home · History · ⊕ Add (centre FAB) · Insights · Profile',
+  desc:'The safest, most familiar upgrade path: a classic consumer-app shape with a centre FAB for the core action (logging a charge). Home leads with a live "Charging now" card and month-to-date; Insights becomes its own destination with heatmaps and provider donuts; the add flow is a first-class bottom sheet.',
+  how:['Tab bar with 5 destinations; FAB opens the add-session sheet from anywhere','Live charging card shows elapsed kWh/$ in real time (Supabase realtime)','Insights tab: cost/energy/rate toggle, 14-week heat calendar, provider donut','Profile holds settings, export, manage chargers'],
+  screens:[['Home — live charge + month to date',pulseHome()],['Insights — charts, heatmap, donut',pulseInsights()],['Add sheet — FAB flow with “+ New” provider',pulseAdd()]]},
+ {no:2,name:'Atlas',mood:'Map-first explorer',
+  vars:{canvas:'#eef3ee',surf:'#fff',surf2:'#f3f7f3',bd:'#dde7dd',tx:'#122117',mut:'#4c5f52',fnt:'#84988b',acc:'#059669',acc2:'#10b981',en:'#0891b2',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Map · Sessions · Saved · Profile',
+  desc:'Charging is inherently spatial — this concept makes the map the home screen (PlugShare/Zapmap pattern). Every session attaches to a place, giving you per-charger pages with price memory, visit history and live availability. Great if you ever add community or route features.',
+  how:['Home = full-bleed map with provider-coloured pins and live status','Bottom sheet lists nearby chargers sorted by distance and price','Charger detail page: your visit history, avg cost, “Log a session here” shortcut','Sessions tab keeps the classic ledger for list lovers'],
+  screens:[['Map home — pins + nearby sheet',atlasMap()],['Charger detail — price memory & history',atlasDetail()]]},
+ {no:3,name:'Ledger',mood:'Fintech money-tracker',
+  vars:{canvas:'#f6f7f9',surf:'#fff',surf2:'#f2f4f7',bd:'#e5e8ee',tx:'#0f172a',mut:'#51596c',fnt:'#8a92a6',acc:'#10b981',acc2:'#34d399',en:'#0ea5e9',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Overview · Statement · ⊕ · Budgets · Settings',
+  desc:'Treats charging spend exactly like a banking app treats money (Copilot/Mercury pattern): provider "accounts", monthly budgets with progress, downloadable statements, savings insights. The strongest fit for your data — it IS a financial ledger.',
+  how:['Overview: yearly spend, budget bar, per-provider account balances','Statement: month-by-month grouped transactions with day headers + CSV per month','Budgets: set a monthly cap; the app nudges when tracking over','Insight cards quantify free-energy savings automatically'],
+  screens:[['Overview — accounts & budget',ledgerHome()],['Statement — June 2026 + export',ledgerStatement()]]},
+ {no:4,name:'Garage',mood:'Vehicle-centric cockpit',
+  vars:{canvas:'#f2f4f6',surf:'#fff',surf2:'#f6f8fa',bd:'#e2e6ec',tx:'#10151d',mut:'#4e5866',fnt:'#8791a0',acc:'#0ea5e9',acc2:'#38bdf8',en:'#22c55e',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Garage · Charges · Trips · More',
+  desc:'The car is the hero (Tesla-app pattern): battery ring, range, plugged-in status. Charging history becomes one feed of the vehicle alongside efficiency and cost-per-100km — and a petrol-comparison card that makes the savings story vivid.',
+  how:['Garage home: car, battery %, range, live plugged-in chip','Stats page: efficiency, $/100km, battery health, lifetime energy','Petrol-equivalent insight quantifies total EV savings','Ready for multi-vehicle later (garage = list of cars)'],
+  screens:[['Garage — battery, range, week',garageHome()],['Vehicle stats — efficiency & savings',garageStats()]]},
+ {no:5,name:'Flow',mood:'Journal timeline + Wrapped',
+  vars:{canvas:'#faf9ff',surf:'#fff',surf2:'#f6f4fe',bd:'#e9e5f6',tx:'#1c1433',mut:'#5b5178',fnt:'#948caa',acc:'#7c3aed',acc2:'#a855f7',en:'#d946ef',p1:'#0d9488',p2:'#6366f1',p3:'#a855f7',p4:'#f43f5e'},
+  ia:'Feed · Insights · Profile (+ pinned composer)',
+  desc:'Your charging life as a chronological story: a timeline feed with sessions, streaks and smart insight cards interleaved — capped by monthly "Wrapped" recaps (Spotify pattern) that are built to be screenshotted and shared.',
+  how:['Feed: day-grouped timeline with a pinned “Log a charge…” composer','Smart cards interleave automatically: streaks, records, savings','Monthly Wrapped: full-screen shareable recap story','Least dashboard-y of the ten — highest personality'],
+  screens:[['Feed — timeline + smart cards',flowFeed()],['June Wrapped — shareable recap',flowWrapped()]]},
+ {no:6,name:'Grid',mood:'Bento widget dashboard',
+  vars:{canvas:'#f4f5fa',surf:'#fff',surf2:'#f7f8fc',bd:'#e6e8f1',tx:'#13152a',mut:'#575d75',fnt:'#8d92a8',acc:'#f43f5e',acc2:'#fb7185',en:'#06b6d4',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Home (widgets) · History · ⊕ · Insights · Profile',
+  desc:'An iOS-home-screen-style bento of widgets the user composes themselves: total, budget donut, streak, heatmap, nearest charger. Long-press enters a jiggle edit mode with a widget tray. Infinitely extensible — every future feature ships as a widget.',
+  how:['Bento grid of 1×1 and 2×1 widgets, each deep-linking to its page','Long-press → jiggle edit mode: remove, reorder, add from tray','Widget tray previews: donut, map, CO₂, tariff clock…','Power users build dense boards; casual users keep 4 tiles'],
+  screens:[['Home — composed bento board',gridHome()],['Edit mode — jiggle + widget tray',gridEdit()]]},
+ {no:7,name:'Coach',mood:'Gamified eco-coach',
+  vars:{canvas:'#f6f7fb',surf:'#fff',surf2:'#f8f9fd',bd:'#e8e9f1',tx:'#1b1a2b',mut:'#5c5a72',fnt:'#8f8da4',acc:'#f97316',acc2:'#fb923c',en:'#22c55e',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Home · Challenges · Rank · Profile',
+  desc:'Turns cost optimisation into a game (Duolingo/Octopus pattern): an eco-score ring, streaks, weekly goals, badges, seasonal challenges and a club leaderboard. The app actively coaches you toward off-peak and free charging.',
+  how:['Eco-score blends rate, off-peak %, free-energy % into one number','Weekly goal bar with spend cap + streak flame','Challenges: off-peak week, free-energy hunter, provider explorer','Leaderboard podium for your EV club or friends'],
+  screens:[['Home — score, streak, goal, badges',coachHome()],['Challenges — progress + podium',coachChallenges()]]},
+ {no:8,name:'Console',mood:'Pro analytics workbench',tablet:true,
+  vars:{canvas:'#f4f6fa',surf:'#fff',surf2:'#eef2f8',bd:'#dde3ec',tx:'#0b1220',mut:'#4a5468',fnt:'#7c8598',acc:'#1d4ed8',acc2:'#3b82f6',en:'#0e7490',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Rail: Dashboard · Sessions · Analytics · Settings',
+  desc:'A desktop/tablet-class workbench (Stripe-dashboard pattern): icon rail, filterable data table with KPIs, saved views and one-click CSV export. Responsive down to phone where the rail becomes a tab bar. For when you outgrow cards.',
+  how:['Icon rail navigation; table with sort, filter chips and search','KPI strip recomputes with every filter','Saved views (“2026 · Jolt only”) recall filter sets','Export CSV always one click away — Req 3 lives here natively'],
+  screens:[['Sessions — filterable table + KPIs',consoleTable()],['Analytics — charts + provider breakdown',consoleAnalytics()]]},
+ {no:9,name:'Orbit',mood:'Radial dial interface',
+  vars:{canvas:'#eefafd',surf:'#fff',surf2:'#f2fbfd',bd:'#d8eef3',tx:'#0f2430',mut:'#4c6470',fnt:'#84a0ab',acc:'#06b6d4',acc2:'#22d3ee',en:'#0d9488',p1:'#0d9488',p2:'#6366f1',p3:'#8b5cf6',p4:'#f43f5e'},
+  ia:'Orbit (dial) · Sessions · Profile — text-tab nav',
+  desc:'The most distinctive of the ten: a slowly-rotating provider dial as the home screen, a 12-segment year wheel for time travel, and a radial action cluster. Memorable and demo-worthy; the data density lives one tap deeper.',
+  how:['Home dial: conic ring split by provider share; centre shows totals','Tap a segment to filter; rotate to change year','Year wheel: 12 months as segments, tap to inspect','Radial actions: add, export, stats around a centre FAB'],
+  screens:[['Orbit home — provider dial',orbitHome()],['Year wheel — month time-travel',orbitYear()]]},
+ {no:10,name:'Zen',mood:'Typography-first focus',
+  vars:{canvas:'#fafafa',surf:'#fff',surf2:'#f5f5f5',bd:'#e8e8e8',tx:'#141414',mut:'#5c5c5c',fnt:'#9a9a9a',acc:'#0d9488',acc2:'#14b8a6',en:'#0d9488',p1:'#141414',p2:'#5c5c5c',p3:'#9a9a9a',p4:'#0d9488'},
+  ia:'Now · History · Add — swipeable card pages',
+  desc:'Radical reduction: one number per screen, huge type, hairline lists, a single mint accent. Swipe horizontally between spend → energy → rate → streak. The anti-dashboard — calm, instant, glanceable.',
+  how:['Each swipe page = one metric with context line','Dot pagination; text-only nav underlined on active','History is a hairline mono-figure list grouped by month','Add flow reuses the same typographic language'],
+  screens:[['Now — one metric, huge type',zenHome()],['History — hairline ledger',zenList()]]}
+];
+
+document.getElementById('cidx').innerHTML=CONCEPTS.map(c=>`<a href="#concept-${c.no}"><span class="n">CONCEPT ${c.no}</span><b>${c.name}</b><small>${c.mood}</small></a>`).join('');
+
+document.getElementById('conceptSlides').innerHTML=CONCEPTS.map((c,i)=>{
+ const screens=c.screens.map(s=>c.tablet
+  ?`<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div class="screen-label">${s[0]}</div><div class="tabframe" style="${themeStyle(c.vars)}"><div class="tscreen">${s[1]}</div></div></div>`
+  :`<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div class="screen-label">${s[0]}</div><div class="phone" style="${themeStyle(c.vars)}"><div class="notch"></div><div class="screen">${s[1]}</div></div></div>`
+ ).join('');
+ return `<section class="slide" id="concept-${c.no}" style="background:${i%2?'#fff':'transparent'}">
+  <div class="wrap">
+   <div class="theme-head"><span class="theme-no c">Concept ${c.no}</span><h2 style="font-size:clamp(26px,3.6vw,38px);font-weight:850">${c.name}</h2><span class="mood">${c.mood}</span></div>
+   <p class="theme-why">${c.desc}</p>
+   <div class="grid2" style="margin-top:22px;grid-template-columns:1fr 1fr;max-width:900px">
+    <div class="panel" style="padding:16px 18px"><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:800;margin-bottom:6px">Information architecture</h4><p style="font-size:13.5px;color:var(--ink2)">${c.ia}</p></div>
+    <div class="panel" style="padding:16px 18px"><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:800;margin-bottom:6px">How it works</h4><ul class="ticks" style="margin-top:2px">${c.how.map(h=>`<li style="font-size:12.5px">${h}</li>`).join('')}</ul></div>
+   </div>
+   <div class="mock-cluster" style="margin-top:30px">${screens}</div>
+  </div>
+ </section>`}).join('');
+</script>
+<script>
+/* ---------- LAB PART 1 (original 10) ---------- */
+const LAB=[
+ ['Gradient sheen pill','Primary CTA with a light-sweep on hover.','<button class="btn-grad">Add charge ⚡</button>'],
+ ['Donut progress ring','Budget / goal metric as a conic ring — hover to randomise.','<div class="donut" style="--v:72"><b>72%</b><small>of budget</small></div>'],
+ ['Animated gradient border','Living border for live/syncing cards.','<div class="gborder"><div class="inner"><b>$268.32</b><br><small>syncing…</small></div></div>'],
+ ['Neomorphic press','Soft-UI button that physically depresses on tap.','<button class="neo-btn">Filter</button>'],
+ ['Glassmorphic control','Frosted button for gradient/photo backdrops.','<div class="glasswrap"><button class="glass-btn">This month</button><button class="glass-btn">All time</button></div>'],
+ ['Shimmer skeleton','Loading placeholder while Supabase fetches.','<div class="skel"><div class="s" style="width:60%"></div><div class="s" style="width:90%"></div><div class="s" style="width:75%"></div></div>'],
+ ['Sliding segmented','Spring-eased thumb that glides between tabs.','<div class="slideseg" id="ss"><span class="thumb"></span><button class="on">All</button><button>2026</button><button>2025</button></div>'],
+ ['Sparkline stat card','Dark KPI tile with an inline trend line.','<div class="spark-card"><div class="cap">Total spent</div><b>$268.32</b><span class="up">▲ 12% vs last mo</span><svg viewBox="0 0 200 44" preserveAspectRatio="none"><polyline points="0,34 30,28 60,30 90,18 120,22 150,10 200,14" fill="none" stroke="#4ade80" stroke-width="2.5"/><polyline points="0,34 30,28 60,30 90,18 120,22 150,10 200,14 200,44 0,44" fill="rgba(74,222,128,.15)" stroke="none"/></svg></div>'],
+ ['Glow-on-hover','Conic aura ignites behind the button on hover.','<button class="glow-btn">Export CSV ⬇</button>'],
+ ['3D tilt ticket card','Perspective session card that rights itself on hover.','<div class="ticket"><div class="top"><b>Jolt</b><br><small>12 Jul 2026 · 8.7 kWh</small></div><div class="bot"><small>$0.114/kWh</small><span class="amt">$0.99</span></div></div>'],
+];
+document.getElementById('labGrid').innerHTML=LAB.map((l,i)=>`<div class="lab"><div class="num">${String(i+1).padStart(2,'0')}</div><h4>${l[0]}</h4><div class="desc">${l[1]}</div><div class="demo">${l[2]}</div></div>`).join('');
+
+/* ---------- LAB PART 2 (25 new) ---------- */
+const LAB2=[
+ ['Battery-fill button','CTA that fills like a charging battery on hover.','<button class="bat-btn"><span>Start charging</span></button>'],
+ ['Cable-connect loader','Energy flows from grid to car while a session saves.',`<div class="cable"><span class="nodeic">${'<svg viewBox="0 0 24 24" class="svgi">'+IC.bolt+'</svg>'}</span><svg class="line" viewBox="0 0 110 24"><path d="M4 12 H106"/></svg><span class="nodeic">${'<svg viewBox="0 0 24 24" class="svgi">'+IC.car+'</svg>'}</span></div>`],
+ ['Rate gauge','Speedo-style $/kWh gauge — hover to swing the needle.','<div class="gauge"><div class="arc"><span class="needle"></span></div><b>$0.137/kWh</b><small>green = cheap · red = peak</small></div>'],
+ ['Streak flame chip','Living streak counter for the Coach concept.','<span class="streak"><span class="fl">🔥</span>14-day streak</span>'],
+ ['Charging heat calendar','GitHub-style intensity grid — hover cells.',`<div class="heatlab"><div class="cap">Last 14 weeks</div><div class="hg">${heat(70)}</div></div>`],
+ ['Count-up metric','Number animates from 0 when scrolled into view.','<div class="countup"><b data-count="268.32" data-prefix="$">$0.00</b><small>total spent · animates on view</small></div>'],
+ ['Liquid budget card','Waves rise to your budget consumption level.','<div class="liquid"><span class="wv"></span><span class="wv w2"></span><div class="lq"><b>62%</b><small>of July budget</small></div></div>'],
+ ['Swipe-to-delete row','Tap the row to reveal the destructive action.','<div class="swiperow" id="swr"><div class="under">Delete</div><div class="over"><span><b>Jolt</b><small>12 Jul · 8.7 kWh</small></span><span class="amt">$0.99</span></div></div>'],
+ ['Hold-to-confirm','Press and hold to arm a destructive action — no accidental taps.','<button class="holdbtn" id="holdb">Hold to delete</button>'],
+ ['Flip stat card','Tap to flip: headline metric → breakdown.','<div class="flipc" id="flipc"><div class="fin"><div class="face front"><div class="cap">This month</div><b>$8.14</b></div><div class="face back"><div class="cap">Breakdown</div><small>Jolt $6.15 · 5 stops</small><small>Matty $1.99 · 1 stop</small><small>38% free energy</small></div></div></div>'],
+ ['Rolling odometer','Lifetime kWh as rolling digits — click to add a charge.','<div class="odo" id="odo"></div>'],
+ ['Off-peak tariff clock','24h ring; green arc = cheap window, hand sweeps time.','<div class="tclock"><span class="hand"></span><span class="lb">off-peak<br>11pm–4am</span></div>'],
+ ['Radial FAB','The + explodes into log / photo / export actions.','<div class="fabr" id="fabr"><button class="fmini f1">⚡</button><button class="fmini f2">📷</button><button class="fmini f3">⬇</button><button class="fmain">+</button></div>'],
+ ['Live charging card','Ripple waves broadcast while a session is active.','<div class="wavec"><span class="lv"><i></i>Charging now</span><b>6.2 kWh</b><small>Jolt Norwood · $0.71 so far</small></div>'],
+ ['Tug-of-war compare','This month vs last animates on view.','<div class="splitbar"><div class="lbls"><span>June $33.51</span><span>May $27.10</span></div><div class="trk"><i class="a">55%</i><i class="b2">45%</i></div></div>'],
+ ['Confetti save','Success state worth celebrating — click it.','<button class="confbtn" id="confb">Session saved ✓</button>'],
+ ['Toast stack','Stacked, self-dismissing notifications — click to spawn.','<div class="toastwrap"><div class="toaststack" id="tstack"></div><button class="neo-btn" id="tspawn" style="font-size:12px;padding:11px 18px">Sync a session</button></div>'],
+ ['Snap chip carousel','Edge-faded, scroll-snapping filter chips.','<div class="chipcar"><b class="on">All</b><b>Jolt</b><b>Matty</b><b>Chargefox</b><b>Supercharger</b><b>Evie</b><b>+ New</b></div>'],
+ ['Leaderboard bars','Ranked bars grow in when visible.','<div class="ldb"><div class="lr"><span>1</span><span class="barr"></span><b>Jolt $175</b></div><div class="lr"><span>2</span><span class="barr"></span><b>Super $39</b></div><div class="lr"><span>3</span><span class="barr"></span><b>Matty $38</b></div></div>'],
+ ['Interactive donut legend','Hover a provider to spotlight its share.','<div class="dleg"><div class="dn"><span id="dlegv">65%</span></div><div class="lg"><b data-v="Jolt · 65%"><i style="background:#0d9488"></i>Jolt</b><b data-v="Matty · 14%"><i style="background:#6366f1"></i>Matty</b><b data-v="Super · 15%"><i style="background:#f43f5e"></i>Supercharger</b><b data-v="Cfox · 6%"><i style="background:#8b5cf6"></i>Chargefox</b></div></div>'],
+ ['Skeleton→content morph','Tap to simulate the Supabase fetch completing.','<div class="skmorph" id="skm"><div class="card2"><div class="sk"><div class="s" style="width:55%"></div><div class="s" style="width:85%"></div><div class="s" style="width:40%"></div></div><div class="real"><b>Jolt — Norwood</b><small>8.7 kWh · $0.99 · synced ✓</small></div></div><div class="hint">tap to load</div></div>'],
+ ['Pin-drop ripple','Map pins bounce and ripple for live availability.','<div class="pindemo"><span class="mpin"><b>J</b></span><span class="mpin b"><b>S</b></span></div>'],
+ ['Session commit graph','Git-style timeline of your charging cadence.','<div class="cgraph"><div class="cg"><i style="--cc:#0d9488"></i><span><b>Jolt · 8.7 kWh</b><small>12 Jul · $0.99</small></span></div><div class="cg"><i style="--cc:#0d9488"></i><span><b>Jolt · free session</b><small>9 Jul · $0.00</small></span></div><div class="cg"><i style="--cc:#f43f5e"></i><span><b>Supercharger · 35.4 kWh</b><small>15 Jun · $16.64</small></span></div></div>'],
+ ['Press-hold stepper','kWh input that auto-repeats while held.','<div class="stepr"><button id="stm">−</button><div class="val"><b id="stv">8.7</b><small>kWh</small></div><button id="stp">+</button></div>'],
+ ['Theme-morph card','One component, three skins — click to cycle.','<div class="tmorph" id="tmo"><div class="cap">Total spent</div><b>$268.32</b><small>249 sessions</small><span class="hint2">click to switch theme</span></div>'],
+];
+document.getElementById('labGrid2').innerHTML=LAB2.map((l,i)=>`<div class="lab"><div class="num">${String(i+11).padStart(2,'0')}</div><h4>${l[0]}</h4><div class="desc">${l[1]}</div><div class="demo">${l[2]}</div></div>`).join('');
+</script>
+<script>
+/* ---------- lab interactions ---------- */
+(function(){const seg=document.getElementById('ss');if(!seg)return;const thumb=seg.querySelector('.thumb');const btns=[...seg.querySelectorAll('button')];
+ function move(b){thumb.style.left=b.offsetLeft+'px';thumb.style.width=b.offsetWidth+'px';btns.forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+ btns.forEach(b=>b.addEventListener('click',()=>move(b)));requestAnimationFrame(()=>move(btns[0]))})();
+document.querySelectorAll('.donut').forEach(d=>d.addEventListener('mouseenter',()=>{const v=Math.floor(40+Math.random()*55);d.style.setProperty('--v',v);d.querySelector('b').textContent=v+'%'}));
+
+const swr=document.getElementById('swr');if(swr)swr.addEventListener('click',()=>swr.classList.toggle('open'));
+
+(function(){const b=document.getElementById('holdb');if(!b)return;let t0=null,raf;
+ function step(){const p=Math.min(100,(performance.now()-t0)/12);b.style.setProperty('--hp',p);
+  if(p>=100){b.classList.add('done');b.textContent='Deleted ✓';setTimeout(()=>{b.classList.remove('done');b.textContent='Hold to delete';b.style.setProperty('--hp',0)},1600);return}
+  raf=requestAnimationFrame(step)}
+ b.addEventListener('pointerdown',()=>{if(b.classList.contains('done'))return;t0=performance.now();raf=requestAnimationFrame(step)});
+ ['pointerup','pointerleave'].forEach(e=>b.addEventListener(e,()=>{cancelAnimationFrame(raf);if(!b.classList.contains('done'))b.style.setProperty('--hp',0)}))})();
+
+(function(){const f=document.getElementById('flipc');if(f)f.addEventListener('click',()=>f.classList.toggle('flip'))})();
+
+(function(){const o=document.getElementById('odo');if(!o)return;let val=1959;
+ function render(){const s=String(val).padStart(4,'0');
+  o.innerHTML=s.split('').map(d=>`<span class="dcol"><span class="dstk" style="transform:translateY(${-d*34}px)">${'0123456789'.split('').map(n=>`<span>${n}</span>`).join('')}</span></span>`).join('')+'<span class="unit">kWh · click</span>'}
+ render();o.addEventListener('click',()=>{val+=9;render()})})();
+
+(function(){const f=document.getElementById('fabr');if(f)f.addEventListener('click',()=>f.classList.toggle('open'))})();
+
+(function(){const b=document.getElementById('confb');if(!b)return;b.addEventListener('click',()=>{
+ for(let i=0;i<26;i++){const p=document.createElement('span');p.className='confp';
+  const a=Math.random()*Math.PI*2,d=40+Math.random()*70;
+  p.style.setProperty('--dx',Math.cos(a)*d+'px');p.style.setProperty('--dy',Math.sin(a)*d-30+'px');
+  p.style.setProperty('--rr',(Math.random()*540-270)+'deg');
+  p.style.background=['#4f46e5','#06b6d4','#16a34a','#f59e0b','#ec4899'][i%5];
+  b.appendChild(p);setTimeout(()=>p.remove(),950)}})})();
+
+(function(){const b=document.getElementById('tspawn'),s=document.getElementById('tstack');if(!b)return;const msgs=['⚡ Jolt session synced','☁ 249 rows up to date','✓ CSV exported'];let i=0;
+ b.addEventListener('click',()=>{const t=document.createElement('div');t.className='toastx';t.textContent=msgs[i++%msgs.length];s.appendChild(t);setTimeout(()=>t.remove(),2400)})})();
+
+(function(){const l=document.querySelectorAll('.dleg .lg b'),v=document.getElementById('dlegv');
+ l.forEach(b=>b.addEventListener('mouseenter',()=>v.textContent=b.dataset.v.split('·')[1].trim()))})();
+
+(function(){const k=document.getElementById('skm');if(k)k.addEventListener('click',()=>k.classList.toggle('loaded'))})();
+
+(function(){const v=document.getElementById('stv');if(!v)return;let val=8.7,iv;
+ function hook(btn,d){btn.addEventListener('pointerdown',()=>{val=Math.max(0,+(val+d).toFixed(1));v.textContent=val.toFixed(1);
+  iv=setInterval(()=>{val=Math.max(0,+(val+d).toFixed(1));v.textContent=val.toFixed(1)},130)});
+ ['pointerup','pointerleave'].forEach(e=>btn.addEventListener(e,()=>clearInterval(iv)))}
+ hook(document.getElementById('stp'),.1);hook(document.getElementById('stm'),-.1)})();
+
+(function(){const t=document.getElementById('tmo');if(!t)return;const cl=['','t2','t3'];let i=0;
+ t.addEventListener('click',()=>{i=(i+1)%3;t.classList.remove('t2','t3');if(cl[i])t.classList.add(cl[i])})})();
+
+/* on-view animations: count-up, split bar, leaderboard */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;
+ if(el.classList.contains('splitbar')||el.classList.contains('ldb')){el.classList.add('go');io.unobserve(el);return}
+ const b=el.querySelector('[data-count]');if(b&&!b.dataset.done){b.dataset.done=1;const target=parseFloat(b.dataset.count),pre=b.dataset.prefix||'';const t0=performance.now();
+  (function tick(){const p=Math.min(1,(performance.now()-t0)/1400);const ease=1-Math.pow(1-p,3);
+   b.textContent=pre+(target*ease).toFixed(2);if(p<1)requestAnimationFrame(tick)})()}
+ io.unobserve(el)}),{threshold:.4});
+document.querySelectorAll('.splitbar,.ldb,.countup').forEach(el=>io.observe(el));
+
+/* ---------- supabase in-app mockups ---------- */
+document.getElementById('supaMocks').innerHTML=`
+ <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+  <div class="screen-label">➕ Add session — with "+ New charger" inline flow</div>
+  <div class="modal-mock form-mock">
+   <div class="handle"></div>
+   <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-size:18px;font-weight:850">New charge</h3><span class="sync-badge"><span class="live"></span>Synced</span></div>
+   <label>Provider</label>
+   <div class="segbtns"><b>Jolt</b><b>Matty</b><b>Chargefox</b><b>Supercharger</b><b class="newp on" style="background:transparent;color:var(--brand);border:1.5px dashed var(--brand)">+ New</b></div>
+   <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:12px;margin-top:10px">
+    <label style="margin-top:0">New charger name</label>
+    <div class="fld" style="background:#fff"><span>Evie</span><span style="color:#b7bccb">|</span></div>
+    <label>Colour — auto-assigned, tap to change</label>
+    <div style="display:flex;gap:7px">${['#f59e0b','#06b6d4','#84cc16','#d946ef','#0ea5e9'].map((c,i)=>`<span style="width:26px;height:26px;border-radius:9px;background:${c};${i===0?'outline:2px solid #0d1020;outline-offset:2px':''}"></span>`).join('')}</div>
+   </div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div><label>Energy (kWh)</label><div class="fld"><span>21.4</span></div></div>
+    <div><label>Cost (AUD)</label><div class="fld"><span>9.63</span></div></div>
+   </div>
+   <button class="btn-grad" style="width:100%;margin-top:16px">Create charger &amp; save ⚡</button>
+  </div>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+  <div class="screen-label">🔧 Manage chargers — rename, recolour, merge</div>
+  <div class="modal-mock">
+   <div class="handle"></div>
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:18px;font-weight:850">Chargers</h3><span class="tag" style="background:#eef2ff;color:#4338ca">5 types</span></div>
+   ${[['J','Jolt','235 sessions · $175.09','#0d9488'],['M','Matty','10 sessions · $38.33','#6366f1'],['S','Supercharger','3 sessions · $38.99','#f43f5e'],['C','Chargefox','1 session · $15.90','#8b5cf6'],['E','Evie','1 session · $9.63','#f59e0b']].map(p=>`
+   <div style="display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line2)">
+    <span style="width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:850;color:#fff;background:${p[3]}">${p[0]}</span>
+    <span style="flex:1"><b style="font-size:13px;font-weight:800">${p[1]}</b><br><small style="font-size:10.5px;color:var(--ink3)">${p[2]}</small></span>
+    <span style="color:#b7bccb;font-weight:800">›</span>
+   </div>`).join('')}
+   <button style="width:100%;margin-top:12px;border:1.5px dashed #b9bfd6;background:transparent;color:var(--brand);font:inherit;font-size:13px;font-weight:800;padding:11px;border-radius:12px;cursor:pointer">+ Add charger type</button>
+  </div>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+  <div class="screen-label">⇅ Live sync &amp; CSV export</div>
+  <div class="panel" style="width:300px">
+   <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">Cloud data</b><span class="sync-badge"><span class="live"></span>Live · Supabase</span></div>
+   <p class="muted" style="font-size:12px;margin-top:8px">250 sessions · 5 provider types · realtime channel open. New charger "Evie" appeared on all devices instantly.</p>
+   <div style="height:1px;background:var(--line);margin:16px 0"></div>
+   <b style="font-size:14px">Export</b>
+   <p class="muted" style="font-size:12px;margin-top:6px">Excel-ready CSV with provider names joined.</p>
+   <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="glow-btn" style="flex:1;font-size:13px;padding:12px">⬇ Export CSV</button>
+    <button class="neo-btn" style="font-size:13px">Filtered</button>
+   </div>
+  </div>
+  <div class="panel" style="width:300px;background:#0d1020;color:#fff;border-color:transparent">
+   <div class="kv" style="font-size:11px;color:#8a90a6">ev-charging-export.csv</div>
+   <div class="kv" style="font-size:11px;margin-top:8px;color:#cdd3e8;line-height:1.7">Date,Provider,Amount,Cost,Notes<br>2026-07-13,Evie,21.4,9.63,<br>2026-07-12,Jolt,8.7,0.99,<br>2026-06-15,Supercharger,35.4,16.64,…</div>
+  </div>
+ </div>`;
+
+/* ---------- TOC + progress + keys ---------- */
+const SECTIONS=[['audit','Audit'],['benchmark','Benchmark'],['themes-intro','10 Themes'],['concepts-intro','10 Concepts'],['lab','Lab I'],['lab2','Lab II · 25'],['supabase','Supabase']];
+document.getElementById('toc').innerHTML=SECTIONS.map(s=>`<a href="#${s[0]}">${s[1]}</a>`).join('');
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+addEventListener('keydown',e=>{
+ if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+ const ids=['top',...SECTIONS.map(s=>s[0]),...THEMES.map(t=>'theme-'+t.no),...CONCEPTS.map(c=>'concept-'+c.no)];
+ const ys=ids.map(id=>document.getElementById(id)).filter(Boolean).sort((a,b)=>a.offsetTop-b.offsetTop);
+ const cur=window.scrollY+70;
+ if(e.key==='ArrowDown'){const nxt=ys.find(el=>el.offsetTop>cur+5);nxt?.scrollIntoView({behavior:'smooth'})}
+ else{const prev=[...ys].reverse().find(el=>el.offsetTop<cur-5);prev?.scrollIntoView({behavior:'smooth'})}
+});
+</script>
+<script>
+/* section isolation for direct linking/review: ?only=concept-1 */
+(function(){const only=new URLSearchParams(location.search).get('only');if(!only)return;
+ document.querySelectorAll('section.slide, section.hero, .footer').forEach(s=>{if(s.id!==only)s.style.display='none'});
+ scrollTo(0,0)})();
+</script>

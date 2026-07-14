@@ -1,0 +1,827 @@
+<meta charset="utf-8">
+<title>EV Command v3 — Ledger × Garage</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --ink:#0f1a24; --ink2:#3d4d5a; --ink3:#71828f; --line:#e4e9ed; --line2:#eef1f4;
+  --paper:#f4f6f8; --card:#fff; --brand:#059669; --brand2:#34d399; --steel:#334155; --warn:#f59e0b; --neg:#e11d48;
+  --shadow-sm:0 1px 2px rgba(15,26,36,.06),0 4px 14px rgba(15,26,36,.05);
+  --shadow-md:0 8px 30px rgba(15,26,36,.10);
+  --shadow-lg:0 24px 70px rgba(15,26,36,.16);
+  --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+h1,h2,h3,h4{margin:0;letter-spacing:-.02em;line-height:1.08}
+p{margin:0} a{color:inherit}
+::selection{background:rgba(5,150,105,.16)}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;display:flex;align-items:center;gap:16px;
+  padding:0 20px;background:rgba(244,246,248,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.topbar .brand{font-weight:800;font-size:14px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.topbar .dot{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 140deg,#059669,#0d9488,#334155,#059669);box-shadow:0 4px 14px rgba(5,150,105,.35)}
+.toc{margin-left:auto;display:flex;gap:2px;overflow:auto;scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc a{font-size:12px;font-weight:650;color:var(--ink3);padding:7px 11px;border-radius:9px;white-space:nowrap;text-decoration:none}
+.toc a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+.progress{position:fixed;top:56px;left:0;height:2px;background:linear-gradient(90deg,#059669,#34d399);z-index:101;width:0}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+section.slide{padding:92px 0 68px;border-bottom:1px solid var(--line2);content-visibility:auto;contain-intrinsic-size:auto 1400px}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.lead{font-size:18px;color:var(--ink2);max-width:72ch;margin-top:14px}
+.h-sec{font-size:clamp(28px,4vw,44px);font-weight:850;margin-top:12px}
+
+.hero{min-height:96vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;
+  background:
+   radial-gradient(680px 420px at 10% -6%,rgba(5,150,105,.13),transparent 60%),
+   radial-gradient(560px 400px at 92% 10%,rgba(51,65,85,.10),transparent 62%),
+   var(--paper)}
+.hero h1{font-size:clamp(36px,7vw,78px);font-weight:880;letter-spacing:-.035em;max-width:19ch}
+.hero .grad{background:linear-gradient(120deg,#059669,#0d9488 55%,#334155);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{margin-top:24px;font-size:19px;color:var(--ink2);max-width:64ch}
+.hero .meta{margin-top:36px;display:flex;flex-wrap:wrap;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;font-size:13px;font-weight:650;box-shadow:var(--shadow-sm)}
+.pill b{font-weight:800}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm)}
+.panel h3{font-size:16px;font-weight:800}
+.muted{color:var(--ink3)}
+.tag{display:inline-block;font-size:11px;font-weight:750;padding:4px 9px;border-radius:7px;background:#eef1f4;color:var(--ink2)}
+.kv{font-family:var(--mono);font-size:12px}
+ul.ticks{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:9px}
+ul.ticks li{position:relative;padding-left:26px;font-size:14px;color:var(--ink2)}
+ul.ticks li::before{content:"";position:absolute;left:0;top:6px;width:15px;height:15px;border-radius:5px;
+  background:radial-gradient(circle at 30% 30%,#059669,#34d399);box-shadow:0 2px 6px rgba(5,150,105,.3)}
+.scrap li::before{background:radial-gradient(circle at 30% 30%,#e11d48,#f59e0b)!important}
+.scrap li{text-decoration:line-through;color:var(--ink3)}
+
+table.bm{width:100%;border-collapse:collapse;font-size:13.5px}
+table.bm th,table.bm td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2)}
+table.bm th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:750}
+table.bm td:first-child{font-weight:750}
+
+.sw{width:38px;height:38px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),var(--shadow-sm);position:relative}
+.sw span{position:absolute;bottom:-17px;left:0;right:0;text-align:center;font-size:8.5px;color:var(--ink3);font-family:var(--mono)}
+.swrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 22px}
+
+/* ============ PHONE SYSTEM (Cockpit-Ledger tokens) ============ */
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px}
+.screen-label{font-size:12px;font-weight:750;color:var(--ink3);text-align:center;max-width:300px}
+.screen-note{font-size:11.5px;color:var(--ink3);text-align:center;max-width:280px;line-height:1.45}
+.mock-cluster{display:flex;gap:26px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.phone{
+  --canvas:#f3f5f7; --surf:#fff; --surf2:#f7f9fa; --bd:#e3e8ec; --bd2:#edf1f3;
+  --tx:#0f1a24; --mut:#4e5e6b; --fnt:#8496a3;
+  --acc:#059669; --acc2:#34d399; --steel:#334155; --neg:#e11d48;
+  --p1:#0d9488; --p2:#6366f1; --p3:#8b5cf6; --p4:#f43f5e;
+  --cardshadow:0 1px 2px rgba(15,26,36,.05),0 10px 24px rgba(15,26,36,.07);
+  width:300px;border-radius:38px;padding:11px;background:#dde3e7;
+  box-shadow:0 30px 70px rgba(15,26,36,.20),0 4px 10px rgba(15,26,36,.10),inset 0 0 0 1px rgba(255,255,255,.55);
+  flex:0 0 auto}
+.phone .screen{border-radius:29px;overflow:hidden;height:600px;overflow-y:auto;position:relative;
+  background:var(--canvas);color:var(--tx);scrollbar-width:none}
+.phone .screen::-webkit-scrollbar{display:none}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:26px;background:#0f1a24;border-radius:0 0 16px 16px;z-index:9}
+.pad{padding:34px 15px 10px}
+
+.p-appbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.p-eyebrow{color:var(--acc);font-size:9.5px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}
+.p-appbar h1{font-size:24px;font-weight:850;margin:3px 0 3px;color:var(--tx)}
+.p-appbar .p-sub{color:var(--mut);font-size:11px;font-weight:600}
+.p-icon{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;
+  background:var(--surf);border:1px solid var(--bd);color:var(--steel);box-shadow:var(--cardshadow)}
+.svgi{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.p-hero{border-radius:16px;padding:16px;margin-bottom:10px;background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow)}
+.p-cap{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fnt)}
+.p-heronum{font-size:38px;font-weight:850;line-height:.95;margin-top:6px;letter-spacing:-.02em;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-herosub{font-size:11px;font-weight:600;color:var(--mut);margin-top:7px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:850;padding:4px 8px;border-radius:999px;background:#e7f6ef;color:#047857}
+.delta.up{background:#fdecef;color:#be123c}
+
+/* savings card — THE feature */
+.savecard{border-radius:16px;padding:15px;margin-bottom:10px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,#047857,#059669 55%,#0d9488);box-shadow:0 14px 30px rgba(5,150,105,.32)}
+.savecard .p-cap{color:rgba(255,255,255,.75)}
+.savecard b.big{display:block;font-size:23px;white-space:nowrap;font-weight:850;margin-top:5px;font-variant-numeric:tabular-nums}
+.savecard small{font-size:10.5px;opacity:.9;font-weight:600;display:block;margin-top:5px;line-height:1.45}
+.savecard .bolt{position:absolute;right:-14px;top:-16px;font-size:86px;opacity:.12;transform:rotate(12deg)}
+.savecard .ringside{position:absolute;right:13px;top:50%;transform:translateY(-50%)}
+
+.ringd{--v:74;--rc:#fff;--hole:var(--surf);--sz:74px;width:var(--sz);height:var(--sz);border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--rc) calc(var(--v)*1%),rgba(255,255,255,.22) 0)}
+.ringd::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--hole)}
+.ringd .in{position:relative;text-align:center;line-height:1.05}
+.ringd .in b{font-size:14px;font-weight:850;display:block}
+.ringd .in small{font-size:7.5px;font-weight:750;text-transform:uppercase;letter-spacing:.05em;opacity:.8}
+.savecard .ringd{--hole:#058662}
+.savecard .ringd .in{color:#fff}
+
+.p-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.p-mc{background:var(--surf);border:1px solid var(--bd);border-radius:12px;padding:11px;box-shadow:var(--cardshadow)}
+.p-mc span{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fnt)}
+.p-mc strong{display:block;font-size:19px;font-weight:820;margin-top:5px;color:var(--tx);font-variant-numeric:tabular-nums}
+.p-mc small{font-size:10px;color:var(--mut);font-weight:600}
+
+.p-h2{font-size:14px;font-weight:820;color:var(--tx);margin:14px 0 3px}
+.p-h2s{font-size:10.5px;color:var(--mut);margin-bottom:8px}
+.p-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border-radius:12px;
+  background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow);margin-bottom:7px}
+.p-row strong{font-size:12px;font-weight:800;color:var(--tx);display:block}
+.p-row small{font-size:9.5px;color:var(--mut);font-weight:600}
+.p-row b{font-size:12.5px;font-weight:850;color:var(--steel);font-variant-numeric:tabular-nums}
+.p-mark{width:30px;height:30px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:850;
+  color:#fff;background:var(--pc,var(--acc));box-shadow:0 4px 10px color-mix(in srgb,var(--pc,var(--acc)) 40%,transparent)}
+.freetag{display:inline-block;font-size:8px;font-weight:850;letter-spacing:.05em;padding:2.5px 6px;border-radius:6px;background:#e7f6ef;color:#047857;margin-left:5px;vertical-align:1px}
+
+.p-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:4px;border-radius:12px;
+  background:var(--surf2);border:1px solid var(--bd);margin-bottom:12px}
+.p-seg button{border:0;background:transparent;font:inherit;color:var(--mut);font-size:11px;font-weight:750;padding:7px 0;border-radius:8px;cursor:pointer}
+.p-seg button.on{background:var(--steel);color:#fff}
+
+.p-chart{background:var(--surf);border:1px solid var(--bd);border-radius:16px;padding:13px 12px 10px;box-shadow:var(--cardshadow);margin-bottom:10px}
+.p-chart h4{font-size:12px;font-weight:800;color:var(--tx);margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.bars{display:flex;align-items:flex-end;gap:7px;height:70px}
+.bars .b{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 40%,var(--surf)))}
+.bars .b.st{background:linear-gradient(180deg,var(--steel),color-mix(in srgb,var(--steel) 35%,var(--surf)))}
+.lbl{display:flex;gap:7px;margin-top:6px}
+.lbl span{flex:1;text-align:center;font-size:8px;color:var(--fnt);font-weight:700}
+
+.p-tabbar{position:sticky;bottom:0;margin-top:10px;height:60px;display:flex;z-index:5;background:var(--surf);border-top:1px solid var(--bd)}
+.p-tabbar .ti{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--fnt);font-size:8.5px;font-weight:750}
+.p-tabbar .ti.on{color:var(--acc)}
+.p-tabbar .fabb{width:44px;height:44px;margin-top:-24px;border-radius:15px;background:linear-gradient(140deg,#047857,#0d9488);
+  display:grid;place-items:center;color:#fff;box-shadow:0 10px 22px rgba(5,150,105,.42)}
+.fabb .svgi{width:21px;height:21px;stroke-width:2.2}
+
+/* receipt */
+.rcpt{background:var(--surf);border:1px solid var(--bd);border-radius:16px;padding:14px;box-shadow:var(--cardshadow);font-family:var(--mono)}
+.rcpt .rl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);padding:5px 0;font-variant-numeric:tabular-nums}
+.rcpt .rl b{color:var(--tx);font-weight:750}
+.rcpt .rl.free{color:#047857}
+.rcpt .rl.free b{color:#047857}
+.rcpt .rl.tot{border-top:1.5px dashed var(--bd);margin-top:6px;padding-top:9px;font-size:12px}
+.rcpt .rl.tot b{font-weight:850;font-size:13px}
+
+/* free/paid split bar */
+.splitb{height:10px;border-radius:9px;overflow:hidden;display:flex;background:var(--surf2);border:1px solid var(--bd)}
+.splitb i{display:block;height:100%}
+.splitb .f{background:linear-gradient(90deg,#059669,#34d399)}
+.splitb .p{background:var(--steel)}
+.splitleg{display:flex;gap:12px;margin-top:6px;font-size:9px;font-weight:750;color:var(--mut)}
+.splitleg i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+/* thermometer budget */
+.thermo{position:relative;height:14px;border-radius:9px;background:var(--surf2);border:1px solid var(--bd);overflow:visible}
+.thermo .fill{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,#059669,#34d399)}
+.thermo .proj{position:absolute;top:-4px;bottom:-4px;width:2.5px;border-radius:2px;background:var(--warn)}
+.thermo .cap100{position:absolute;right:0;top:-4px;bottom:-4px;width:2.5px;border-radius:2px;background:var(--neg)}
+.thermoleg{display:flex;justify-content:space-between;font-size:9px;font-weight:750;color:var(--mut);margin-top:7px}
+
+/* week allowance strip */
+.wkstrip{display:flex;gap:6px}
+.wkstrip .d{flex:1;text-align:center}
+.wkstrip .d i{display:block;height:34px;border-radius:8px;background:var(--surf2);border:1px solid var(--bd);position:relative;overflow:hidden}
+.wkstrip .d i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--u)*1%);background:linear-gradient(180deg,#34d399,#059669)}
+.wkstrip .d span{font-size:7.5px;font-weight:800;color:var(--fnt);display:block;margin-top:4px;text-transform:uppercase}
+
+/* sheets */
+.dim{position:absolute;inset:0;background:rgba(15,26,36,.45);z-index:6}
+.sheetup{position:absolute;left:8px;right:8px;bottom:8px;z-index:7;border-radius:20px;background:var(--surf);padding:12px 13px 14px;box-shadow:0 -14px 40px rgba(0,0,0,.3)}
+.sheetup .handle{width:36px;height:4px;border-radius:9px;background:var(--bd);margin:0 auto 10px}
+.sheetup label{display:block;font-size:9px;font-weight:800;color:var(--mut);margin:9px 0 4px;text-transform:uppercase;letter-spacing:.06em}
+.sheetup .fld{background:var(--surf2);border:1px solid var(--bd);border-radius:10px;padding:9px 11px;font-size:11.5px;color:var(--tx);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.sheetup .provrow{display:flex;gap:5px;flex-wrap:wrap}
+.sheetup .provrow b{font-size:10px;font-weight:750;padding:7px 10px;border-radius:8px;background:var(--surf2);color:var(--mut);border:1px solid var(--bd)}
+.sheetup .provrow b.on{background:var(--acc);color:#fff;border-color:transparent}
+.sheetup .provrow b.newp{border-style:dashed;color:var(--acc);background:transparent}
+.sheetup .save{width:100%;margin-top:12px;border:0;font:inherit;font-size:12px;font-weight:800;color:#fff;padding:11px;border-radius:11px;
+  background:linear-gradient(120deg,#047857,#0d9488);box-shadow:0 10px 22px rgba(5,150,105,.4)}
+.freepreview{margin-top:9px;border-radius:10px;padding:9px 11px;background:#e7f6ef;border:1px solid #b8e6d0;font-size:10px;font-weight:750;color:#047857;line-height:1.5}
+
+/* stepper */
+.kstep{display:flex;align-items:center;gap:10px;background:var(--surf2);border:1px solid var(--bd);border-radius:10px;padding:6px 8px}
+.kstep button{width:30px;height:30px;border:0;border-radius:8px;background:var(--surf);color:var(--acc);font:inherit;font-size:16px;font-weight:850;box-shadow:var(--cardshadow);cursor:pointer}
+.kstep .v{flex:1;text-align:center;font-size:15px;font-weight:850;font-variant-numeric:tabular-nums}
+.kstep .v small{display:block;font-size:8px;color:var(--fnt);font-weight:800;text-transform:uppercase}
+
+/* success tick */
+.ticksvg{width:64px;height:64px;display:block;margin:0 auto}
+.ticksvg circle{fill:none;stroke:#059669;stroke-width:2.4;stroke-dasharray:170;stroke-dashoffset:170;animation:drawc 1s ease forwards}
+.ticksvg path{fill:none;stroke:#059669;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:44;stroke-dashoffset:44;animation:drawc .55s .55s ease forwards}
+@keyframes drawc{to{stroke-dashoffset:0}}
+.loopanim .ticksvg circle{animation:drawcl 2.8s ease infinite}
+.loopanim .ticksvg path{animation:drawtl 2.8s ease infinite}
+@keyframes drawcl{0%{stroke-dashoffset:170}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+@keyframes drawtl{0%,20%{stroke-dashoffset:44}55%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+
+/* race bars petrol vs ev */
+.race .rrow{margin-bottom:9px}
+.race .rrow .rl2{display:flex;justify-content:space-between;font-size:9.5px;font-weight:750;color:var(--mut);margin-bottom:4px}
+.race .bar{height:14px;border-radius:8px;background:var(--surf2);border:1px solid var(--bd);overflow:hidden}
+.race .bar i{display:block;height:100%;border-radius:8px}
+.race .ev i{width:15%;background:linear-gradient(90deg,#059669,#34d399)}
+.race .pet i{width:86%;background:linear-gradient(90deg,#64748b,#94a3b8)}
+
+/* sync + misc */
+.sync-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750;padding:7px 12px;border-radius:999px;background:#e7f6ef;color:#047857;border:1px solid #b8e6d0}
+.sync-badge .live{width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.sync-badge.sm{font-size:9px;padding:4px 9px}
+.sync-badge.sm .live{width:6px;height:6px}
+
+/* context frames for components */
+.ctx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:34px}
+.ctx{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow-sm);position:relative}
+.ctx .num{position:absolute;top:13px;right:15px;font-size:12px;font-weight:800;color:#c0cad1}
+.ctx h4{font-size:14.5px;font-weight:800}
+.ctx .desc{font-size:12px;color:var(--ink3);margin:4px 0 14px;min-height:32px}
+.miniscr{--canvas:#f3f5f7;--surf:#fff;--surf2:#f7f9fa;--bd:#e3e8ec;--tx:#0f1a24;--mut:#4e5e6b;--fnt:#8496a3;--acc:#059669;--acc2:#34d399;--steel:#334155;--neg:#e11d48;
+  --p1:#0d9488;--p2:#6366f1;--p3:#8b5cf6;--p4:#f43f5e;--cardshadow:0 1px 2px rgba(15,26,36,.05),0 8px 18px rgba(15,26,36,.06);
+  background:var(--canvas);border:1px solid var(--line);border-radius:16px;padding:12px;color:var(--tx);position:relative;overflow:hidden}
+.miniscr .ghost{opacity:.38;pointer-events:none}
+.miniscr .ghost.top{margin-bottom:8px}
+.miniscr .ghost.bot{margin-top:8px}
+
+pre.code{background:#0f1a24;color:#e6ecf1;border-radius:14px;padding:16px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;margin-top:14px}
+pre.code .k{color:#7dd3ae}
+pre.code .c{color:#71828f}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin-top:10px}
+.flow .node{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow-sm)}
+.flow .node .icx{font-size:22px}
+.flow .node b{display:block;font-size:13px;font-weight:800;margin-top:6px}
+.flow .node small{font-size:11px;color:var(--ink3)}
+.flow .arr{font-size:20px;color:#b2bfc8;text-align:center;font-weight:800}
+.reqcard{border-left:3px solid var(--brand)}
+.reqcard.o{border-left-color:var(--warn)}
+.reqcard.p{border-left-color:#8b5cf6}
+.reqcard.s{border-left-color:var(--steel)}
+
+.theme-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.theme-no{font-size:12.5px;font-weight:850;color:#fff;background:var(--brand);border-radius:10px;padding:6px 11px}
+.mood{font-size:13px;font-weight:700;color:var(--ink2);padding:6px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.footer{padding:60px 0 80px;text-align:center;color:var(--ink3);font-size:13px}
+
+@media(max-width:900px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.toc{display:none}
+ .flow{grid-template-columns:1fr;gap:6px}.flow .arr{transform:rotate(90deg)}}
+@media(max-width:560px){.grid3{grid-template-columns:1fr}}
+</style>
+<div class="progress" id="prog"></div>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> EV Command · v3 — Ledger × Garage</div>
+  <nav class="toc" id="toc"></nav>
+</div>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="kicker">Design Iteration 3 · Built from your feedback · Jul 2026</div>
+    <h1>One design: <span class="grad">the money app for your car.</span></h1>
+    <p class="sub">You kept <b>Ledger</b> (fintech money-tracker) and <b>Garage</b> (vehicle cockpit) and scrapped the rest. This is their cross-breed — one coherent mobile-only design language, shown across <b>10 full screens</b>, with your favourite metric front and centre: <b>free Jolt energy saved</b>. Plus 20 new components shown in-app, the best 5 fully animated, and Supabase updated for the free-allowance math.</p>
+    <div class="meta">
+      <span class="pill">💰 <b>$604</b> saved via free Jolt energy (real data)</span>
+      <span class="pill">📱 <b>10</b> screens · mobile only</span>
+      <span class="pill">🧩 <b>20</b> components in context</span>
+      <span class="pill">🎬 <b>Best 5</b> animated in-app</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="changes">
+  <div class="wrap">
+    <div class="kicker">Your feedback → what changed</div>
+    <h2 class="h-sec">Scrapped, kept, doubled-down</h2>
+    <div class="grid3" style="margin-top:30px">
+      <div class="panel"><h3>🗑️ Scrapped</h3>
+        <ul class="ticks scrap">
+          <li>"Live charging" cards — no real car connection</li>
+          <li>Heatmap calendars</li>
+          <li>Maps / charger locations (Atlas)</li>
+          <li>Pulse, Flow, Coach, Grid, Zen, Orbit, Console</li>
+          <li>All 10 colour themes — colour alone isn't a redesign</li>
+        </ul></div>
+      <div class="panel"><h3>✅ Kept</h3>
+        <ul class="ticks">
+          <li><b>Ledger</b> — budgets, statements, provider "accounts"</li>
+          <li><b>Garage</b> — cockpit stats, efficiency, petrol comparison</li>
+          <li>Mobile-only, tab-bar navigation</li>
+          <li>Supabase: migrate · add+sync · CSV · dynamic charger types</li>
+        </ul></div>
+      <div class="panel" style="border-left:3px solid var(--brand)"><h3>⭐ Doubled-down</h3>
+        <ul class="ticks">
+          <li><b>Free Jolt energy saved</b> — now a first-class feature: home-screen card, its own hub page, receipt line-items, and a Supabase column that powers it</li>
+          <li>Computed from your real data: 7 kWh/day free × 233 Jolt days = <b>1,586 kWh free ≈ $604 saved</b></li>
+        </ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="dna">
+  <div class="wrap">
+    <div class="kicker">The cross-breed</div>
+    <h2 class="h-sec">Ledger × Garage = "Cockpit Ledger"</h2>
+    <p class="lead">From Ledger: the financial IA — statements, budgets, provider accounts, receipts. From Garage: the cockpit voice — instrument-style numerals, efficiency stats, the petrol comparison. One accent does the work: <b>emerald = money &amp; free energy</b>; slate carries the instrumentation. No theme variants — one committed system.</p>
+    <div class="grid2" style="margin-top:30px">
+      <div class="panel">
+        <h3>Design tokens</h3>
+        <div class="swrow" style="margin-top:14px">
+          <div class="sw" style="background:#f3f5f7"><span>canvas</span></div>
+          <div class="sw" style="background:#fff"><span>surface</span></div>
+          <div class="sw" style="background:#059669"><span>money</span></div>
+          <div class="sw" style="background:#34d399"><span>money-2</span></div>
+          <div class="sw" style="background:#334155"><span>steel</span></div>
+          <div class="sw" style="background:#0f1a24"><span>ink</span></div>
+        </div>
+        <table class="bm" style="margin-top:18px"><tbody>
+          <tr><td>Navigation</td><td class="muted">5-tab bar: Home · Statement · ⊕ Add · Vehicle · Settings</td></tr>
+          <tr><td>Type</td><td class="muted">Inter 600–850 · tabular numerals · mono for receipt line-items</td></tr>
+          <tr><td>Cards</td><td class="muted">White, 16px radius, dual soft shadow, hairline border</td></tr>
+          <tr><td>Money moments</td><td class="muted">Emerald gradient cards reserved for savings &amp; totals</td></tr>
+          <tr><td>Cockpit moments</td><td class="muted">Slate numerals, gauge-style rings, instrument spacing</td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel">
+        <h3>The free-energy math (your real data)</h3>
+        <p class="muted" style="font-size:13.5px;margin-top:10px">Jolt gives the first <b>7 kWh free each day</b>. Applying that day-by-day across your 249 sessions:</p>
+        <table class="bm" style="margin-top:12px"><tbody>
+          <tr><td>Jolt charge days</td><td class="muted">233 days (49 hit the full 7 kWh)</td></tr>
+          <tr><td>Free energy banked</td><td class="muted"><b>1,586 kWh</b> of your 1,959 total</td></tr>
+          <tr><td>Your paid rate elsewhere</td><td class="muted">$0.381 / kWh (measured)</td></tr>
+          <tr><td>Lifetime saving</td><td class="muted"><b style="color:var(--brand)">$604.16</b> — more than the $268.32 you actually spent</td></tr>
+          <tr><td>June 2026 alone</td><td class="muted">118 kWh free → <b>$45.12 saved</b></td></tr>
+        </tbody></table>
+        <p class="muted" style="font-size:12.5px;margin-top:12px">Headline the app writes itself: <i>"You've charged $872 of energy for $268."</i></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="screens-intro">
+  <div class="wrap">
+    <div class="kicker">The app — 10 screens</div>
+    <h2 class="h-sec">10 UI/UX mockups, one coherent app</h2>
+    <p class="lead">A complete mobile app: every screen below is live HTML in the Cockpit-Ledger language. The savings card sits on the home screen as requested, and the free-allowance logic threads through statements, receipts, the add flow and settings.</p>
+  </div>
+</section>
+<div id="screenSlides"></div>
+
+<section class="slide" id="components">
+  <div class="wrap">
+    <div class="kicker">20 new components — shown in context</div>
+    <h2 class="h-sec">Components living inside the app, not a lab bench</h2>
+    <p class="lead">Each pattern is rendered inside a slice of real app UI (neighbouring elements ghosted) so you can judge it where it will actually live.</p>
+    <div class="ctx-grid" id="ctxGrid"></div>
+  </div>
+</section>
+
+<section class="slide" id="best5">
+  <div class="wrap">
+    <div class="kicker">The best five — in motion</div>
+    <h2 class="h-sec">5 full screens with working animation</h2>
+    <p class="lead">The five strongest components, each embedded in its real screen with its animation running on a loop: the savings count-up, the daily allowance ring, the add-flow free-allocation preview, the receipt tick + split, and the budget thermometer projection.</p>
+    <div class="mock-cluster" style="margin-top:34px" id="best5Mocks"></div>
+  </div>
+</section>
+
+<section class="slide" id="supabase">
+  <div class="wrap">
+    <div class="kicker">Supabase v3 — now powering the savings math</div>
+    <h2 class="h-sec">Migrate · add &amp; sync · CSV · dynamic chargers · free allowances</h2>
+    <p class="lead">Same four requirements as before, plus the providers table gains a <span class="kv">free_kwh_per_day</span> column — so the free-energy feature is data, not code. Add a new charger with its own daily free allowance and every savings figure updates automatically.</p>
+    <div class="grid3" style="margin-top:30px">
+      <div class="panel reqcard"><span class="tag">Schema</span><h3 style="margin-top:10px;font-size:15px">providers</h3>
+        <table class="bm" style="margin-top:8px"><tbody>
+          <tr><td>id</td><td class="muted">uuid pk</td></tr>
+          <tr><td>name</td><td class="muted">text unique</td></tr>
+          <tr><td>color</td><td class="muted">text · auto-assigned</td></tr>
+          <tr><td>free_kwh_per_day</td><td class="muted"><b>numeric · Jolt = 7, default 0</b></td></tr>
+        </tbody></table></div>
+      <div class="panel reqcard s"><span class="tag">Schema</span><h3 style="margin-top:10px;font-size:15px">charging_sessions</h3>
+        <table class="bm" style="margin-top:8px"><tbody>
+          <tr><td>id</td><td class="muted">uuid pk</td></tr>
+          <tr><td>provider_id</td><td class="muted">uuid → providers.id</td></tr>
+          <tr><td>date / amount / cost</td><td class="muted">date · numeric kWh · numeric AUD</td></tr>
+          <tr><td>notes</td><td class="muted">text nullable</td></tr>
+        </tbody></table></div>
+      <div class="panel reqcard p"><span class="tag">Derived</span><h3 style="margin-top:10px;font-size:15px">daily_free_energy (view)</h3>
+        <p class="muted" style="font-size:12.5px;margin-top:8px">Per provider per day: <span class="kv">least(free_kwh_per_day, sum(amount))</span>. The app multiplies by your measured paid rate to price the saving. No client-side hard-coding of "7".</p></div>
+    </div>
+    <div class="grid2" style="margin-top:26px">
+      <div>
+        <pre class="code"><span class="c">-- providers seed (free allowance is data, not code)</span>
+<span class="k">insert into</span> providers (name,color,free_kwh_per_day) <span class="k">values</span>
+ ('Jolt','#0d9488',7),('Matty','#6366f1',0),
+ ('Chargefox','#8b5cf6',0),('Supercharger','#f43f5e',0);
+
+<span class="c">-- savings view</span>
+<span class="k">create view</span> daily_free_energy <span class="k">as</span>
+<span class="k">select</span> s.provider_id, s.date,
+  least(p.free_kwh_per_day, sum(s.amount)) <span class="k">as</span> free_kwh
+<span class="k">from</span> charging_sessions s <span class="k">join</span> providers p <span class="k">on</span> p.id=s.provider_id
+<span class="k">where</span> p.free_kwh_per_day &gt; 0
+<span class="k">group by</span> s.provider_id, s.date, p.free_kwh_per_day;</pre>
+      </div>
+      <div>
+        <pre class="code"><span class="c">// app: chips + allowances rendered from the table</span>
+<span class="k">const</span> { data: providers } =
+  <span class="k">await</span> db.from('providers').select('*').order('name')
+
+<span class="c">// new charger WITH its own free allowance</span>
+<span class="k">await</span> db.from('providers').insert(
+  { name:'Evie', color: nextColor(), free_kwh_per_day: 0 })
+
+<span class="c">// CSV export — provider name + free flag joined</span>
+<span class="k">const</span> { data } = <span class="k">await</span> db.from('charging_sessions')
+  .select('date,amount,cost,notes,providers(name)').csv()
+downloadBlob(data,'ev-charging-export.csv')</pre>
+      </div>
+    </div>
+    <h3 style="margin-top:40px;font-size:20px">In-app mockups</h3>
+    <div class="mock-cluster" style="margin-top:22px" id="supaMocks"></div>
+  </div>
+</section>
+
+<div class="footer wrap">
+  <p><b style="color:var(--brand)">EV Command v3</b> · Cockpit Ledger · Jul 2026 — 10 screens · 20 components · best-5 animated · Supabase with free-allowance schema.</p>
+</div>
+<script>
+/* icons */
+const IC={
+ home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/>',
+ book:'<path d="M4 5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h8M8 11h8"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ car:'<path d="M4 15l1.6-4.8A2 2 0 0 1 7.5 8.8h9a2 2 0 0 1 1.9 1.4L20 15v4h-2.5v-1.6h-11V19H4v-4z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>',
+ gear:'<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.2"/><circle cx="9" cy="16" r="2.2"/>',
+ bolt:'<path d="M13 2 5 13h5l-1 9 8-11h-5l1-9z"/>',
+ dl:'<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/>',
+ chev:'<path d="m9 6 6 6-6 6"/>',
+ back:'<path d="m15 6-6 6 6 6"/>',
+ wallet:'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12.5h5M3 9h18"/>'};
+const ic=n=>'<svg viewBox="0 0 24 24" class="svgi">'+(IC[n]||IC.bolt)+'</svg>';
+
+/* helpers */
+const mark=(k,v)=>`<span class="p-mark" style="--pc:var(--${v})">${k}</span>`;
+const TABS=[{i:'home',l:'Home'},{i:'book',l:'Statement'},{fab:true},{i:'car',l:'Vehicle'},{i:'gear',l:'Settings'}];
+const tabbar=a=>`<div class="p-tabbar">${TABS.map((t,i)=>t.fab?`<div class="ti"><span class="fabb">${ic('plus')}</span></div>`:`<div class="ti ${i===a?'on':''}">${ic(t.i)}<span>${t.l}</span></div>`).join('')}</div>`;
+const ring=(v,rc,hole,inner,sz)=>`<div class="ringd" style="--v:${v};--rc:${rc};--hole:${hole};--sz:${sz||74}px"><span class="in">${inner}</span></div>`;
+const FREE=[{m:'Feb',k:132,s:50.37},{m:'Mar',k:111,s:42.38},{m:'Apr',k:111,s:42.24},{m:'May',k:104,s:39.75},{m:'Jun',k:118,s:45.12},{m:'Jul',k:14,s:5.30}];
+const maxS=Math.max(...FREE.map(f=>f.s));
+const freeBars=()=>`<div class="bars">${FREE.map(f=>`<div class="b" style="height:${12+(f.s/maxS)*54}px"></div>`).join('')}</div><div class="lbl">${FREE.map(f=>`<span>${f.m}</span>`).join('')}</div>`;
+const COSTM=[{m:'Feb',c:41},{m:'Mar',c:29},{m:'Apr',c:25},{m:'May',c:27},{m:'Jun',c:34},{m:'Jul',c:0.4}];
+const costBars=()=>`<div class="bars">${COSTM.map(m=>`<div class="b st" style="height:${8+(m.c/41)*58}px"></div>`).join('')}</div><div class="lbl">${COSTM.map(m=>`<span>${m.m}</span>`).join('')}</div>`;
+
+/* the savings card (home) */
+const saveCard=(anim)=>`<div class="savecard" style="padding-right:98px"><span class="bolt">⚡</span>
+ <div class="p-cap">Free Jolt energy · July</div>
+ <b class="big" ${anim?'id="savenum" data-count="5.30"':''}>${anim?'$0.00':'$5.30'} saved</b>
+ <small>14 kWh free this month · lifetime <b>$604</b> banked<br>Today: 5.2 of 7 kWh free used</small>
+ <span class="ringside">${ring(74,'#fff','#058662','<b>5.2</b><small>of 7</small>')}</span>
+</div>`;
+
+/* ---------- 10 SCREENS ---------- */
+function scrHome(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">EV Command</div><h1>July</h1><div class="p-sub">Cheapest month yet</div></div><div class="p-icon">${ic('gear')}</div></div>
+ <div class="p-hero"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="p-cap">Spent this month</div><div class="p-heronum">$0.37</div></div><span class="delta">▼ 99% vs Jun</span></div>
+ <div class="p-herosub">6 charges · 44 kWh · 96% of it free</div></div>
+ ${saveCard(false)}
+ <div class="p-hero" style="padding:13px 16px"><div class="p-cap" style="margin-bottom:7px">July budget · $50</div>
+  <div class="thermo"><span class="fill" style="width:8%"></span><span class="proj" style="left:26%"></span><span class="cap100"></span></div>
+  <div class="thermoleg"><span>$0.37 spent</span><span style="color:#b45309">projected $13</span><span>cap $50</span></div></div>
+ <div class="p-h2">Accounts</div><div class="p-h2s">Spend by charger network.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt <span class="freetag">7 kWh/day FREE</span></strong><small>235 charges · effective $0.102/kWh</small></span><b>$175.09</b></div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>3 charges · $0.470/kWh</small></span><b>$38.99</b></div>
+ <div class="p-h2">Recent</div><div class="p-h2s">Latest charges.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt <span class="freetag">FREE</span></strong><small>12 Jul · 7.0 kWh · $0.00</small></span><b>$0.00</b></div>
+</div>${tabbar(0)}`}
+
+function scrSavings(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Free energy</div><h1>Savings</h1><div class="p-sub">Powered by Jolt's 7 kWh/day</div></div><div class="p-icon">${ic('back')}</div></div>
+ <div class="savecard" style="padding:18px"><span class="bolt">⚡</span>
+  <div class="p-cap">Lifetime saved</div><b class="big" style="font-size:36px">$604.16</b>
+  <small>1,586 kWh free of 1,959 charged · valued at your paid rate $0.381/kWh</small></div>
+ <div class="p-hero" style="display:flex;gap:14px;align-items:center">
+  ${ring(74,'#059669','var(--surf)','<b style="color:var(--tx)">5.2</b><small style="color:var(--fnt)">of 7</small>',86)}
+  <div><div class="p-cap">Today's allowance</div>
+  <div style="font-size:14px;font-weight:800;color:var(--tx);margin-top:5px">1.8 kWh still free</div>
+  <div style="font-size:10px;color:var(--mut);font-weight:600;margin-top:3px">Resets midnight · 49 days maxed all-time</div></div></div>
+ <div class="p-chart"><h4>Saved per month <span style="font-size:9px;color:var(--fnt)">$ value</span></h4>${freeBars()}</div>
+ <div class="p-hero" style="padding:13px 16px"><div class="p-cap" style="margin-bottom:6px">How it's calculated</div>
+  <div style="font-size:10.5px;color:var(--mut);font-weight:600;line-height:1.6">Each day's first 7 kWh at Jolt is free. We sum <b style="color:var(--tx)">min(7, that day's Jolt kWh)</b> and value it at the $0.381/kWh you pay elsewhere.</div></div>
+</div>${tabbar(0)}`}
+
+function scrStatement(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Statement</div><h1>June 2026</h1><div class="p-sub">24 charges · 162 kWh</div></div><div class="p-icon">${ic('dl')}</div></div>
+ <div class="p-seg"><button>‹ May</button><button class="on">June</button><button>Jul ›</button></div>
+ <div class="p-hero" style="padding:13px 16px;display:flex;justify-content:space-between;align-items:center">
+  <div><div class="p-cap">Paid</div><div style="font-size:22px;font-weight:850;font-variant-numeric:tabular-nums">$33.51</div></div>
+  <div style="text-align:right"><div class="p-cap" style="color:#047857">Saved free</div><div style="font-size:22px;font-weight:850;color:#047857;font-variant-numeric:tabular-nums">$45.12</div></div></div>
+ <div class="p-h2s" style="margin:4px 0 6px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px">Sun 15 Jun</div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>35.4 kWh · $0.470/kWh</small></span><b>$16.64</b></div>
+ <div class="p-row">${mark('M','p2')}<span><strong>Matty</strong><small>9.0 kWh · overnight</small></span><b>$3.42</b></div>
+ <div class="p-h2s" style="margin:8px 0 6px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px">Fri 13 Jun</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt <span class="freetag">FREE</span></strong><small>7.0 kWh · allowance covered it</small></span><b>$0.00</b></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>8.7 kWh · 7 free + 1.7 paid</small></span><b>$0.99</b></div>
+ <button style="border:0;font:inherit;width:100%;margin-top:8px;font-size:12px;font-weight:800;color:var(--acc);padding:12px;border-radius:12px;background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow)">⬇ Download June CSV</button>
+</div>${tabbar(1)}`}
+
+function scrReceipt(){return `<div class="pad" style="filter:blur(1px)">
+ <div class="p-appbar"><div><div class="p-eyebrow">Statement</div><h1>June 2026</h1></div><div class="p-icon">${ic('dl')}</div></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>13 Jun · 8.7 kWh</small></span><b>$0.99</b></div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>15 Jun · 35.4 kWh</small></span><b>$16.64</b></div>
+</div><div class="dim"></div>
+<div class="sheetup"><div class="handle"></div>
+ <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">${mark('J','p1')}<div><b style="font-size:15px;font-weight:850">Jolt — session receipt</b><div style="font-size:10px;color:var(--mut);font-weight:600">Friday 13 Jun 2026</div></div></div>
+ <div class="rcpt">
+  <div class="rl"><span>Energy delivered</span><b>8.70 kWh</b></div>
+  <div class="rl free"><span>Free daily allowance</span><b>− 7.00 kWh</b></div>
+  <div class="rl"><span>Billable energy</span><b>1.70 kWh</b></div>
+  <div class="rl"><span>Rate</span><b>$0.582 / kWh</b></div>
+  <div class="rl tot"><span>Total paid</span><b>$0.99</b></div>
+  <div class="rl free"><span>You saved</span><b>$2.67</b></div>
+ </div>
+ <div style="margin-top:10px"><div class="splitb"><i class="f" style="width:80%"></i><i class="p" style="width:20%"></i></div>
+ <div class="splitleg"><span><i style="background:#059669"></i>Free 7.0 kWh</span><span><i style="background:#334155"></i>Paid 1.7 kWh</span></div></div>
+</div>`}
+
+function scrAdd(){return `<div class="pad" style="filter:blur(1px)">
+ <div class="p-appbar"><div><div class="p-eyebrow">EV Command</div><h1>July</h1></div><div class="p-icon">${ic('gear')}</div></div>
+ ${saveCard(false)}
+</div><div class="dim"></div>
+<div class="sheetup"><div class="handle"></div>
+ <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px;font-weight:850">New charge</b><span class="sync-badge sm"><span class="live"></span>Syncs live</span></div>
+ <label>Charger</label><div class="provrow"><b class="on">Jolt</b><b>Matty</b><b>Chargefox</b><b>Supercharger</b><b class="newp">+ New</b></div>
+ <label>Date</label><div class="fld"><span>13 Jul 2026</span><span style="opacity:.4">▾</span></div>
+ <label>Energy</label>
+ <div class="kstep"><button>−</button><div class="v">8.7<small>kWh</small></div><button>+</button></div>
+ <label>Cost</label><div class="fld"><span>0.99</span><span style="opacity:.4">AUD</span></div>
+ <div class="freepreview">⚡ 5.2 of today's 7 kWh already used — <b>1.8 kWh of this charge is free</b> → saving ≈ $0.69</div>
+ <button class="save">Save & sync</button>
+</div>`}
+
+function scrBudget(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Budgets</div><h1>Monthly cap</h1><div class="p-sub">Nudges before you blow it</div></div><div class="p-icon">${ic('wallet')}</div></div>
+ <div class="p-hero"><div class="p-cap">July · cap $50</div>
+  <div class="p-heronum" style="font-size:30px">$0.37 <span style="font-size:12px;color:var(--fnt);font-weight:700">spent</span></div>
+  <div style="margin-top:12px" class="thermo"><span class="fill" style="width:8%"></span><span class="proj" style="left:26%"></span><span class="cap100"></span></div>
+  <div class="thermoleg"><span>today</span><span style="color:#b45309">projected $13</span><span>$50</span></div></div>
+ <div class="p-chart"><h4>Spend vs cap · 6 months</h4>${costBars()}
+  <div style="font-size:9px;color:var(--fnt);font-weight:700;margin-top:5px">Cap $50 — never breached. Free energy keeps June at $33.51.</div></div>
+ <div class="p-row"><span class="p-mark" style="--pc:#334155">$</span><span><strong>Edit monthly cap</strong><small>Currently $50 · alerts at 80%</small></span><b>${ic('chev')}</b></div>
+ <div class="p-row"><span class="p-mark" style="--pc:#059669">⚡</span><span><strong>Count free energy as savings</strong><small>Adds saved $ to monthly summary</small></span><b style="color:#047857">On</b></div>
+</div>${tabbar(1)}`}
+
+function scrVehicle(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Vehicle</div><h1>Tesla Model 3</h1><div class="p-sub">RWD · 2023</div></div><div class="p-icon">${ic('car')}</div></div>
+ <div class="p-hero" style="display:flex;gap:14px;align-items:center">
+  ${ring(78,'#334155','var(--surf)','<b style="color:var(--tx)">78%</b><small style="color:var(--fnt)">battery</small>',88)}
+  <div><div class="p-cap">Est. range</div><div style="font-size:24px;font-weight:850;color:var(--tx)">312 km</div>
+  <div style="font-size:10px;color:var(--mut);font-weight:600;margin-top:3px">Last charge added 61 km</div></div></div>
+ <div class="p-metrics">
+  <div class="p-mc"><span>Efficiency</span><strong>14.2</strong><small>kWh/100km</small></div>
+  <div class="p-mc"><span>Energy cost</span><strong>$1.95</strong><small>/100km paid</small></div>
+  <div class="p-mc"><span>With free kWh</span><strong style="color:#047857">$0.42</strong><small>/100km effective</small></div>
+  <div class="p-mc"><span>Lifetime</span><strong>1,959</strong><small>kWh charged</small></div>
+ </div>
+ <div class="p-chart race"><h4>Cost per 100 km</h4>
+  <div class="rrow pet"><div class="rl2"><span>Petrol equivalent</span><b>$10.90</b></div><div class="bar pet"><i></i></div></div>
+  <div class="rrow ev"><div class="rl2"><span>You (incl. free energy)</span><b style="color:#047857">$1.95</b></div><div class="bar ev"><i></i></div></div>
+  <div style="font-size:9.5px;color:var(--fnt);font-weight:700;margin-top:4px">≈ $837 saved vs petrol since Mar 2025</div></div>
+</div>${tabbar(3)}`}
+
+function scrAccounts(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Networks</div><h1>Accounts</h1><div class="p-sub">Lifetime by charger network</div></div><div class="p-icon">${ic('plus')}</div></div>
+ <div class="p-hero" style="padding:13px 16px"><div class="p-cap" style="margin-bottom:7px">Where your kWh come from</div>
+  <div class="splitb" style="height:12px"><i style="width:65%;background:var(--p1)"></i><i style="width:14%;background:var(--p2)"></i><i style="width:15%;background:var(--p4)"></i><i style="width:6%;background:var(--p3)"></i></div>
+  <div class="splitleg"><span><i style="background:var(--p1)"></i>Jolt 65%</span><span><i style="background:var(--p2)"></i>Matty</span><span><i style="background:var(--p4)"></i>Super</span><span><i style="background:var(--p3)"></i>Cfox</span></div></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt <span class="freetag">7 kWh/day FREE</span></strong><small>235 charges · 1,725 kWh · eff. $0.102/kWh</small></span><b>$175.09</b></div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>3 charges · 92 kWh · $0.470/kWh</small></span><b>$38.99</b></div>
+ <div class="p-row">${mark('M','p2')}<span><strong>Matty</strong><small>10 charges · 109 kWh · $0.380/kWh</small></span><b>$38.33</b></div>
+ <div class="p-row">${mark('C','p3')}<span><strong>Chargefox</strong><small>1 charge · 33 kWh · $0.480/kWh</small></span><b>$15.90</b></div>
+</div>${tabbar(0)}`}
+
+function scrJolt(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Account</div><h1>Jolt</h1><div class="p-sub">235 charges since Mar 2025</div></div><div class="p-icon">${ic('back')}</div></div>
+ <div class="p-hero"><div style="display:flex;justify-content:space-between"><div><div class="p-cap">Total paid</div><div class="p-heronum" style="font-size:28px">$175.09</div></div>
+  <div style="text-align:right"><div class="p-cap" style="color:#047857">Free banked</div><div class="p-heronum" style="font-size:28px;color:#047857">$604</div></div></div>
+  <div style="margin-top:12px"><div class="splitb"><i class="f" style="width:92%"></i><i class="p" style="width:8%"></i></div>
+  <div class="splitleg"><span><i style="background:#059669"></i>1,586 kWh free</span><span><i style="background:#334155"></i>139 kWh paid</span></div></div></div>
+ <div class="p-metrics">
+  <div class="p-mc"><span>Effective rate</span><strong style="color:#047857">$0.102</strong><small>/kWh all-in</small></div>
+  <div class="p-mc"><span>Allowance maxed</span><strong>49</strong><small>days at full 7 kWh</small></div>
+ </div>
+ <div class="p-h2">Recent at Jolt</div><div class="p-h2s">Free allowance applied automatically.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>12 Jul <span class="freetag">FREE</span></strong><small>7.0 kWh · allowance covered</small></span><b>$0.00</b></div>
+ <div class="p-row">${mark('J','p1')}<span><strong>13 Jun</strong><small>8.7 kWh · 7 free + 1.7 paid</small></span><b>$0.99</b></div>
+</div>${tabbar(0)}`}
+
+function scrSettings(){return `<div class="pad">
+ <div class="p-appbar"><div><div class="p-eyebrow">Settings</div><h1>Manage</h1><div class="p-sub">Chargers · data · export</div></div><div class="p-icon">${ic('gear')}</div></div>
+ <div class="p-h2" style="margin-top:2px">Charger types</div><div class="p-h2s">Free allowances are per-charger settings.</div>
+ <div class="p-row">${mark('J','p1')}<span><strong>Jolt</strong><small>Free allowance: 7 kWh/day</small></span><b>${ic('chev')}</b></div>
+ <div class="p-row">${mark('M','p2')}<span><strong>Matty</strong><small>No free allowance</small></span><b>${ic('chev')}</b></div>
+ <div class="p-row">${mark('C','p3')}<span><strong>Chargefox</strong><small>No free allowance</small></span><b>${ic('chev')}</b></div>
+ <div class="p-row">${mark('S','p4')}<span><strong>Supercharger</strong><small>No free allowance</small></span><b>${ic('chev')}</b></div>
+ <button style="border:1.5px dashed #b6c2cb;background:transparent;color:var(--acc);font:inherit;width:100%;font-size:11.5px;font-weight:800;padding:11px;border-radius:12px;cursor:pointer;margin:2px 0 6px">+ Add charger type</button>
+ <div class="p-h2">Data</div><div class="p-h2s">Cloud sync and export.</div>
+ <div class="p-row"><span class="p-mark" style="--pc:#059669">☁</span><span><strong>Supabase sync</strong><small>250 sessions · last write 2s ago</small></span><span class="sync-badge sm"><span class="live"></span>Live</span></div>
+ <div class="p-row"><span class="p-mark" style="--pc:#334155">⬇</span><span><strong>Export all data</strong><small>Excel-ready CSV · providers joined</small></span><b>${ic('chev')}</b></div>
+</div>${tabbar(4)}`}
+
+const SCREENS=[
+ ['screen-1','1 · Home','Money page and cockpit in one: month spend + delta, the free-savings card (your request — front and centre), budget thermometer with projection, accounts preview.',scrHome],
+ ['screen-2','2 · Savings hub','The free-energy feature expanded into its own page: lifetime $604 hero, today\'s 7 kWh allowance ring, $ saved per month, and the math explained.',scrSavings],
+ ['screen-3','3 · Statement','Bank-statement pattern: month selector, paid vs saved summary, day-grouped rows with FREE tags, per-month CSV download.',scrStatement],
+ ['screen-4','4 · Session receipt','Tap any row → itemised receipt: energy, free allowance deducted, billable remainder, and "you saved" line. Free/paid split bar.',scrReceipt],
+ ['screen-5','5 · Add charge','FAB sheet: charger chips with "+ New", kWh stepper, and a live free-allowance preview that prices the saving before you save.',scrAdd],
+ ['screen-6','6 · Budgets','Monthly cap with spent/projected/cap thermometer, six-month history against the cap, and savings-counting toggle.',scrBudget],
+ ['screen-7','7 · Vehicle cockpit','The Garage half: battery + range, efficiency, cost per 100 km — including the effective rate once free energy is counted ($0.42/100km).',scrVehicle],
+ ['screen-8','8 · Accounts','Provider networks as bank accounts: share-of-energy bar, lifetime balances, effective rates. Jolt wears its free-perk badge.',scrAccounts],
+ ['screen-9','9 · Jolt account detail','Single-network statement: paid vs free banked side by side, 92% free split bar, allowance stats, recent sessions.',scrJolt],
+ ['screen-10','10 · Settings & chargers','Dynamic charger types with per-charger free allowances (data, not code), add-charger, Supabase sync status and CSV export.',scrSettings],
+];
+document.getElementById('screenSlides').innerHTML=(function(){
+ let out='';for(let i=0;i<SCREENS.length;i+=2){const pair=SCREENS.slice(i,i+2);
+  out+=`<section class="slide" id="scr-${i/2}" style="background:${(i/2)%2?'#fff':'transparent'}"><div class="wrap"><div class="mock-cluster">`+
+   pair.map(s=>`<div class="stage" id="${s[0]}"><div class="screen-label" style="font-weight:850;font-size:14px;color:var(--ink)">${s[1]}</div><div class="phone"><div class="notch"></div><div class="screen">${s[3]()}</div></div><div class="screen-note">${s[2]}</div></div>`).join('')+
+  `</div></div></section>`}
+ return out})();
+</script>
+<style>
+@property --v{syntax:'<number>';inherits:true;initial-value:0}
+.monthscroll{display:flex;gap:6px;overflow:hidden;align-items:center}
+.monthscroll b{flex:0 0 auto;font-size:10.5px;font-weight:750;padding:8px 14px;border-radius:999px;background:var(--surf);border:1px solid var(--bd);color:var(--mut)}
+.monthscroll b.on{background:var(--steel);color:#fff;border-color:transparent}
+.ratebadge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:850;padding:5px 10px;border-radius:8px;font-variant-numeric:tabular-nums}
+.ratebadge.good{background:#e7f6ef;color:#047857}
+.ratebadge.mid{background:#fef3e2;color:#b45309}
+.ratebadge.bad{background:#fdecef;color:#be123c}
+.capslider{position:relative;height:6px;border-radius:6px;background:var(--surf2);border:1px solid var(--bd)}
+.capslider .cfill{position:absolute;left:0;top:0;bottom:0;width:50%;border-radius:6px;background:linear-gradient(90deg,#047857,#34d399)}
+.capslider .knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #059669;box-shadow:var(--shadow-sm)}
+.expprog{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:10px;border-radius:12px;background:var(--surf);border:1px solid var(--bd);box-shadow:var(--cardshadow);cursor:pointer}
+.expprog .bar3{height:5px;border-radius:6px;background:var(--surf2);overflow:hidden;margin-top:5px}
+.expprog .bar3 i{display:block;height:100%;width:0;background:linear-gradient(90deg,#047857,#34d399);transition:width 1.2s ease}
+.expprog.going .bar3 i{width:100%}
+.expprog .st{font-size:9px;color:var(--fnt);font-weight:750}
+.dayhead{position:sticky;top:0;display:flex;justify-content:space-between;padding:7px 4px;font-size:8.5px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;color:var(--fnt);background:color-mix(in srgb,var(--canvas) 92%,transparent);backdrop-filter:blur(4px)}
+.emptybat{text-align:center;padding:18px 12px}
+.emptybat .batt{width:52px;height:26px;border:2.5px solid #b6c2cb;border-radius:7px;margin:0 auto 10px;position:relative}
+.emptybat .batt::after{content:"";position:absolute;right:-7px;top:6px;width:4px;height:10px;background:#b6c2cb;border-radius:0 2px 2px 0}
+.emptybat .batt i{position:absolute;left:3px;top:3px;bottom:3px;width:18%;border-radius:3px;background:#34d399;animation:batblink 1.6s ease infinite alternate}
+@keyframes batblink{to{opacity:.35}}
+/* best-5 loops */
+.animrun .ringd{animation:ringfill 2.6s ease-in-out infinite alternate}
+@keyframes ringfill{from{--v:6}to{--v:74}}
+.animrun .thermo .fill{animation:thfill 2.8s ease-in-out infinite alternate}
+@keyframes thfill{from{width:3%}to{width:67%}}
+.animrun .thermo .proj{animation:thproj 2.8s ease-in-out infinite alternate}
+@keyframes thproj{from{left:10%}to{left:78%}}
+.animrun .splitb .f{animation:splitgrow 2.4s ease-in-out infinite alternate}
+@keyframes splitgrow{from{width:6%}to{width:80%}}
+.animrun .bars .b{transform-origin:bottom;animation:bargrow 2.6s ease-in-out infinite alternate}
+@keyframes bargrow{from{transform:scaleY(.12)}to{transform:scaleY(1)}}
+.animrun .bars .b:nth-child(2){animation-delay:.12s}.animrun .bars .b:nth-child(3){animation-delay:.24s}
+.animrun .bars .b:nth-child(4){animation-delay:.36s}.animrun .bars .b:nth-child(5){animation-delay:.48s}
+.animrun .bars .b:nth-child(6){animation-delay:.6s}
+</style>
+<script>
+/* ---------- 20 components in context ---------- */
+const ghostRow=`<div class="p-row ghost">${mark('M','p2')}<span><strong>Matty</strong><small>30 May · 9.0 kWh</small></span><b>$3.42</b></div>`;
+const ghostHead=t=>`<div class="ghost top"><div class="p-eyebrow">${t}</div></div>`;
+const CTX=[
+ ['Daily allowance ring','Today\'s 7 kWh free-energy budget, always one glance away.',
+  `${ghostHead('Home')}<div class="p-hero" style="display:flex;gap:12px;align-items:center;margin:0">${ring(74,'#059669','var(--surf)','<b style="color:var(--tx)">5.2</b><small style="color:var(--fnt)">of 7 kWh</small>',80)}<div><div class="p-cap">Free today</div><div style="font-size:13px;font-weight:800;margin-top:4px">1.8 kWh left</div><div style="font-size:9.5px;color:var(--mut);font-weight:600">resets midnight</div></div></div>${ghostRow.replace('p-row','p-row ghost bot')}`],
+ ['Savings counter','The money shot — counts up on view.',
+  `${ghostHead('Savings')}<div class="savecard" style="margin:0"><div class="p-cap">Lifetime saved</div><b class="big cnt" data-count="604.16">$0.00</b><small>1,586 kWh free · valued at $0.381/kWh</small></div>`],
+ ['Receipt line-items','Mono itemisation with the free deduction as a first-class line.',
+  `<div class="rcpt"><div class="rl"><span>Energy</span><b>8.70 kWh</b></div><div class="rl free"><span>Free allowance</span><b>− 7.00 kWh</b></div><div class="rl"><span>Billable</span><b>1.70 kWh</b></div><div class="rl tot"><span>Total</span><b>$0.99</b></div><div class="rl free"><span>You saved</span><b>$2.67</b></div></div>`],
+ ['Free / paid split bar','One bar tells the whole session story.',
+  `${ghostHead('Session')}<div class="p-hero" style="margin:0"><div class="p-cap" style="margin-bottom:7px">8.7 kWh delivered</div><div class="splitb"><i class="f" style="width:80%"></i><i class="p" style="width:20%"></i></div><div class="splitleg"><span><i style="background:#059669"></i>Free 7.0</span><span><i style="background:#334155"></i>Paid 1.7</span></div></div>`],
+ ['Budget thermometer','Spent, projected and cap on one track.',
+  `${ghostHead('Budgets')}<div class="p-hero" style="margin:0"><div class="p-cap" style="margin-bottom:8px">June · cap $50</div><div class="thermo"><span class="fill" style="width:67%"></span><span class="proj" style="left:78%"></span><span class="cap100"></span></div><div class="thermoleg"><span>$33.51</span><span style="color:#b45309">proj $39</span><span>$50</span></div></div>`],
+ ['Month pill scroller','Statement navigation without a date picker.',
+  `${ghostHead('Statement')}<div class="monthscroll"><b>Apr</b><b>May</b><b class="on">June</b><b>Jul</b><b style="opacity:.5">Aug</b></div><div class="ghost bot">${ghostRow}</div>`],
+ ['Account row + trend','Provider networks styled as bank accounts.',
+  `${ghostHead('Accounts')}<div class="p-row" style="margin:0">${mark('J','p1')}<span><strong>Jolt <span class="freetag">7/day FREE</span></strong><small>235 charges · eff. $0.102/kWh</small></span><span style="text-align:right"><b>$175.09</b><br><span class="delta" style="font-size:8px;padding:2px 6px">▼ 12% /mo</span></span></div>`],
+ ['Effective-rate badge','Colour-graded $/kWh so cheap reads instantly.',
+  `<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 0"><span class="ratebadge good">⚡ $0.102 · Jolt</span><span class="ratebadge mid">$0.380 · Matty</span><span class="ratebadge bad">$0.470 · Super</span></div>`],
+ ['FREE session tag','Zero-cost rows celebrate themselves.',
+  `${ghostHead('Recent')}<div class="p-row" style="margin:0">${mark('J','p1')}<span><strong>Jolt <span class="freetag">FREE</span></strong><small>12 Jul · 7.0 kWh · allowance covered</small></span><b>$0.00</b></div>${ghostRow.replace('p-row','p-row ghost bot')}`],
+ ['Petrol race bars','The cockpit brag: EV vs pump.',
+  `<div class="p-chart race" style="margin:0"><h4>Cost / 100 km</h4><div class="rrow"><div class="rl2"><span>Petrol</span><b>$10.90</b></div><div class="bar pet"><i></i></div></div><div class="rrow"><div class="rl2"><span>You</span><b style="color:#047857">$1.95</b></div><div class="bar ev"><i></i></div></div></div>`],
+ ['kWh stepper + hint','Numeric entry with the allowance maths inline.',
+  `<div class="kstep"><button>−</button><div class="v">8.7<small>kWh</small></div><button>+</button></div><div class="freepreview" style="margin-top:8px">1.8 kWh of this will be free → saves $0.69</div>`],
+ ['Export progress row','Tap: progress sweeps, tick lands. (Try it)',
+  `<div class="expprog" id="expprog"><span class="p-mark" style="--pc:#334155">⬇</span><span><strong style="font-size:12px;font-weight:800">Export all data</strong><div class="bar3"><i></i></div><span class="st">250 rows · CSV</span></span><b id="expok" style="color:#047857;opacity:0;transition:.3s .9s">✓</b></div>`],
+ ['Delta chip','Month-on-month movement, colour-coded.',
+  `${ghostHead('July')}<div class="p-hero" style="margin:0;display:flex;justify-content:space-between;align-items:center"><div><div class="p-cap">Spent</div><div style="font-size:24px;font-weight:850">$0.37</div></div><span class="delta">▼ 99% vs Jun</span></div>`],
+ ['Success tick sheet','SVG stroke-draw confirmation on save.',
+  `<div style="padding:10px 0"><svg class="ticksvg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27"/><path d="M20 33l8 8 16-17"/></svg><div style="text-align:center;font-size:11px;font-weight:800;margin-top:8px">Charge saved &amp; synced</div></div>`],
+ ['Cap editor slider','Set the monthly budget with a thumb.',
+  `${ghostHead('Budgets')}<div class="p-hero" style="margin:0"><div class="p-cap" style="margin-bottom:14px">Monthly cap — $50</div><div class="capslider"><span class="cfill"></span><span class="knob"></span></div><div class="thermoleg" style="margin-top:10px"><span>$20</span><span>$100</span></div></div>`],
+ ['Allowance week strip','Seven days of 7 kWh — how much of each was claimed.',
+  `${ghostHead('Savings')}<div class="p-hero" style="margin:0"><div class="p-cap" style="margin-bottom:8px">This week's free kWh</div><div class="wkstrip">${[100,74,100,0,88,100,74].map((u,i)=>`<span class="d"><i style="--u:${u}"></i><span>${'MTWTFSS'[i]}</span></span>`).join('')}</div></div>`],
+ ['Sticky day header','Statement scan-ability: date + day totals pinned.',
+  `<div class="dayhead"><span>Fri 13 Jun</span><span>2 charges · $0.99 · saved $2.67</span></div><div class="p-row" style="margin:6px 0 0">${mark('J','p1')}<span><strong>Jolt</strong><small>8.7 kWh</small></span><b>$0.99</b></div>${ghostRow.replace('p-row','p-row ghost bot')}`],
+ ['Account filter','Slide between All and any network.',
+  `${ghostHead('Statement')}<div class="p-seg" style="margin:0"><button class="on">All</button><button>Jolt</button><button>Matty</button><button>Super</button></div><div class="ghost bot">${ghostRow}</div>`],
+ ['Battery empty state','First-run and filtered-empty, in cockpit voice.',
+  `<div class="emptybat"><div class="batt"><i></i></div><b style="font-size:13px;font-weight:850">No charges yet</b><div style="font-size:10.5px;color:var(--mut);font-weight:600;margin:4px 0 10px">Log your first charge to start the ledger.</div><span style="font-size:11px;font-weight:800;color:#fff;background:linear-gradient(120deg,#047857,#0d9488);padding:9px 16px;border-radius:10px;display:inline-block">+ Add charge</span></div>`],
+ ['Sync status pill','Supabase heartbeat with last-write time.',
+  `${ghostHead('Settings')}<div class="p-row" style="margin:0"><span class="p-mark" style="--pc:#059669">☁</span><span><strong>Cloud sync</strong><small>last write 2s ago · realtime open</small></span><span class="sync-badge sm"><span class="live"></span>Live</span></div>`],
+];
+document.getElementById('ctxGrid').innerHTML=CTX.map((c,i)=>`<div class="ctx"><div class="num">${String(i+1).padStart(2,'0')}</div><h4>${c[0]}</h4><div class="desc">${c[1]}</div><div class="miniscr">${c[2]}</div></div>`).join('');
+
+/* export row demo */
+(function(){const e=document.getElementById('expprog');if(!e)return;e.addEventListener('click',()=>{e.classList.remove('going');document.getElementById('expok').style.opacity=0;requestAnimationFrame(()=>requestAnimationFrame(()=>{e.classList.add('going');document.getElementById('expok').style.opacity=1}))})})();
+/* counters on view */
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;const b=en.target;if(b.dataset.done)return;b.dataset.done=1;
+ const t=parseFloat(b.dataset.count),t0=performance.now();
+ (function tick(){const p=Math.min(1,(performance.now()-t0)/1600);const e2=1-Math.pow(1-p,3);
+  b.textContent='$'+(t*e2).toFixed(2)+(b.classList.contains('big')?' saved':'');if(p<1)requestAnimationFrame(tick)})();
+ io.unobserve(b)}),{threshold:.5});
+document.querySelectorAll('.cnt').forEach(el=>io.observe(el));
+</script>
+<script>
+/* ---------- BEST 5 — full screens with working animation ---------- */
+const animHome=()=>scrHome().replace('<b class="big" >$5.30 saved</b>','<b class="big" id="savenum">$0.00 saved</b>');
+const animReceipt=()=>scrReceipt().replace('<div class="handle"></div>','<div class="handle"></div><svg class="ticksvg" viewBox="0 0 64 64" style="width:52px;height:52px;margin-bottom:4px"><circle cx="32" cy="32" r="27"/><path d="M20 33l8 8 16-17"/></svg>');
+const BEST5=[
+ ['① Savings count-up + allowance ring','Home — the money card counts up while today\'s ring fills to 5.2/7.','animrun',animHome],
+ ['② Free-allocation preview','Add charge — the stepper climbs and the free-kWh preview re-prices the saving live.','',()=>scrAdd()],
+ ['③ Receipt tick + split','Session receipt — sync tick draws in, free/paid bar fills to 80/20.','animrun loopanim',animReceipt],
+ ['④ Thermometer projection','Budgets — the fill sweeps to $33.51 while the projection marker glides ahead.','animrun',()=>scrBudget()],
+ ['⑤ Savings bars','Savings hub — six months of $ saved grow in, staggered.','animrun',()=>scrSavings()],
+];
+document.getElementById('best5Mocks').innerHTML=BEST5.map((b,i)=>`<div class="stage"><div class="screen-label" style="font-weight:850;color:var(--ink)">${b[0]}</div><div class="phone ${b[2]}" ${i===1?'id="animadd"':''}><div class="notch"></div><div class="screen">${b[3]()}</div></div><div class="screen-note">${b[1]}</div></div>`).join('');
+
+/* savings count-up loop (home) */
+(function(){const b=document.getElementById('savenum');if(!b)return;
+ function run(){const t0=performance.now();
+  (function tick(){const p=Math.min(1,(performance.now()-t0)/1800);const e=1-Math.pow(1-p,3);
+   b.textContent='$'+(5.30*e).toFixed(2)+' saved';
+   if(p<1)requestAnimationFrame(tick);else setTimeout(run,1600)})()}
+ run()})();
+
+/* add-flow live demo: stepper climbs, preview re-prices */
+(function(){const ph=document.getElementById('animadd');if(!ph)return;
+ const v=ph.querySelector('.kstep .v'),pv=ph.querySelector('.freepreview');if(!v||!pv)return;
+ let k=0;setInterval(()=>{k+=0.3;if(k>8.7)k=0;
+  const kk=Math.min(8.7,k);
+  v.innerHTML=kk.toFixed(1)+'<small>kWh</small>';
+  const freeLeft=1.8,free=Math.min(freeLeft,kk),save=(free*0.381).toFixed(2);
+  pv.innerHTML='⚡ 5.2 of today\'s 7 kWh already used — <b>'+free.toFixed(1)+' kWh of this charge is free</b> → saving ≈ $'+save;
+ },220)})();
+
+/* ---------- supabase in-app mockups ---------- */
+document.getElementById('supaMocks').innerHTML=`
+ <div class="stage"><div class="screen-label">➕ New charger type — with free allowance field</div>
+  <div class="phone"><div class="notch"></div><div class="screen">
+   <div class="pad" style="filter:blur(1px)">${scrSettings().split('<div class="p-tabbar">')[0].replace('<div class="pad">','')}</div>
+   <div class="dim"></div>
+   <div class="sheetup"><div class="handle"></div>
+    <b style="font-size:15px;font-weight:850">New charger type</b>
+    <label>Name</label><div class="fld"><span>Evie</span><span style="opacity:.35">|</span></div>
+    <label>Colour — auto-assigned</label>
+    <div style="display:flex;gap:7px">${['#f59e0b','#06b6d4','#84cc16','#d946ef','#0ea5e9'].map((c,i)=>`<span style="width:26px;height:26px;border-radius:9px;background:${c};${i===0?'outline:2px solid #0f1a24;outline-offset:2px':''}"></span>`).join('')}</div>
+    <label>Free allowance (kWh / day)</label>
+    <div class="kstep"><button>−</button><div class="v">0<small>kWh free daily</small></div><button>+</button></div>
+    <div class="freepreview">Set it and every savings figure, receipt and ring updates automatically — the "7" is data, not code.</div>
+    <button class="save">Create charger</button>
+   </div></div></div>
+  <div class="screen-note">Inserts into <span class="kv">providers</span>; chips, filters, charts and the savings engine pick it up instantly via realtime.</div>
+ </div>
+ <div class="stage"><div class="screen-label">🔧 Manage chargers + sync + export (Settings)</div>
+  <div class="phone"><div class="notch"></div><div class="screen">${scrSettings()}</div></div>
+  <div class="screen-note">Per-charger free allowances live next to sync status and the one-tap CSV export.</div>
+ </div>
+ <div class="stage"><div class="screen-label">📄 What the export contains</div>
+  <div style="width:300px" class="panel">
+   <div class="kv" style="font-size:11px;color:#71828f">ev-charging-export.csv</div>
+   <div class="kv" style="font-size:11px;margin-top:8px;color:#3d4d5a;line-height:1.8">Date,Provider,Amount,Cost,FreeKwh,Notes<br>2026-07-13,Evie,21.4,9.63,0,<br>2026-07-12,Jolt,7.0,0.00,7.0,<br>2026-06-13,Jolt,8.7,0.99,7.0,<br>2026-06-15,Supercharger,35.4,16.64,0,…</div>
+   <div style="height:1px;background:var(--line);margin:14px 0"></div>
+   <p class="muted" style="font-size:12px">Provider names and the per-day free-kWh figure are joined in — so the spreadsheet can reproduce every savings number.</p>
+  </div>
+  <div class="screen-note">Client-side blob download; filtered exports respect the active month/provider filters.</div>
+ </div>`;
+
+/* ---------- TOC / progress / keys / isolation ---------- */
+const SECTIONS=[['changes','Changes'],['dna','Design DNA'],['screens-intro','10 Screens'],['components','20 Components'],['best5','Best 5 ▶'],['supabase','Supabase']];
+document.getElementById('toc').innerHTML=SECTIONS.map(s=>`<a href="#${s[0]}">${s[1]}</a>`).join('');
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+addEventListener('keydown',e=>{
+ if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
+ const ys=[...document.querySelectorAll('section[id]')].sort((a,b)=>a.offsetTop-b.offsetTop);
+ const cur=scrollY+70;
+ if(e.key==='ArrowDown'){ys.find(el=>el.offsetTop>cur+5)?.scrollIntoView()}
+ else{[...ys].reverse().find(el=>el.offsetTop<cur-5)?.scrollIntoView()}
+});
+(function(){const only=new URLSearchParams(location.search).get('only');if(!only)return;
+ document.querySelectorAll('section.slide, section.hero, .footer').forEach(s=>{if(s.id!==only)s.style.display='none'});
+ scrollTo(0,0)})();
+</script>
