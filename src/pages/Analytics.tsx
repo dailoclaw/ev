@@ -7,7 +7,6 @@ type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
 
 const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
-  { id: 'statement', label: 'Statement', eye: 'Statement', icon: <path d="M4 6h16M4 12h16M4 18h10" /> },
   {
     id: 'cluster',
     label: 'Cluster',
@@ -44,6 +43,7 @@ const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
     ),
   },
   { id: 'compare', label: 'Compare', eye: 'Compare', icon: <path d="M6 20V9M12 20V4M18 20v-7" /> },
+  { id: 'statement', label: 'Statement', eye: 'Statement', icon: <path d="M4 6h16M4 12h16M4 18h10" /> },
 ]
 
 const perKwh = (cost: number, k: number) => (k > 0 ? '$' + (cost / k).toFixed(2) : '—')
@@ -54,7 +54,7 @@ const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 export default function Analytics() {
   const ev = useEv()
   const navigate = useNavigate()
-  const [view, setView] = useState<View>('statement')
+  const [view, setView] = useState<View>('cluster')
 
   // ---- derived, shared across views ----
   const years = useMemo(() => {
@@ -324,6 +324,7 @@ function ClusterView({
 }) {
   const [gran, setGran] = useState<Gran>('year')
   const [metric, setMetric] = useState<'cost' | 'kwh'>('cost')
+  const [sel, setSel] = useState<string | null>(null)
 
   const bk = bucketize(ev.months, gran)
   const cur = bk[bk.length - 1]
@@ -402,33 +403,31 @@ function ClusterView({
             </button>
           </span>
         </h4>
-        <button
-          type="button"
-          onClick={() => navigate('/analytics/chart')}
-          aria-label="Open 12-month chart detail"
-          style={{ display: 'block', width: '100%', background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
-        >
-          <div className="bars">
-            {bars.map((b, i) => (
-              <div
-                key={b.month}
-                className={`b ${i === bars.length - 1 ? 'hi' : ''}`}
-                data-v={metric === 'cost' ? aud(b.value, 0) : kwh(b.value)}
-                style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
-              />
-            ))}
-          </div>
-          <div className="blbl">
-            {bars.map((b, i) => (
-              <span key={b.month} className={i === bars.length - 1 ? 'hi' : ''}>
-                {b.label}
-              </span>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-            <span className="text-btn">Open 12-month detail ›</span>
-          </div>
-        </button>
+        <div className="bars">
+          {bars.map((b, i) => (
+            <button
+              key={b.month}
+              type="button"
+              className={`b ${i === bars.length - 1 ? 'hi' : ''} ${sel === b.month ? 'show' : ''}`}
+              data-v={metric === 'cost' ? aud(b.value, 0) : kwh(b.value)}
+              style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
+              aria-label={`${b.label}: ${metric === 'cost' ? aud(b.value) : `${kwh(b.value)} kWh`}`}
+              onClick={() => setSel(sel === b.month ? null : b.month)}
+            />
+          ))}
+        </div>
+        <div className="blbl">
+          {bars.map((b, i) => (
+            <span key={b.month} className={i === bars.length - 1 ? 'hi' : ''}>
+              {b.label}
+            </span>
+          ))}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <button type="button" className="text-btn" onClick={() => navigate('/analytics/chart')}>
+            Open 12-month detail ›
+          </button>
+        </div>
       </section>
 
       <div className="metric-grid" style={{ marginBottom: 0 }}>
@@ -463,6 +462,7 @@ function TrendsView({
 }) {
   const [metric, setMetric] = useState<Metric>('cost')
   const [prov, setProv] = useState('All')
+  const [selIdx, setSelIdx] = useState<number | null>(null)
   const provNames = ['All', ...ev.byProvider.map(p => p.name)]
 
   const data = series(prov, metric).slice(-6)
@@ -471,9 +471,10 @@ function TrendsView({
   const xAt = (i: number) => (n > 1 ? (i / (n - 1)) * 300 : 150)
   const yAt = (v: number) => 128 - (v / max) * 108
   const d = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)} ${yAt(p.value).toFixed(1)}`).join(' ')
-  const last = data[n - 1]
   const fmt = (v: number) => (metric === 'cost' ? aud(v) : metric === 'kwh' ? `${kwh(v)} kWh` : '$' + v.toFixed(3))
-  const flagLeft = Math.min(86, Math.max(14, (n > 1 ? 1 : 0.5) * 100))
+  const activeIdx = selIdx == null ? n - 1 : selIdx
+  const sp = data[activeIdx]
+  const flagLeft = Math.min(90, Math.max(10, (n > 1 ? activeIdx / (n - 1) : 0.5) * 100))
 
   const top = ev.byProvider[0]
   const share = ev.lifetime.kwh > 0 && top ? (top.kwh / ev.lifetime.kwh) * 100 : 0
@@ -505,37 +506,44 @@ function TrendsView({
         ))}
       </div>
 
-      <button
-        type="button"
-        className="chart-card"
-        onClick={() => navigate('/analytics/chart')}
-        aria-label="Open 12-month chart detail"
-        style={{ display: 'block', width: '100%', textAlign: 'left', paddingTop: 22, cursor: 'pointer' }}
-      >
+      <section className="chart-card" style={{ paddingTop: 22 }}>
         <div className="scrub">
-          {last && (
+          {sp && (
             <div className="flag" style={{ left: `${flagLeft}%`, top: 8 }}>
-              {last.label} · {fmt(last.value)}
+              {sp.label} · {fmt(sp.value)}
             </div>
           )}
           <svg viewBox="0 0 300 148" preserveAspectRatio="none">
             <line className="gl" x1="0" y1="38" x2="300" y2="38" />
             <line className="gl" x1="0" y1="94" x2="300" y2="94" />
             <path className="ln" d={d} />
-            {last && <circle className="dot" cx={xAt(n - 1)} cy={yAt(last.value)} r="5" />}
+            {data.map((p, i) => (
+              <circle
+                key={p.month}
+                cx={xAt(i)}
+                cy={yAt(p.value)}
+                r="12"
+                fill="transparent"
+                style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                onClick={() => setSelIdx(i)}
+              />
+            ))}
+            {sp && <circle className="dot" cx={xAt(activeIdx)} cy={yAt(sp.value)} r="5" />}
           </svg>
         </div>
         <div className="yaxis">
           {data.map((p, i) => (
-            <span key={p.month} style={i === n - 1 ? { color: 'var(--tx)' } : undefined}>
+            <span key={p.month} style={i === activeIdx ? { color: 'var(--tx)' } : undefined}>
               {p.label}
             </span>
           ))}
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-          <span className="text-btn">Open 12-month detail ›</span>
+          <button type="button" className="text-btn" onClick={() => navigate('/analytics/chart')}>
+            Open 12-month detail ›
+          </button>
         </div>
-      </button>
+      </section>
 
       {top && (
         <div className="row">
@@ -581,6 +589,7 @@ function TrendsView({
 
 /* ============ SPLIT (composition) ============ */
 function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor: (name: string) => string }) {
+  const [sel, setSel] = useState<string | null>(null)
   const byCost = ev.byProvider.filter(p => p.cost > 0)
   const totalCost = byCost.reduce((a, p) => a + p.cost, 0)
   const stops = byCost
@@ -654,10 +663,17 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
           {last6.map(m => {
             const paid = Math.max(0, m.kwh - m.freeKwh)
             return (
-              <div className="col" key={m.month}>
+              <button
+                type="button"
+                className={`col ${sel === m.month ? 'show' : ''}`}
+                key={m.month}
+                data-v={`${kwh(m.freeKwh)} free · ${kwh(paid)} paid`}
+                aria-label={`${m.label.split(' ')[0]}: ${kwh(m.freeKwh)} kWh free, ${kwh(paid)} kWh paid`}
+                onClick={() => setSel(sel === m.month ? null : m.month)}
+              >
                 <i className="paid" style={{ height: `${(paid / maxTot) * 100}%` }} />
                 <i className="free" style={{ height: `${(m.freeKwh / maxTot) * 100}%` }} />
-              </div>
+              </button>
             )
           })}
         </div>

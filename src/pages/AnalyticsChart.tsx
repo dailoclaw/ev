@@ -15,6 +15,7 @@ export default function AnalyticsChart() {
   const navigate = useNavigate()
   const [metric, setMetric] = useState<'cost' | 'kwh'>('cost')
   const [prov, setProv] = useState('All')
+  const [sel, setSel] = useState<string | null>(null)
   const provNames = ['All', ...ev.byProvider.map(p => p.name)]
   const provColor = (name: string) => ev.providers.find(p => p.name === name)?.color ?? 'var(--steel)'
 
@@ -95,11 +96,14 @@ export default function AnalyticsChart() {
             </h4>
             <div className="bars" style={{ height: 118 }}>
               {rows.map((r, i) => (
-                <div
+                <button
                   key={r.ym}
-                  className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''}`}
+                  type="button"
+                  className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''} ${sel === r.ym ? 'show' : ''}`}
                   data-v={metric === 'cost' ? aud(r.value, 0) : kwh(r.value)}
                   style={{ height: `${Math.max(3, (r.value / max) * 100)}%` }}
+                  aria-label={`${r.label} ${year}: ${metric === 'cost' ? aud(r.value) : `${kwh(r.value)} kWh`}`}
+                  onClick={() => setSel(sel === r.ym ? null : r.ym)}
                 />
               ))}
             </div>

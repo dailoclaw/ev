@@ -1119,7 +1119,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 
 /* ---- bar value labels ---- */
-.bars .b.hi::after {
+.bars .b.hi::after,
+.bars .b.show::after {
   content: attr(data-v);
   position: absolute;
   top: -16px;
@@ -1132,6 +1133,37 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .blbl span.hi {
   color: var(--tx);
+}
+/* clickable bars/columns — tap to reveal a month's value */
+.bars button.b {
+  padding: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.bars .b.show {
+  outline: 2px solid var(--money-deep);
+  outline-offset: 1px;
+}
+.sbars .col {
+  position: relative;
+}
+.sbars button.col {
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+.sbars .col.show::after {
+  content: attr(data-v);
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--tx);
+  white-space: nowrap;
 }
 
 /* ---- filter chips ---- */
