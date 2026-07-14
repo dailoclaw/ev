@@ -6,8 +6,11 @@ import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
 import { useEv } from '../lib/useEv'
 import { SyncBadge, TickSvg } from './ui'
 
+type Mode = 'charge' | 'fee'
+
 export default function AddSheet({ onClose }: { onClose: () => void }) {
   const { providers, sessions, refRate, synced } = useEv()
+  const [mode, setMode] = useState<Mode>('charge')
   const [providerName, setProviderName] = useState(providers[0]?.name ?? '')
   const [showNew, setShowNew] = useState(false)
   const [newName, setNewName] = useState('')
@@ -19,6 +22,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const [notes, setNotes] = useState('')
   const [saved, setSaved] = useState(false)
 
+  const isFee = mode === 'fee'
   const kwh = parseFloat(kwhStr) || 0
   const cost = parseFloat(costStr) || 0
   const provider = providers.find(p => p.name === providerName)
@@ -28,7 +32,8 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
     [sessions, provider, date, kwh, refRate],
   )
 
-  const canSave = (showNew ? newName.trim().length > 0 : !!provider) && kwh > 0 && cost >= 0
+  const providerChosen = showNew ? newName.trim().length > 0 : !!provider
+  const canSave = isFee ? providerChosen && cost > 0 : providerChosen && kwh > 0 && cost >= 0
 
   const handleSave = () => {
     let typeName = providerName
@@ -36,19 +41,25 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
       const p = addProvider(newName, newFree, newColor)
       typeName = p.name
     }
-    addSession({ date, type: typeName, amount: kwh, cost, notes: notes.trim() || null })
+    addSession({
+      date,
+      type: typeName,
+      amount: isFee ? 0 : kwh,
+      cost,
+      notes: notes.trim() || (isFee ? 'Monthly membership' : null),
+    })
     setSaved(true)
     setTimeout(onClose, 1300)
   }
 
   return (
     <div className="sheet-backdrop" role="presentation" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label="Add charge" onClick={e => e.stopPropagation()}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label="Add charge or fee" onClick={e => e.stopPropagation()}>
         <div className="handle" />
         {saved ? (
           <div style={{ textAlign: 'center', padding: '18px 0 26px' }}>
             <TickSvg />
-            <b style={{ fontSize: 15, fontWeight: 800 }}>Charge saved</b>
+            <b style={{ fontSize: 15, fontWeight: 800 }}>{isFee ? 'Fee saved' : 'Charge saved'}</b>
             <p style={{ fontSize: 12, color: 'var(--mut)', fontWeight: 600, marginTop: 4 }}>
               {synced ? 'Synced to Supabase' : 'Stored on this device — will sync once Supabase is connected'}
             </p>
@@ -56,8 +67,17 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <b style={{ fontSize: 17, fontWeight: 800 }}>New charge</b>
+              <b style={{ fontSize: 17, fontWeight: 800 }}>{isFee ? 'New membership fee' : 'New charge'}</b>
               <SyncBadge live={synced} label={synced ? 'Syncs live' : 'Local for now'} />
+            </div>
+
+            <div className="seg" style={{ marginTop: 12 }} role="tablist" aria-label="Entry type">
+              <button type="button" className={mode === 'charge' ? 'on' : ''} onClick={() => setMode('charge')}>
+                Charge
+              </button>
+              <button type="button" className={mode === 'fee' ? 'on' : ''} onClick={() => setMode('fee')}>
+                Membership fee
+              </button>
             </div>
 
             <label>Charger</label>
@@ -113,50 +133,75 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <label>Date</label>
+            <label>{isFee ? 'Billed on' : 'Date'}</label>
             <div className="fld">
               <input type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
-              <div style={{ minWidth: 0 }}>
-                <label>Energy</label>
-                <div className="fld">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    step={0.1}
-                    placeholder="0.0"
-                    value={kwhStr}
-                    onChange={e => setKwhStr(e.target.value)}
-                  />
-                  <span className="unit">kWh</span>
-                </div>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <label>Cost</label>
+            {isFee ? (
+              <>
+                <label>Fee amount</label>
                 <div className="fld">
                   <input
                     type="number"
                     inputMode="decimal"
                     min={0}
                     step={0.01}
-                    placeholder="0.00"
+                    placeholder="15.00"
                     value={costStr}
                     onChange={e => setCostStr(e.target.value)}
                   />
                   <span className="unit">AUD</span>
                 </div>
+                <div className="freepreview" style={{ background: 'var(--surf2)', borderColor: 'var(--bd)', color: 'var(--mut)' }}>
+                  A membership fee has no energy — it's counted as a cost and netted against your free-energy savings.
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <label>Energy</label>
+                  <div className="fld">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step={0.1}
+                      placeholder="0.0"
+                      value={kwhStr}
+                      onChange={e => setKwhStr(e.target.value)}
+                    />
+                    <span className="unit">kWh</span>
+                  </div>
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <label>Cost</label>
+                  <div className="fld">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step={0.01}
+                      placeholder="0.00"
+                      value={costStr}
+                      onChange={e => setCostStr(e.target.value)}
+                    />
+                    <span className="unit">AUD</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             <label>Notes (optional)</label>
             <div className="fld">
-              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Norwood carpark" />
+              <input
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder={isFee ? 'e.g. Monthly membership' : 'e.g. Norwood carpark'}
+              />
             </div>
 
-            {!showNew && provider && provider.freeKwhPerDay > 0 && kwh > 0 && (
+            {!isFee && !showNew && provider && provider.freeKwhPerDay > 0 && kwh > 0 && (
               <div className="freepreview">
                 ⚡ {(provider.freeKwhPerDay - preview.allowanceLeft).toFixed(1)} of {provider.freeKwhPerDay} kWh already
                 used {date === todayIso() ? 'today' : 'that day'} —{' '}
@@ -168,7 +213,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             )}
 
             <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave} onClick={handleSave}>
-              {showNew ? 'Create charger & save' : 'Save charge'}
+              {showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
             </button>
           </>
         )}
