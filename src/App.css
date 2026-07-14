@@ -1137,17 +1137,17 @@ input[type='range'].capslider::-webkit-slider-thumb {
 /* ---- filter chips ---- */
 .chiprow {
   display: flex;
-  gap: 7px;
+  gap: 5px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 12px;
   font-weight: 750;
-  padding: 8px 12px;
+  padding: 8px 9px;
   border-radius: 999px;
   background: var(--surf);
   color: var(--mut);
@@ -1155,8 +1155,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
   box-shadow: var(--cardshadow);
 }
 .chip .dt {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
   border-radius: 50%;
   background: var(--pc, var(--money));
 }

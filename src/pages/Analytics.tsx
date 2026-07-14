@@ -48,6 +48,8 @@ const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
 
 const perKwh = (cost: number, k: number) => (k > 0 ? '$' + (cost / k).toFixed(2) : '—')
 const pct = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 100 : null)
+// short chip label so all provider filters fit one row
+const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 
 export default function Analytics() {
   const ev = useEv()
@@ -156,7 +158,7 @@ export default function Analytics() {
       ) : view === 'statement' ? (
         <StatementView ev={ev} years={years} yearAgg={yearAgg} daySpark={daySpark} navigate={navigate} />
       ) : view === 'cluster' ? (
-        <ClusterView ev={ev} years={years} yearAgg={yearAgg} series={series} />
+        <ClusterView ev={ev} series={series} navigate={navigate} />
       ) : view === 'trends' ? (
         <TrendsView ev={ev} series={series} provColor={provColor} />
       ) : view === 'split' ? (
@@ -270,41 +272,77 @@ function StatementView({
 }
 
 /* ============ CLUSTER (KPI tiles) ============ */
+type Gran = 'year' | 'quarter' | 'month'
+interface Bucket {
+  key: string
+  label: string
+  cost: number
+  kwh: number
+  sessions: number
+  freeKwh: number
+  saved: number
+  fees: number
+}
+
+function bucketize(months: ReturnType<typeof useEv>['months'], gran: Gran): Bucket[] {
+  const map = new Map<string, Bucket>()
+  for (const m of months) {
+    const [y, mm] = m.month.split('-').map(Number)
+    let key: string
+    let label: string
+    if (gran === 'year') {
+      key = String(y)
+      label = String(y)
+    } else if (gran === 'quarter') {
+      const q = Math.floor((mm - 1) / 3) + 1
+      key = `${y}-Q${q}`
+      label = `Q${q} '${String(y).slice(2)}`
+    } else {
+      key = m.month
+      label = m.label.split(' ')[0]
+    }
+    const b = map.get(key) ?? { key, label, cost: 0, kwh: 0, sessions: 0, freeKwh: 0, saved: 0, fees: 0 }
+    b.cost += m.cost
+    b.kwh += m.kwh
+    b.sessions += m.sessions
+    b.freeKwh += m.freeKwh
+    b.saved += m.saved
+    b.fees += m.fees
+    map.set(key, b)
+  }
+  return [...map.values()] // chronological — ev.months is sorted ascending
+}
+
 function ClusterView({
   ev,
-  years,
-  yearAgg,
   series,
+  navigate,
 }: {
   ev: ReturnType<typeof useEv>
-  years: string[]
-  yearAgg: (y: string) => { cost: number; kwh: number; sessions: number; freeKwh: number; saved: number; fees: number }
   series: (provider: string, metric: Metric) => { month: string; label: string; value: number }[]
+  navigate: (to: string) => void
 }) {
+  const [gran, setGran] = useState<Gran>('year')
   const [metric, setMetric] = useState<'cost' | 'kwh'>('cost')
-  const latest = years[0]
-  const prev = years[1]
-  const cur = yearAgg(latest)
-  const pr = prev ? yearAgg(prev) : null
-  const dCost = pr ? pct(cur.cost, pr.cost) : null
-  const dKwh = pr ? pct(cur.kwh, pr.kwh) : null
+
+  const bk = bucketize(ev.months, gran)
+  const cur = bk[bk.length - 1]
+  const prev = bk[bk.length - 2]
+  const dCost = prev ? pct(cur.cost, prev.cost) : null
+  const dKwh = prev ? pct(cur.kwh, prev.kwh) : null
+  const priciest = bk.reduce((a, b) => (b.cost > a.cost ? b : a), bk[0])
 
   const bars = series('All', metric).slice(-6)
   const max = Math.max(...bars.map(b => b.value), 0.01)
-  const priciest = ev.months.reduce((a, m) => (m.cost > a.cost ? m : a), ev.months[0])
 
   return (
     <>
       <div className="seg" aria-label="Granularity">
-        <button type="button" className="on">
-          Year
-        </button>
-        <button type="button" style={{ opacity: 0.5 }} disabled>
-          Quarter
-        </button>
-        <button type="button" style={{ opacity: 0.5 }} disabled>
-          Month
-        </button>
+        {(['year', 'quarter', 'month'] as Gran[]).map(g => (
+          <button key={g} type="button" className={gran === g ? 'on' : ''} onClick={() => setGran(g)}>
+            {g[0].toUpperCase() + g.slice(1)}
+          </button>
+        ))}
       </div>
 
       <div className="metric-grid">
@@ -313,10 +351,10 @@ function ClusterView({
           <strong>{aud(cur.cost)}</strong>
           {dCost != null ? (
             <small className={dCost > 0 ? 'negd' : 'pos'}>
-              {dCost > 0 ? '▲' : '▼'} {Math.abs(dCost).toFixed(0)}% vs {prev}
+              {dCost > 0 ? '▲' : '▼'} {Math.abs(dCost).toFixed(0)}% vs {prev.label}
             </small>
           ) : (
-            <small>{latest}</small>
+            <small>{cur.label}</small>
           )}
         </div>
         <div className="metric-card">
@@ -324,10 +362,10 @@ function ClusterView({
           <strong>{kwh(cur.kwh)} kWh</strong>
           {dKwh != null ? (
             <small>
-              {dKwh > 0 ? '▲' : '▼'} {Math.abs(dKwh).toFixed(0)}% vs {prev}
+              {dKwh > 0 ? '▲' : '▼'} {Math.abs(dKwh).toFixed(0)}% vs {prev.label}
             </small>
           ) : (
-            <small>{latest}</small>
+            <small>{cur.label}</small>
           )}
         </div>
         <div className="metric-card">
@@ -364,29 +402,39 @@ function ClusterView({
             </button>
           </span>
         </h4>
-        <div className="bars">
-          {bars.map((b, i) => (
-            <div
-              key={b.month}
-              className={`b ${i === bars.length - 1 ? 'hi' : ''}`}
-              data-v={metric === 'cost' ? aud(b.value, 0) : kwh(b.value)}
-              style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
-            />
-          ))}
-        </div>
-        <div className="blbl">
-          {bars.map((b, i) => (
-            <span key={b.month} className={i === bars.length - 1 ? 'hi' : ''}>
-              {b.label}
-            </span>
-          ))}
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/analytics/chart')}
+          aria-label="Open 12-month chart detail"
+          style={{ display: 'block', width: '100%', background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+        >
+          <div className="bars">
+            {bars.map((b, i) => (
+              <div
+                key={b.month}
+                className={`b ${i === bars.length - 1 ? 'hi' : ''}`}
+                data-v={metric === 'cost' ? aud(b.value, 0) : kwh(b.value)}
+                style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
+              />
+            ))}
+          </div>
+          <div className="blbl">
+            {bars.map((b, i) => (
+              <span key={b.month} className={i === bars.length - 1 ? 'hi' : ''}>
+                {b.label}
+              </span>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+            <span className="text-btn">Open 12-month detail ›</span>
+          </div>
+        </button>
       </section>
 
       <div className="metric-grid" style={{ marginBottom: 0 }}>
         <div className="metric-card">
-          <span>Priciest month</span>
-          <strong>{priciest.label.split(' ')[0]}</strong>
+          <span>Priciest {gran}</span>
+          <strong>{priciest.label}</strong>
           <small>
             {aud(priciest.cost)} · {kwh(priciest.kwh)} kWh
           </small>
@@ -450,7 +498,7 @@ function TrendsView({
             onClick={() => setProv(name)}
           >
             <span className="dt" />
-            {name}
+            {shortProv(name)}
           </button>
         ))}
       </div>
@@ -554,7 +602,6 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
           >
             <div className="din">
               <b>{aud(totalCost, 0)}</b>
-              <small>total</small>
             </div>
           </div>
           <div className="leg">
