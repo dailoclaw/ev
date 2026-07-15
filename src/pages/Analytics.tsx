@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh } from '../lib/format'
+import { aud, kwh, rate } from '../lib/format'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
@@ -47,6 +47,7 @@ const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
 ]
 
 const perKwh = (cost: number, k: number) => (k > 0 ? '$' + (cost / k).toFixed(2) : '—')
+const selectedRate = (cost: number, k: number) => (k > 0 ? `${rate(cost / k)}/kWh` : '—')
 const pct = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 100 : null)
 // short chip label so all provider filters fit one row
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
@@ -93,7 +94,7 @@ export default function Analytics() {
     return ev.months.map(m => {
       const o = byM.get(m.month) ?? { cost: 0, kwh: 0 }
       const value = metric === 'cost' ? o.cost : metric === 'kwh' ? o.kwh : o.kwh > 0 ? o.cost / o.kwh : 0
-      return { month: m.month, label: m.label.split(' ')[0], value }
+      return { month: m.month, label: m.label.split(' ')[0], cost: o.cost, kwh: o.kwh, value }
     })
   }
 
@@ -319,7 +320,7 @@ function ClusterView({
   navigate,
 }: {
   ev: ReturnType<typeof useEv>
-  series: (provider: string, metric: Metric) => { month: string; label: string; value: number }[]
+  series: (provider: string, metric: Metric) => { month: string; label: string; cost: number; kwh: number; value: number }[]
   navigate: (to: string) => void
 }) {
   const [gran, setGran] = useState<Gran>('year')
@@ -409,9 +410,9 @@ function ClusterView({
               key={b.month}
               type="button"
               className={`b ${i === bars.length - 1 ? 'hi' : ''} ${sel === b.month ? 'show' : ''}`}
-              data-v={metric === 'cost' ? aud(b.value, 0) : kwh(b.value)}
+              data-v={selectedRate(b.cost, b.kwh)}
               style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
-              aria-label={`${b.label}: ${metric === 'cost' ? aud(b.value) : `${kwh(b.value)} kWh`}`}
+              aria-label={`${b.label}: ${selectedRate(b.cost, b.kwh)}`}
               onClick={() => setSel(sel === b.month ? null : b.month)}
             />
           ))}

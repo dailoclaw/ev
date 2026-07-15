@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh } from '../lib/format'
+import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
 
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const perKwh = (cost: number, k: number) => (k > 0 ? `${rate(cost / k)}/kWh` : '—')
 
 // One monthly chart per calendar year (newest first), with a $ / kWh metric
 // toggle and charger-type filter. Each chart runs Jan -> Dec (current year
@@ -100,9 +101,9 @@ export default function AnalyticsChart() {
                   key={r.ym}
                   type="button"
                   className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''} ${sel === r.ym ? 'show' : ''}`}
-                  data-v={metric === 'cost' ? aud(r.value, 0) : kwh(r.value)}
+                  data-v={perKwh(r.cost, r.kwh)}
                   style={{ height: `${Math.max(3, (r.value / max) * 100)}%` }}
-                  aria-label={`${r.label} ${year}: ${metric === 'cost' ? aud(r.value) : `${kwh(r.value)} kWh`}`}
+                  aria-label={`${r.label} ${year}: ${perKwh(r.cost, r.kwh)}`}
                   onClick={() => setSel(sel === r.ym ? null : r.ym)}
                 />
               ))}
