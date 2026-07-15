@@ -377,12 +377,15 @@
   align-items: flex-end;
   gap: 8px;
   height: 84px;
+  padding-top: 22px;
 }
 .bars .b {
+  position: relative;
   flex: 1;
   border-radius: 7px 7px 3px 3px;
   background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 40%, var(--surf)));
   min-height: 4px;
+  overflow: visible;
 }
 .bars .b.st {
   background: linear-gradient(180deg, var(--steel), color-mix(in srgb, var(--steel) 35%, var(--surf)));
@@ -1123,13 +1126,19 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .bars .b.show::after {
   content: attr(data-v);
   position: absolute;
-  top: -16px;
+  top: -22px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 9.5px;
   font-weight: 800;
   color: var(--tx);
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  box-shadow: var(--cardshadow);
+  padding: 2px 6px;
   white-space: nowrap;
+  z-index: 2;
 }
 .blbl span.hi {
   color: var(--tx);
