@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh, rate } from '../lib/format'
+import { aud, kwh } from '../lib/format'
 import { Icon } from '../components/ui'
 
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const perKwh = (cost: number, k: number) => (k > 0 ? `${rate(cost / k)}/kWh` : '—')
 
 // One monthly chart per calendar year (newest first), with a $ / kWh metric
 // toggle and charger-type filter. Each chart runs Jan -> Dec (current year
@@ -86,6 +85,7 @@ export default function AnalyticsChart() {
         const max = Math.max(...rows.map(r => r.value), 0.01)
         const total = rows.reduce((s, r) => s + (metric === 'cost' ? r.cost : r.kwh), 0)
         const inProgress = Number(year) === latestYear
+        const selectedValue = (r: (typeof rows)[number]) => (metric === 'cost' ? aud(r.cost, 0) : `${kwh(r.kwh)} kWh`)
         return (
           <section className="chart-card" key={year}>
             <h4>
@@ -95,15 +95,15 @@ export default function AnalyticsChart() {
                 {inProgress ? ' · YTD' : ''}
               </em>
             </h4>
-            <div className="bars" style={{ height: 118 }}>
+            <div className="bars">
               {rows.map((r, i) => (
                 <button
                   key={r.ym}
                   type="button"
                   className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''} ${sel === r.ym ? 'show' : ''}`}
-                  data-v={perKwh(r.cost, r.kwh)}
+                  data-v={selectedValue(r)}
                   style={{ height: `${Math.max(3, (r.value / max) * 100)}%` }}
-                  aria-label={`${r.label} ${year}: ${perKwh(r.cost, r.kwh)}`}
+                  aria-label={`${r.label} ${year}: ${selectedValue(r)}`}
                   onClick={() => setSel(sel === r.ym ? null : r.ym)}
                 />
               ))}

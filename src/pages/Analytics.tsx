@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh, rate } from '../lib/format'
+import { aud, kwh } from '../lib/format'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
@@ -47,7 +47,6 @@ const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
 ]
 
 const perKwh = (cost: number, k: number) => (k > 0 ? '$' + (cost / k).toFixed(2) : '—')
-const selectedRate = (cost: number, k: number) => (k > 0 ? `${rate(cost / k)}/kWh` : '—')
 const pct = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 100 : null)
 // short chip label so all provider filters fit one row
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
@@ -336,6 +335,7 @@ function ClusterView({
 
   const bars = series('All', metric).slice(-6)
   const max = Math.max(...bars.map(b => b.value), 0.01)
+  const selectedValue = (b: (typeof bars)[number]) => (metric === 'cost' ? aud(b.cost, 0) : `${kwh(b.kwh)} kWh`)
 
   return (
     <>
@@ -410,9 +410,9 @@ function ClusterView({
               key={b.month}
               type="button"
               className={`b ${i === bars.length - 1 ? 'hi' : ''} ${sel === b.month ? 'show' : ''}`}
-              data-v={selectedRate(b.cost, b.kwh)}
+              data-v={selectedValue(b)}
               style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
-              aria-label={`${b.label}: ${selectedRate(b.cost, b.kwh)}`}
+              aria-label={`${b.label}: ${selectedValue(b)}`}
               onClick={() => setSel(sel === b.month ? null : b.month)}
             />
           ))}

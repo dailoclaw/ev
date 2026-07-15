@@ -376,7 +376,7 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  height: 84px;
+  height: 132px;
   padding-top: 22px;
 }
 .bars .b {
@@ -1295,7 +1295,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  height: 118px;
+  height: 140px;
 }
 .sbars .col {
   flex: 1;
