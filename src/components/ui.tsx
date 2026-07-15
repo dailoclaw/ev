@@ -117,19 +117,24 @@ export function Bars({
   data,
   steel = false,
   highlight,
+  showValues = false,
+  valueLabel,
 }: {
   data: Array<{ label: string; value: number }>
   steel?: boolean
   highlight?: number
+  showValues?: boolean
+  valueLabel?: (value: number) => string
 }) {
   const max = Math.max(...data.map(d => d.value), 0.01)
   return (
     <>
-      <div className="bars">
+      <div className={`bars ${showValues ? 'show-values' : ''}`}>
         {data.map((d, i) => (
           <div
             key={d.label + i}
             className={`b ${steel ? 'st' : ''} ${highlight != null && i !== highlight ? 'dim' : ''}`}
+            data-v={valueLabel ? valueLabel(d.value) : d.value.toFixed(0)}
             style={{ height: `${8 + (d.value / max) * 88}%` }}
             title={`${d.label}: ${d.value.toFixed(2)}`}
           />

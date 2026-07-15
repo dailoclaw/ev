@@ -85,7 +85,7 @@ export default function Savings() {
         <h4>
           Saved per month <em>$ value</em>
         </h4>
-        <Bars data={last6.map(m => ({ label: m.label.split(' ')[0], value: m.saved }))} />
+        <Bars data={last6.map(m => ({ label: m.label.split(' ')[0], value: m.saved }))} showValues valueLabel={v => aud(v, 0)} />
       </section>
 
       <section className="hero-card" style={{ paddingBottom: 14 }}>
