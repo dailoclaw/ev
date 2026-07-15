@@ -147,7 +147,7 @@ export default function Settings() {
         </b>
       </button>
 
-      <footer className="app-footer">EV Command v3.0.1 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.0.2 · Cockpit Ledger</footer>
     </main>
   )
 }

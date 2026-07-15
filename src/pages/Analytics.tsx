@@ -299,7 +299,7 @@ function bucketize(months: ReturnType<typeof useEv>['months'], gran: Gran): Buck
       label = `Q${q} '${String(y).slice(2)}`
     } else {
       key = m.month
-      label = m.label.split(' ')[0]
+      label = `${m.label.split(' ')[0]} ${String(y).slice(2)}`
     }
     const b = map.get(key) ?? { key, label, cost: 0, kwh: 0, sessions: 0, freeKwh: 0, saved: 0, fees: 0 }
     b.cost += m.cost
