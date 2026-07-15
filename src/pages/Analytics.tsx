@@ -404,7 +404,7 @@ function ClusterView({
             </button>
           </span>
         </h4>
-        <div className="bars">
+        <div className="bars show-values">
           {bars.map((b, i) => (
             <button
               key={b.month}

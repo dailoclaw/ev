@@ -1122,6 +1122,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 
 /* ---- bar value labels ---- */
+.bars.show-values .b::after,
 .bars .b.hi::after,
 .bars .b.show::after {
   content: attr(data-v);
