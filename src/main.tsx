@@ -8,6 +8,7 @@ import Savings from './pages/Savings.tsx'
 import Statement from './pages/Statement.tsx'
 import Analytics from './pages/Analytics.tsx'
 import AnalyticsChart from './pages/AnalyticsChart.tsx'
+import CostAnatomy from './pages/CostAnatomy.tsx'
 import Vehicle from './pages/Vehicle.tsx'
 import Settings from './pages/Settings.tsx'
 import { AccountsList, AccountDetail } from './pages/Accounts.tsx'
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/statement" element={<Statement />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/analytics/chart" element={<AnalyticsChart />} />
+          <Route path="/cost-anatomy" element={<CostAnatomy />} />
           <Route path="/vehicle" element={<Vehicle />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/accounts" element={<AccountsList />} />

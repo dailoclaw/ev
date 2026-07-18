@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
+import { Icon } from '../components/ui'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
@@ -370,11 +371,13 @@ function ClusterView({
             <small>{cur.label}</small>
           )}
         </div>
-        <div className="metric-card">
-          <span>Avg rate</span>
+        <button className="metric-card tappable" type="button" onClick={() => navigate('/cost-anatomy')}>
+          <span>
+            Avg rate <Icon name="chev" size={12} />
+          </span>
           <strong>{perKwh(cur.cost, cur.kwh)}</strong>
-          <small>per kWh · incl. free</small>
-        </div>
+          <small>per kWh · see the split</small>
+        </button>
         <div className="metric-card">
           <span>Charges</span>
           <strong>{cur.sessions}</strong>
