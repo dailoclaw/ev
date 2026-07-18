@@ -27,9 +27,6 @@ export default function Settings() {
           <h1>Manage</h1>
           <span className="sub">Chargers · budget · data</span>
         </div>
-        <span className="icon-btn" aria-hidden>
-          <Icon name="gear" />
-        </span>
       </header>
 
       <h2 className="sec-h2" style={{ marginTop: 4 }}>
@@ -147,7 +144,7 @@ export default function Settings() {
         </b>
       </button>
 
-      <footer className="app-footer">EV Command v3.1.0 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.1.1 · Cockpit Ledger</footer>
     </main>
   )
 }
