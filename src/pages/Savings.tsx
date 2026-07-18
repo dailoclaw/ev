@@ -32,8 +32,9 @@ export default function Savings() {
         <span className="cap">Lifetime net benefit</span>
         <b className="big xl">{aud(ev.lifetime.netSaved)}</b>
         <small>
-          {kwh(ev.lifetime.freeKwh)} kWh free of {kwh(ev.lifetime.kwh)} charged · valued at your paid rate{' '}
+          {kwh(ev.lifetime.freeKwh)} kWh free of {kwh(ev.lifetime.kwh)} charged · valued at{' '}
           {rate(ev.refRate)}/kWh
+          {ev.rateBasis.independent ? ' — what you pay elsewhere' : ' — your average paid rate'}
         </small>
       </section>
 
@@ -97,9 +98,23 @@ export default function Savings() {
           <b style={{ color: 'var(--tx)' }}>
             min({freeProvider?.freeKwhPerDay ?? 7}, that day's {freeProvider?.name ?? 'Jolt'} kWh)
           </b>{' '}
-          and value it at the {rate(ev.refRate)}/kWh you pay elsewhere. Allowances are per-charger settings — edit them
-          in Settings.
+          and value it at <b style={{ color: 'var(--tx)' }}>{rate(ev.refRate)}/kWh</b>.
         </p>
+        <div className="ratebasis">
+          {ev.rateBasis.independent ? (
+            <>
+              That rate is what you actually pay where there's <b>no</b> free allowance —{' '}
+              <b>{ev.rateBasis.from.join(', ')}</b> across {kwh(ev.rateBasis.kwh)} kWh. {freeProvider?.name ?? 'Jolt'}'s
+              own sessions are excluded: they're already discounted by the free kWh inside them, so counting them would
+              value the giveaway using the giver's prices.
+            </>
+          ) : (
+            <>
+              Not enough energy bought outside an allowance yet, so this falls back to your average paid rate across all
+              charging. Add a few charges at a network with no free allowance and it'll sharpen.
+            </>
+          )}
+        </div>
       </section>
 
       <footer className="app-footer">

@@ -6,11 +6,12 @@ import {
   monthlySummaries,
   providerSummaries,
   totals,
-  measuredPaidRate,
+  referenceRateBasis,
   type EnrichedSession,
   type MonthSummary,
   type ProviderSummary,
   type Totals,
+  type RateBasis,
 } from './savings'
 import type { Provider } from './providers'
 
@@ -22,6 +23,7 @@ export interface EvData {
   byProvider: ProviderSummary[]
   lifetime: Totals
   refRate: number
+  rateBasis: RateBasis
   budgetCap: number
   synced: boolean
   loading: boolean
@@ -32,6 +34,7 @@ export function useEv(): EvData {
 
   return useMemo(() => {
     const ordered = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
+    const basis = referenceRateBasis(sessions, providers)
     const enriched = enrichSessions(ordered, providers)
     const sessionsDesc = [...enriched].reverse()
     return {
@@ -41,7 +44,8 @@ export function useEv(): EvData {
       months: monthlySummaries(enriched),
       byProvider: providerSummaries(enriched),
       lifetime: totals(enriched, providers),
-      refRate: measuredPaidRate(sessions),
+      refRate: basis.rate,
+      rateBasis: basis,
       budgetCap,
       synced,
       loading,

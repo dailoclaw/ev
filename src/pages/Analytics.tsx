@@ -475,24 +475,22 @@ function YoyCard({ ev }: { ev: ReturnType<typeof useEv> }) {
           <div className="yoyrow" key={m.mm}>
             <span className="ym">{m.label}</span>
             <div className="ybars">
-              <i
-                className="prev"
-                style={{ width: `${Math.max(4, (m.prevEnergy / scale) * 100)}%` }}
-                title={`${y.prevYear}: ${aud(m.prevEnergy)}`}
-              >
+              <div className="yline">
+                <span className="yt">
+                  <i className="prev" style={{ width: `${Math.max(3, (m.prevEnergy / scale) * 100)}%` }} />
+                </span>
                 <b>
-                  {y.prevYear} · {aud(m.prevEnergy)}
+                  <em>{y.prevYear}</em> {aud(m.prevEnergy)}
                 </b>
-              </i>
-              <i
-                className="cur"
-                style={{ width: `${Math.max(4, (m.curEnergy / scale) * 100)}%` }}
-                title={`${y.curYear}: ${aud(m.curEnergy)}`}
-              >
+              </div>
+              <div className="yline">
+                <span className="yt">
+                  <i className="cur" style={{ width: `${Math.max(3, (m.curEnergy / scale) * 100)}%` }} />
+                </span>
                 <b>
-                  {y.curYear} · {aud(m.curEnergy)}
+                  <em>{y.curYear}</em> {aud(m.curEnergy)}
                 </b>
-              </i>
+              </div>
             </div>
           </div>
         ))}
@@ -517,12 +515,19 @@ function YoyCard({ ev }: { ev: ReturnType<typeof useEv> }) {
         </div>
       </div>
 
-      {down && y.feeDelta > 0 && (
-        <p className="yoynote">
-          Energy is down <b>{Math.abs(y.energyDeltaPct!).toFixed(0)}%</b> on matching months — the year-on-year rise
-          above is the <b>{aud(y.curFees, 0)}</b> of membership fees, which didn&apos;t exist in {y.prevYear}.
-        </p>
-      )}
+      <p className="yoynote">
+        <b>Energy only.</b> These bars exclude membership fees — {aud(y.curFees, 0)} across these {y.months.length}{' '}
+        months
+        {y.prevFees === 0 ? `, none in ${y.prevYear}` : ` vs ${aud(y.prevFees, 0)} in ${y.prevYear}`}. Only months that
+        exist in both years are compared, so a part-year never skews it.
+        {down && y.feeDelta > 0 && (
+          <>
+            {' '}
+            The year total at the top of this page counts those fees, which is why it reads as a rise while your actual
+            energy cost <b>fell {Math.abs(y.energyDeltaPct!).toFixed(0)}%</b>.
+          </>
+        )}
+      </p>
     </section>
   )
 }

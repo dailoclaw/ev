@@ -1679,29 +1679,47 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .yoyrow .ybars {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
-.yoyrow .ybars i {
-  height: 20px;
-  border-radius: 5px;
-  display: flex;
+/* value sits OUTSIDE the bar so it can never be clipped by a short bar */
+.yline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
   align-items: center;
+}
+.yline .yt {
+  height: 18px;
+  border-radius: 5px;
+  background: var(--bd2);
+  overflow: hidden;
   min-width: 0;
 }
-.yoyrow .ybars i b {
-  font-size: 10px;
-  font-weight: 800;
-  color: #fff;
-  padding-left: 8px;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+.yline .yt i {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
 }
-.yoyrow .ybars i.prev {
+.yline .yt i.prev {
   background: var(--steel);
 }
-.yoyrow .ybars i.cur {
+.yline .yt i.cur {
   background: linear-gradient(90deg, #047857, #0d9488);
+}
+.yline b {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+.yline b em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--fnt);
+  margin-right: 3px;
 }
 .yoysum {
   margin-top: 14px;
@@ -1746,7 +1764,19 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .yoynote b {
   font-weight: 800;
 }
-/* --steel inverts light in dark mode, so white-on-steel would vanish. */
-:root[data-theme='dark'] .yoyrow .ybars i.prev b {
-  color: var(--canvas);
+
+/* ---- reference-rate basis note (Savings) ---- */
+.ratebasis {
+  margin-top: 10px;
+  padding: 10px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--money-soft);
+  border: 1px solid var(--money-line);
+  color: var(--money-deep);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.ratebasis b {
+  font-weight: 800;
 }

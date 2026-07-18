@@ -62,12 +62,60 @@ export function measuredPaidRate(sessions: Session[]): number {
   return kwh > 0 ? cost / kwh : 0
 }
 
+/** How the value of a free kWh was arrived at — surfaced so the UI can show its working. */
+export interface RateBasis {
+  rate: number
+  /** True when the rate comes only from providers that give no free energy. */
+  independent: boolean
+  /** Provider names that set the rate. */
+  from: string[]
+  /** Paid kWh behind the rate. */
+  kwh: number
+}
+
+/** Below this there isn't enough independent data to trust the rate. */
+const MIN_BASIS_KWH = 20
+
+/**
+ * What a free kWh is actually worth: the price of that energy somewhere else.
+ *
+ * Only providers *without* their own allowance count. Including an allowance
+ * provider's own sessions values its giveaway using its own discounted prices —
+ * those sessions are already softened by the free kWh inside them, which drags
+ * the rate down and understates the saving. Falls back to the all-session rate
+ * when there isn't enough independent data to be meaningful.
+ */
+export function referenceRateBasis(sessions: Session[], providers: Provider[]): RateBasis {
+  const independent = new Set(providers.filter(p => p.freeKwhPerDay <= 0).map(p => p.name))
+  const from = new Set<string>()
+  let cost = 0
+  let kwh = 0
+  for (const s of sessions) {
+    if (!independent.has(s.type)) continue
+    if (s.cost > 0 && s.amount > 0) {
+      cost += s.cost
+      kwh += s.amount
+      from.add(s.type)
+    }
+  }
+  if (kwh >= MIN_BASIS_KWH) {
+    return { rate: cost / kwh, independent: true, from: [...from].sort(), kwh }
+  }
+  // Not enough energy bought outside an allowance — fall back to the blended rate.
+  return { rate: measuredPaidRate(sessions), independent: false, from: [], kwh }
+}
+
+/** The value of a free kWh. See referenceRateBasis for how it's chosen. */
+export function referenceRate(sessions: Session[], providers: Provider[]): number {
+  return referenceRateBasis(sessions, providers).rate
+}
+
 /**
  * Apply each provider's daily free allowance across sessions.
  * Sessions on the same provider+day consume the allowance in date order.
  */
 export function enrichSessions(sessions: Session[], providers: Provider[]): EnrichedSession[] {
-  const refRate = measuredPaidRate(sessions)
+  const refRate = referenceRate(sessions, providers)
   const freeByProvider = new Map(providers.map(p => [p.name, p.freeKwhPerDay]))
   // allowance remaining per provider+day key
   const remaining = new Map<string, number>()
@@ -165,7 +213,7 @@ export function totals(sessions: EnrichedSession[], providers: Provider[]): Tota
     const allowance = freeByProvider.get(key.split('|')[0]) ?? 0
     if (allowance > 0 && used >= allowance - 1e-9) t.daysMaxed += 1
   }
-  t.refRate = measuredPaidRate(sessions)
+  t.refRate = referenceRate(sessions, providers)
   t.netSaved = t.saved - t.fees
   return t
 }
