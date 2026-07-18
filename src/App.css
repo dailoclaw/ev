@@ -1655,3 +1655,98 @@ input[type='range'].capslider::-webkit-slider-thumb {
   margin-left: 6px;
   vertical-align: 1px;
 }
+
+/* ---- same-month year on year (Cluster) ---- */
+.yoy {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-top: 4px;
+}
+.yoyrow {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.yoyrow .ym {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--fnt);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.yoyrow .ybars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.yoyrow .ybars i {
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.yoyrow .ybars i b {
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  padding-left: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.yoyrow .ybars i.prev {
+  background: var(--steel);
+}
+.yoyrow .ybars i.cur {
+  background: linear-gradient(90deg, #047857, #0d9488);
+}
+.yoysum {
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid var(--bd2);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.yoysum .ys {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--mut);
+}
+.yoysum .ys b {
+  font-weight: 800;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.yoysum .ys b.pos {
+  color: var(--money-deep);
+}
+.yoysum .ys b.negd {
+  color: #be123c;
+}
+.yoynote {
+  margin-top: 11px;
+  padding: 10px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--money-soft);
+  border: 1px solid var(--money-line);
+  color: var(--money-deep);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.yoynote b {
+  font-weight: 800;
+}
+/* --steel inverts light in dark mode, so white-on-steel would vanish. */
+:root[data-theme='dark'] .yoyrow .ybars i.prev b {
+  color: var(--canvas);
+}

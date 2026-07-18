@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
 import { Icon } from '../components/ui'
+import { yearOnYear } from '../lib/yearOnYear'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
@@ -448,7 +449,81 @@ function ClusterView({
           <small className="pos">net, lifetime</small>
         </div>
       </div>
+
+      <YoyCard ev={ev} />
     </>
+  )
+}
+
+/* ============ SAME-MONTH YEAR ON YEAR ============ */
+function YoyCard({ ev }: { ev: ReturnType<typeof useEv> }) {
+  const y = useMemo(() => yearOnYear(ev.months), [ev.months])
+  if (!y.hasPair) return null
+
+  const scale = Math.max(...y.months.flatMap(m => [m.prevEnergy, m.curEnergy]), 0.01)
+  const down = y.energyDeltaPct != null && y.energyDeltaPct < 0
+
+  return (
+    <section className="chart-card" style={{ marginTop: 10 }}>
+      <h4>
+        <span>Same month, year on year</span>
+        <em>energy only</em>
+      </h4>
+
+      <div className="yoy">
+        {y.months.map(m => (
+          <div className="yoyrow" key={m.mm}>
+            <span className="ym">{m.label}</span>
+            <div className="ybars">
+              <i
+                className="prev"
+                style={{ width: `${Math.max(4, (m.prevEnergy / scale) * 100)}%` }}
+                title={`${y.prevYear}: ${aud(m.prevEnergy)}`}
+              >
+                <b>
+                  {y.prevYear} · {aud(m.prevEnergy)}
+                </b>
+              </i>
+              <i
+                className="cur"
+                style={{ width: `${Math.max(4, (m.curEnergy / scale) * 100)}%` }}
+                title={`${y.curYear}: ${aud(m.curEnergy)}`}
+              >
+                <b>
+                  {y.curYear} · {aud(m.curEnergy)}
+                </b>
+              </i>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="yoysum">
+        <div className="ys">
+          <span>Energy · {y.months.length} matching months</span>
+          <b className={down ? 'pos' : 'negd'}>
+            {y.energyDeltaPct != null
+              ? `${y.energyDeltaPct > 0 ? '▲' : '▼'} ${Math.abs(y.energyDeltaPct).toFixed(0)}%`
+              : '—'}
+          </b>
+        </div>
+        <div className="ys">
+          <span>
+            Membership fees {y.prevFees === 0 ? `(new in ${y.curYear})` : ''}
+          </span>
+          <b className={y.feeDelta > 0 ? 'negd' : ''}>
+            {aud(y.prevFees, 0)} → {aud(y.curFees, 0)}
+          </b>
+        </div>
+      </div>
+
+      {down && y.feeDelta > 0 && (
+        <p className="yoynote">
+          Energy is down <b>{Math.abs(y.energyDeltaPct!).toFixed(0)}%</b> on matching months — the year-on-year rise
+          above is the <b>{aud(y.curFees, 0)}</b> of membership fees, which didn&apos;t exist in {y.prevYear}.
+        </p>
+      )}
+    </section>
   )
 }
 
