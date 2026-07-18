@@ -1780,3 +1780,164 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .ratebasis b {
   font-weight: 800;
 }
+
+/* ============ Explainable figures + derivation sheet ============ */
+/* A figure that can show its working. Subtle dotted rule is the only affordance —
+   the number must still read as a number, not a control. */
+.explainable {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border-bottom: 1.5px dotted var(--bd);
+  transition: opacity 140ms ease;
+}
+.explainable:active {
+  opacity: 0.6;
+}
+.explainable:focus-visible {
+  outline: 2px solid var(--money);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.explainable.on-dark {
+  border-bottom-color: rgba(255, 255, 255, 0.35);
+}
+
+.exp-head {
+  margin-bottom: 14px;
+}
+.exp-head b {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 4px;
+}
+.exp-head .exp-val {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.deriv {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surf2);
+  padding: 12px 13px;
+}
+.deriv .dl {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 3px 0;
+  color: var(--mut);
+}
+.deriv .dl.gap {
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid var(--bd);
+}
+.deriv .dl.strong {
+  color: var(--tx);
+  font-weight: 800;
+}
+.deriv .dl.d1 {
+  padding-left: 14px;
+}
+.deriv .dl.d2 {
+  padding-left: 14px;
+  color: var(--fnt);
+  font-size: 11px;
+}
+.deriv .dl .op {
+  color: var(--fnt);
+  flex: 0 0 auto;
+  width: 9px;
+}
+.deriv .dl .lb {
+  min-width: 0;
+}
+.deriv .dl .val {
+  margin-left: auto;
+  font-weight: 800;
+  color: var(--tx);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.deriv .dl.t-good .val {
+  color: var(--money-deep);
+}
+
+.exp-rows {
+  margin-top: 12px;
+}
+.exp-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surf);
+  color: var(--money-deep);
+  font-size: 13px;
+  font-weight: 800;
+}
+.exp-toggle .chev {
+  transform: rotate(90deg);
+  transition: transform 160ms ease;
+  font-size: 16px;
+}
+.exp-toggle .chev.up {
+  transform: rotate(-90deg);
+}
+.exp-list {
+  margin-top: 8px;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-sm);
+  -webkit-overflow-scrolling: touch;
+}
+.exp-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--bd2);
+  font-size: 12.5px;
+  color: var(--mut);
+  font-weight: 600;
+}
+.exp-row:last-child {
+  border-bottom: 0;
+}
+.exp-row b {
+  color: var(--tx);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.exp-foot {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--mut);
+  font-weight: 600;
+  line-height: 1.6;
+}

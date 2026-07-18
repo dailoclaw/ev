@@ -3,6 +3,8 @@ import { useEv } from '../lib/useEv'
 import { allowanceUsedOn } from '../lib/savings'
 import { aud, kwh, rate, todayIso } from '../lib/format'
 import { Bars, Icon, Ring } from '../components/ui'
+import Explainable from '../components/Explainable'
+import { deriveNetBenefit } from '../lib/derive'
 
 export default function Savings() {
   const navigate = useNavigate()
@@ -30,7 +32,9 @@ export default function Savings() {
       <section className="savecard no-ring" style={{ padding: 18 }}>
         <span className="bolt">⚡</span>
         <span className="cap">Lifetime net benefit</span>
-        <b className="big xl">{aud(ev.lifetime.netSaved)}</b>
+        <Explainable derive={() => deriveNetBenefit(ev)} label="Lifetime net benefit" className="on-dark">
+          <b className="big xl">{aud(ev.lifetime.netSaved)}</b>
+        </Explainable>
         <small>
           {kwh(ev.lifetime.freeKwh)} kWh free of {kwh(ev.lifetime.kwh)} charged · valued at{' '}
           {rate(ev.refRate)}/kWh

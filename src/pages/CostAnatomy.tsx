@@ -4,6 +4,8 @@ import { useEv } from '../lib/useEv'
 import { costAnatomy } from '../lib/costAnatomy'
 import { aud, kwh, longDate, rate, thisMonth } from '../lib/format'
 import { Icon, SplitBar } from '../components/ui'
+import Explainable from '../components/Explainable'
+import { deriveBlendedRate } from '../lib/derive'
 
 export default function CostAnatomy() {
   const navigate = useNavigate()
@@ -57,7 +59,9 @@ export default function CostAnatomy() {
         <span className="cap" style={{ marginBottom: 4 }}>
           What you actually pay per kWh
         </span>
-        <div className="anat-rate">{rate(a.blendedPerKwh)}</div>
+        <Explainable derive={() => deriveBlendedRate(ev)} label="Blended rate per kWh">
+          <div className="anat-rate">{rate(a.blendedPerKwh)}</div>
+        </Explainable>
         <div className="anat-sub">blended — the rate shown elsewhere in the app</div>
 
         <div style={{ marginTop: 14 }}>

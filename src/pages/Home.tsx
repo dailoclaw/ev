@@ -4,6 +4,8 @@ import { useEv } from '../lib/useEv'
 import { allowanceUsedOn } from '../lib/savings'
 import { aud, kwh, monthTitle, thisMonth, todayIso, shortDate, rate } from '../lib/format'
 import { FreeTag, Icon, Mark, Ring, Thermo } from '../components/ui'
+import Explainable from '../components/Explainable'
+import { deriveMonthSpend } from '../lib/derive'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -57,7 +59,9 @@ export default function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <div>
             <span className="cap">Spent this month</span>
-            <div className="hero-num">{aud(cur?.cost ?? 0)}</div>
+            <Explainable derive={() => deriveMonthSpend(ev, ym)} label="Spent this month">
+              <div className="hero-num">{aud(cur?.cost ?? 0)}</div>
+            </Explainable>
           </div>
           {deltaPct != null && (
             <span className={`delta ${deltaPct > 0 ? 'up' : ''}`}>
@@ -165,7 +169,7 @@ export default function Home() {
         )
       })}
 
-      <footer className="app-footer">EV Command v3.3.0 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.4.0 · Cockpit Ledger</footer>
     </main>
   )
 }
