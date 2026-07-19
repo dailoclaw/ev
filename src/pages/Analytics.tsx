@@ -4,6 +4,7 @@ import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
 import { Icon } from '../components/ui'
 import { yearOnYear } from '../lib/yearOnYear'
+import { records } from '../lib/records'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
@@ -169,8 +170,50 @@ export default function Analytics() {
         <CompareView years={years} yearAgg={yearAgg} />
       )}
 
+      {!empty && <RecordsSection ev={ev} />}
+
       <footer className="app-footer">EV Command · Analytics</footer>
     </main>
+  )
+}
+
+/* ============ RECORDS (trophy cabinet, bottom of every view) ============ */
+function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
+  const r = useMemo(() => records(ev), [ev])
+  const unlocked = r.trophies.filter(t => t.unlocked).length
+
+  return (
+    <>
+      <div className="sec-head">
+        <h2 className="sec-h2">Records</h2>
+      </div>
+      <p className="sec-sub">
+        Mined from your {ev.lifetime.sessions} charges · {unlocked} of {r.trophies.length} unlocked
+      </p>
+
+      <div className="metric-grid" style={{ marginBottom: 8 }}>
+        <div className="metric-card" style={{ gridColumn: '1 / -1' }}>
+          <span>Free-charge streak</span>
+          <strong>
+            {r.currentStreak > 0 ? '🔥 ' : ''}
+            {r.currentStreak} free charge{r.currentStreak !== 1 ? 's' : ''} running
+          </strong>
+          <small>{r.streakNote}</small>
+        </div>
+      </div>
+
+      <div className="trophy-grid">
+        {r.trophies.map(t => (
+          <div key={t.name} className={`trophy ${t.unlocked ? '' : 'locked'}`}>
+            <span className="tico" aria-hidden="true">
+              {t.icon}
+            </span>
+            <b>{t.name}</b>
+            <small>{t.detail}</small>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
 
