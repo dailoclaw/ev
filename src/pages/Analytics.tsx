@@ -204,7 +204,7 @@ function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
 
       <div className="trophy-grid">
         {r.trophies.map(t => (
-          <div key={t.name} className={`trophy ${t.steel ? 'steel' : ''} ${t.unlocked ? '' : 'locked'}`}>
+          <div key={t.name} className={`trophy ${t.unlocked ? '' : 'locked'}`}>
             <span className="tico" aria-hidden="true">
               <Icon name={t.icon} size={19} />
             </span>

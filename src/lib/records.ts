@@ -10,8 +10,6 @@ import { aud, kwh, shortDate, thisMonth } from './format'
 export interface Trophy {
   /** Icon name rendered through the shared Icon component. */
   icon: string
-  /** Machine-flavoured records render in steel; money ones in green. */
-  steel?: boolean
   name: string
   detail: string
   unlocked: boolean
@@ -152,12 +150,11 @@ export function records(ev: EvData): Records {
     biggest
       ? {
           icon: 'rbattery',
-          steel: true,
           name: 'Biggest sip',
           detail: `${biggest.amount.toFixed(1)} kWh · ${shortDate(biggest.date)}`,
           unlocked: true,
         }
-      : { icon: 'rbattery', steel: true, name: 'Biggest sip', detail: 'no charges yet', unlocked: false },
+      : { icon: 'rbattery', name: 'Biggest sip', detail: 'no charges yet', unlocked: false },
     savedTier != null
       ? {
           icon: 'rdollar',
@@ -172,8 +169,8 @@ export function records(ev: EvData): Records {
           unlocked: false,
         },
     zeroMonth
-      ? { icon: 'rcalcheck', steel: true, name: '$0 month', detail: zeroMonth.label, unlocked: true }
-      : { icon: 'rcalcheck', steel: true, name: '$0 month', detail: 'not yet', unlocked: false },
+      ? { icon: 'rcalcheck', name: '$0 month', detail: zeroMonth.label, unlocked: true }
+      : { icon: 'rcalcheck', name: '$0 month', detail: 'not yet', unlocked: false },
   ]
 
   const targets: Target[] = []

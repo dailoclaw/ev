@@ -295,10 +295,6 @@
 .trophy .tico .svgi {
   stroke: currentColor;
 }
-.trophy.steel .tico {
-  background: #eef2f6;
-  color: var(--steel);
-}
 .trophy b {
   display: block;
   font-size: 11px;
