@@ -5,6 +5,8 @@ import type { EnrichedSession } from '../lib/savings'
 import { aud, dayHeader, kwh, monthTitle, rate, thisMonth } from '../lib/format'
 import { FreeTag, Icon, Mark } from '../components/ui'
 import ReceiptSheet from '../components/ReceiptSheet'
+import MonthNarrative from '../components/MonthNarrative'
+import { narrateMonth } from '../lib/narrate'
 
 export default function Statement() {
   const ev = useEv()
@@ -40,6 +42,17 @@ export default function Statement() {
     }
     return groups
   }, [monthSessions])
+
+  const narrative = useMemo(() => {
+    if (!cur) return null
+    const [y, mo] = ym.split('-').map(Number)
+    const daysInMonth = new Date(y, mo, 0).getDate()
+    const now = new Date()
+    const isThisMonth = ym === thisMonth()
+    const daysElapsed = isThisMonth ? now.getDate() : daysInMonth
+    const prev = ev.months[ev.months.findIndex(m => m.month === ym) - 1]
+    return narrateMonth(cur, monthSessions, prev, daysElapsed, daysInMonth)
+  }, [cur, ym, monthSessions, ev.months])
 
   return (
     <main className="app-shell">
@@ -80,6 +93,8 @@ export default function Statement() {
           </div>
         </section>
       )}
+
+      {narrative && <MonthNarrative narrative={narrative} ev={ev} ym={ym} />}
 
       {byDay.length === 0 && (
         <div className="emptybat">
