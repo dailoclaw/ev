@@ -282,9 +282,22 @@
   text-align: center;
 }
 .trophy .tico {
-  display: block;
-  font-size: 22px;
-  line-height: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--money-soft, #e7f6ef);
+  color: var(--money-deep, #047857);
+}
+.trophy .tico .svgi {
+  stroke: currentColor;
+}
+.trophy.steel .tico {
+  background: #eef2f6;
+  color: var(--steel);
 }
 .trophy b {
   display: block;
@@ -306,6 +319,34 @@
   filter: grayscale(1);
   box-shadow: none;
   background: var(--surf2, var(--surf));
+}
+.trophy.target {
+  border-style: dashed;
+  box-shadow: none;
+}
+.trophy.target .tico {
+  background: var(--surf2, #f7f9fa);
+  color: var(--fnt);
+}
+.trophy.target b {
+  color: var(--mut);
+}
+.trophy.target small {
+  color: var(--fnt);
+}
+.trophy .tbar {
+  display: block;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--bd2);
+  overflow: hidden;
+  margin: 7px 6px 0;
+}
+.trophy .tbar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #047857, #10b981);
 }
 
 /* ---- rows ---- */
