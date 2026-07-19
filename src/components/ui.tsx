@@ -14,6 +14,15 @@ const PATHS: Record<string, string> = {
   chev: 'm9 6 6 6-6 6',
   back: 'm15 6-6 6 6 6',
   wallet: 'M16 12.5h5 M3 9h18',
+  // records — trophy cabinet icons, same 24-grid stroke language
+  rtrend: 'M3 16l5-5 4 3 8-8 M21 12V6h-6',
+  rtarget: 'M12 12h.01',
+  rbattery: 'M21 11v2 M6.5 11v2 M10 11v2',
+  rdollar: 'M12 7.5v9 M14.5 9.5h-3.6a1.7 1.7 0 0 0 0 3.4h2.2a1.7 1.7 0 0 1 0 3.4H9.5',
+  rcalcheck: 'M4 9.5h16 M8 3v4 M16 3v4 M9.5 14.5l2 2 3.5-3.5',
+  rstreak: 'M13 2 5 13h5l-1 9 8-11h-5l1-9z M19 3.5c1.2 1.6 1.2 3.4 0 5',
+  rweek: 'M4 9.5h16 M8 3v4 M16 3v4 M7.5 13h.01 M12 13h.01 M16.5 13h.01 M7.5 16.5h.01 M12 16.5h.01 M16.5 16.5h.01',
+  rgauge: 'M4 19a8.5 8.5 0 0 1 16 0 M12 19l3.5-5',
 }
 const EXTRAS: Record<string, ReactNode> = {
   gear: (
@@ -29,6 +38,16 @@ const EXTRAS: Record<string, ReactNode> = {
     </>
   ),
   wallet: <rect x="3" y="6" width="18" height="13" rx="2.5" />,
+  rtarget: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="3.5" />
+    </>
+  ),
+  rbattery: <rect x="3" y="8" width="16" height="8" rx="2" />,
+  rdollar: <circle cx="12" cy="12" r="8.5" />,
+  rcalcheck: <rect x="4" y="5" width="16" height="15" rx="2" />,
+  rweek: <rect x="4" y="5" width="16" height="15" rx="2" />,
 }
 
 export function Icon({ name, size = 20 }: { name: string; size?: number }) {

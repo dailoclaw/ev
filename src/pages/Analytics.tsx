@@ -180,7 +180,8 @@ export default function Analytics() {
 /* ============ RECORDS (trophy cabinet, bottom of every view) ============ */
 function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
   const r = useMemo(() => records(ev), [ev])
-  const unlocked = r.trophies.filter(t => t.unlocked).length
+  const held = r.trophies.filter(t => t.unlocked).length
+  const open = r.trophies.length - held + r.targets.length
 
   return (
     <>
@@ -188,14 +189,13 @@ function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
         <h2 className="sec-h2">Records</h2>
       </div>
       <p className="sec-sub">
-        Mined from your {ev.lifetime.sessions} charges · {unlocked} of {r.trophies.length} unlocked
+        Mined from your {ev.lifetime.sessions} charges · {held} held · {open} open
       </p>
 
       <div className="metric-grid" style={{ marginBottom: 8 }}>
         <div className="metric-card" style={{ gridColumn: '1 / -1' }}>
           <span>Free-charge streak</span>
           <strong>
-            {r.currentStreak > 0 ? '🔥 ' : ''}
             {r.currentStreak} free charge{r.currentStreak !== 1 ? 's' : ''} running
           </strong>
           <small>{r.streakNote}</small>
@@ -204,15 +204,37 @@ function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
 
       <div className="trophy-grid">
         {r.trophies.map(t => (
-          <div key={t.name} className={`trophy ${t.unlocked ? '' : 'locked'}`}>
+          <div key={t.name} className={`trophy ${t.steel ? 'steel' : ''} ${t.unlocked ? '' : 'locked'}`}>
             <span className="tico" aria-hidden="true">
-              {t.icon}
+              <Icon name={t.icon} size={19} />
             </span>
             <b>{t.name}</b>
             <small>{t.detail}</small>
           </div>
         ))}
       </div>
+
+      {r.targets.length > 0 && (
+        <>
+          <p className="sec-sub" style={{ margin: '12px 0 8px' }}>
+            Open targets
+          </p>
+          <div className="trophy-grid">
+            {r.targets.map(t => (
+              <div key={t.name} className="trophy target">
+                <span className="tico" aria-hidden="true">
+                  <Icon name={t.icon} size={19} />
+                </span>
+                <b>{t.name}</b>
+                <span className="tbar">
+                  <i style={{ width: `${Math.round(Math.min(1, t.progress) * 100)}%` }} />
+                </span>
+                <small>{t.detail}</small>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   )
 }
