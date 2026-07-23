@@ -20,6 +20,10 @@ export const monthTitle = (ym: string) => {
   return new Date(y, m - 1, 1).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
 }
 
+/** A full timestamp (date + time), for things like "last backed up at". */
+export const stamp = (iso: string) =>
+  new Date(iso).toLocaleString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+
 export const todayIso = () => {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`

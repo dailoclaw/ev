@@ -1,9 +1,26 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useEv } from '../lib/useEv'
-import { buildCsv, downloadCsv, setBudgetCap, updateProvider } from '../lib/data'
-import { aud } from '../lib/format'
+import {
+  buildBackup,
+  buildCsv,
+  downloadCsv,
+  downloadJson,
+  lastBackupAt,
+  markBackedUp,
+  parseBackup,
+  previewRestore,
+  restoreMerge,
+  restoreReplaceLocal,
+  restoreReplaceRemote,
+  setBudgetCap,
+  updateProvider,
+  type Backup,
+} from '../lib/data'
+import { aud, stamp, todayIso } from '../lib/format'
 import { useTheme } from '../lib/theme'
 import { Icon, Mark, SyncBadge } from '../components/ui'
+
+type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
 
 export default function Settings() {
   const ev = useEv()
@@ -11,10 +28,74 @@ export default function Settings() {
   const [exported, setExported] = useState(false)
   const [theme, setTheme] = useTheme()
 
+  const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
+  const [restoreError, setRestoreError] = useState<string | null>(null)
+  const [restoreDone, setRestoreDone] = useState<string | null>(null)
+  const [pending, setPending] = useState<Pending | null>(null)
+  const [confirmText, setConfirmText] = useState('')
+  const [replacing, setReplacing] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const exportAll = () => {
     downloadCsv(buildCsv(ev.sessions), 'ev-charging-export.csv')
     setExported(true)
     setTimeout(() => setExported(false), 2000)
+  }
+
+  const downloadBackup = () => {
+    downloadJson(buildBackup(), `ev-command-backup-${todayIso()}.json`)
+    markBackedUp()
+    setLastBackup(lastBackupAt())
+  }
+
+  const onFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setRestoreError(null)
+    setRestoreDone(null)
+    setConfirmText('')
+    const text = await file.text()
+    const backup = parseBackup(text)
+    if (!backup) {
+      setRestoreError('Could not read that file — expecting an EV Command backup JSON.')
+      return
+    }
+    setPending({ backup, ...previewRestore(backup) })
+  }
+
+  const confirmMerge = () => {
+    if (!pending) return
+    const { providersAdded, sessionsAdded } = restoreMerge(pending.backup)
+    setRestoreDone(
+      `Added ${sessionsAdded} charge${sessionsAdded === 1 ? '' : 's'}` +
+        (providersAdded ? ` and ${providersAdded} provider${providersAdded === 1 ? '' : 's'}` : '') +
+        (ev.synced ? ' — synced to Supabase.' : '.'),
+    )
+    setPending(null)
+  }
+
+  const confirmReplace = async () => {
+    if (!pending) return
+    setReplacing(true)
+    try {
+      if (ev.synced) {
+        const { sessionsAdded } = await restoreReplaceRemote(pending.backup)
+        setRestoreDone(`Replaced Supabase with the backup — ${sessionsAdded} charges restored.`)
+      } else {
+        restoreReplaceLocal(pending.backup)
+        setRestoreDone(`Replaced your ledger with the backup — ${pending.totalSessions} charges restored.`)
+      }
+      setPending(null)
+      setConfirmText('')
+    } catch (err) {
+      setRestoreError(
+        (err instanceof Error ? err.message : 'Replace failed.') +
+          (ev.synced ? ' Check Supabase directly — the wipe may have completed before this error.' : ''),
+      )
+    } finally {
+      setReplacing(false)
+    }
   }
 
   const capPct = ((ev.budgetCap - 20) / (150 - 20)) * 100
@@ -144,7 +225,135 @@ export default function Settings() {
         </b>
       </button>
 
-      <footer className="app-footer">EV Command v3.6.4 · Cockpit Ledger</footer>
+      <h2 className="sec-h2">Backup &amp; Restore</h2>
+      <p className="sec-sub">
+        A complete, portable copy of your ledger — separate from the CSV export and separate from cloud sync.
+      </p>
+      <button className="row" type="button" onClick={downloadBackup}>
+        <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
+          <Icon name="dl" size={17} />
+        </span>
+        <span>
+          <strong>Download backup</strong>
+          <small>
+            {ev.sessions.length} charges · {ev.providers.length} provider{ev.providers.length === 1 ? '' : 's'} · all settings
+          </small>
+        </span>
+        <b className="amt chev">
+          <Icon name="chev" size={17} />
+        </b>
+      </button>
+      <div className="row">
+        <span className="mark" style={{ ['--pc' as string]: 'var(--fnt)' }}>
+          <Icon name="rcalcheck" size={17} />
+        </span>
+        <span>
+          <strong>Last backup</strong>
+          <small>{lastBackup ? stamp(lastBackup) : 'none yet'}</small>
+        </span>
+      </div>
+      <button className="row" type="button" onClick={() => fileInputRef.current?.click()}>
+        <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
+          <Icon name="book" size={17} />
+        </span>
+        <span>
+          <strong>Restore from file</strong>
+          <small>Reads a backup JSON — nothing changes until you confirm</small>
+        </span>
+        <b className="amt chev">
+          <Icon name="chev" size={17} />
+        </b>
+      </button>
+      <input ref={fileInputRef} type="file" accept="application/json" style={{ display: 'none' }} onChange={onFileChosen} />
+
+      {restoreError && (
+        <p className="sec-sub" style={{ color: 'var(--neg)', fontWeight: 700 }}>
+          {restoreError}
+        </p>
+      )}
+      {restoreDone && (
+        <p className="sec-sub" style={{ color: 'var(--money-deep)', fontWeight: 700 }}>
+          {restoreDone}
+        </p>
+      )}
+
+      {pending && (
+        <div className="hero-card" style={{ marginTop: 0 }}>
+          <span className="cap" style={{ marginBottom: 8 }}>
+            Restore preview
+          </span>
+          <p style={{ fontSize: 13, color: 'var(--tx)', marginBottom: 12, lineHeight: 1.5 }}>
+            This file has {pending.totalSessions} charge{pending.totalSessions === 1 ? '' : 's'} and{' '}
+            {pending.totalProviders} provider{pending.totalProviders === 1 ? '' : 's'}.{' '}
+            <b>
+              {pending.sessionsNew} new charge{pending.sessionsNew === 1 ? '' : 's'}
+            </b>{' '}
+            {pending.sessionsNew === 1 ? "isn't" : "aren't"} in your ledger yet
+            {pending.providersNew > 0
+              ? `, along with ${pending.providersNew} new provider${pending.providersNew === 1 ? '' : 's'}`
+              : ''}
+            .
+          </p>
+
+          <button className="row" type="button" onClick={confirmMerge} style={{ marginBottom: 8 }}>
+            <span className="mark" style={{ ['--pc' as string]: '#059669' }}>
+              <Icon name="dl" size={17} />
+            </span>
+            <span>
+              <strong>Merge safely</strong>
+              <small>{ev.synced ? 'Adds the new rows and syncs them to Supabase' : 'Adds the new rows to this device'}</small>
+            </span>
+          </button>
+
+          <p style={{ fontSize: 11.5, color: 'var(--fnt)', fontWeight: 700, marginTop: 4, marginBottom: 6 }}>
+            REPLACE EVERYTHING INSTEAD
+          </p>
+          <p style={{ fontSize: 12.5, color: 'var(--mut)', marginBottom: 8 }}>
+            {ev.synced
+              ? 'Deletes every charge and charger currently in Supabase, then reinserts the backup. Permanent — this cannot be undone from within the app.'
+              : 'Overwrites everything on this device with the backup. You can undo this by restoring your previous backup file.'}
+          </p>
+          {ev.synced && (
+            <input
+              type="text"
+              placeholder='Type REPLACE to confirm'
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                borderRadius: 10,
+                border: '1px solid var(--bd)',
+                background: 'var(--surf)',
+                color: 'var(--tx)',
+                fontSize: 13,
+                marginBottom: 8,
+              }}
+            />
+          )}
+          <button
+            className="row"
+            type="button"
+            disabled={replacing || (ev.synced && confirmText.trim() !== 'REPLACE')}
+            onClick={confirmReplace}
+            style={{ opacity: replacing || (ev.synced && confirmText.trim() !== 'REPLACE') ? 0.45 : 1, marginBottom: 8 }}
+          >
+            <span className="mark" style={{ ['--pc' as string]: 'var(--neg)' }}>
+              <Icon name="rcalcheck" size={17} />
+            </span>
+            <span>
+              <strong>{replacing ? 'Replacing…' : 'Replace everything'}</strong>
+              <small>{ev.synced ? 'Wipes and restores Supabase' : 'Wipes and restores this device'}</small>
+            </span>
+          </button>
+
+          <button type="button" className="text-btn" onClick={() => setPending(null)}>
+            Cancel
+          </button>
+        </div>
+      )}
+
+      <footer className="app-footer">EV Command v3.6.5 · Cockpit Ledger</footer>
     </main>
   )
 }

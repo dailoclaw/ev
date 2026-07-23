@@ -240,7 +240,11 @@ export function buildCsv(sessions: Array<Session & { freeKwh?: number }>): strin
 }
 
 export function downloadCsv(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  downloadBlob(csv, filename, 'text/csv;charset=utf-8')
+}
+
+function downloadBlob(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -249,4 +253,142 @@ export function downloadCsv(csv: string, filename: string) {
   a.click()
   a.remove()
   URL.revokeObjectURL(url)
+}
+
+/* ================= Backup & Restore =================
+ * A complete, portable copy of the ledger — separate from the CSV export
+ * (which is for spreadsheets) and separate from cloud sync (which is Supabase's
+ * job while you're online). This is the plain "get it all back" safety net.
+ */
+
+const LS_LAST_BACKUP = 'ev.lastBackupAt.v1'
+
+export interface Backup {
+  version: 1
+  exportedAt: string
+  budgetCap: number
+  providers: Provider[]
+  sessions: Session[]
+}
+
+export function buildBackup(): Backup {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    budgetCap: state.budgetCap,
+    providers: state.providers,
+    sessions: state.sessions,
+  }
+}
+
+export function downloadJson(data: unknown, filename: string) {
+  downloadBlob(JSON.stringify(data, null, 2), filename, 'application/json')
+}
+
+export function markBackedUp() {
+  const at = new Date().toISOString()
+  localStorage.setItem(LS_LAST_BACKUP, JSON.stringify(at))
+}
+
+export function lastBackupAt(): string | null {
+  return readLS<string | null>(LS_LAST_BACKUP, null)
+}
+
+export function parseBackup(text: string): Backup | null {
+  try {
+    const data = JSON.parse(text) as Partial<Backup>
+    if (!data || typeof data !== 'object') return null
+    if (!Array.isArray(data.sessions) || !Array.isArray(data.providers)) return null
+    return data as Backup
+  } catch {
+    return null
+  }
+}
+
+const sessionSignature = (s: Session) => `${s.date}|${s.type}|${s.amount}|${s.cost}|${s.notes ?? ''}`
+
+function newInBackup(backup: Backup) {
+  const existingProviderNames = new Set(state.providers.map(p => p.name))
+  const newProviders = backup.providers.filter(p => !existingProviderNames.has(p.name))
+  const existingSignatures = new Set(state.sessions.map(sessionSignature))
+  const seen = new Set<string>()
+  const newSessions = backup.sessions.filter(s => {
+    const sig = sessionSignature(s)
+    if (existingSignatures.has(sig) || seen.has(sig)) return false
+    seen.add(sig)
+    return true
+  })
+  return { newProviders, newSessions }
+}
+
+/** What a merge would do, without changing anything — for the confirm screen. */
+export function previewRestore(backup: Backup) {
+  const { newProviders, newSessions } = newInBackup(backup)
+  return {
+    providersNew: newProviders.length,
+    sessionsNew: newSessions.length,
+    totalSessions: backup.sessions.length,
+    totalProviders: backup.providers.length,
+  }
+}
+
+/**
+ * Adds whatever the backup has that the ledger doesn't — exact duplicates are
+ * skipped. Safe in both local and Supabase-synced modes: it goes through the
+ * same addProvider/addSession mutations as manual entry, so synced charges are
+ * written straight to Supabase, not just kept on-device.
+ */
+export function restoreMerge(backup: Backup): { providersAdded: number; sessionsAdded: number } {
+  const { newProviders, newSessions } = newInBackup(backup)
+  for (const p of newProviders) addProvider(p.name, p.freeKwhPerDay, p.color)
+  for (const s of newSessions) addSession({ date: s.date, type: s.type, amount: s.amount, cost: s.cost, notes: s.notes })
+  return { providersAdded: newProviders.length, sessionsAdded: newSessions.length }
+}
+
+/** Replace everything on this device with the backup's contents. Local-only — never touches Supabase. */
+export function restoreReplaceLocal(backup: Backup) {
+  const extras = backup.sessions.filter(s => !s.id.startsWith('seed-'))
+  localStorage.setItem(LS_SESSIONS, JSON.stringify(extras))
+  localStorage.setItem(LS_PROVIDERS, JSON.stringify(backup.providers))
+  localStorage.setItem(LS_BUDGET, JSON.stringify(backup.budgetCap))
+  state = { ...state, sessions: backup.sessions, providers: backup.providers, budgetCap: backup.budgetCap }
+  emit()
+}
+
+/**
+ * Replace everything in Supabase with the backup's contents: deletes every
+ * remote session and provider, then reinserts the backup's rows. Destructive
+ * and irreversible from within the app — callers must gate this behind an
+ * explicit, deliberate confirmation (never a single accidental tap).
+ */
+export async function restoreReplaceRemote(backup: Backup): Promise<{ providersAdded: number; sessionsAdded: number }> {
+  if (!supa) throw new Error('Not connected to Supabase')
+
+  const delSessions = await supa.from('charging_sessions').delete().neq('id', '')
+  if (delSessions.error) throw delSessions.error
+  const delProviders = await supa.from('providers').delete().neq('id', '')
+  if (delProviders.error) throw delProviders.error
+
+  const providerRows = backup.providers.map(p => ({ name: p.name, color: p.color, free_kwh_per_day: p.freeKwhPerDay }))
+  const insProviders = providerRows.length
+    ? await supa.from('providers').insert(providerRows).select()
+    : { data: [] as DbProvider[], error: null }
+  if (insProviders.error) throw insProviders.error
+  const idByName = new Map((insProviders.data as DbProvider[]).map(p => [p.name, p.id]))
+
+  const sessionRows = backup.sessions
+    .map(s => {
+      const providerId = idByName.get(s.type)
+      return providerId ? { provider_id: providerId, date: s.date, amount: s.amount, cost: s.cost, notes: s.notes } : null
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null)
+
+  const CHUNK = 200
+  for (let i = 0; i < sessionRows.length; i += CHUNK) {
+    const ins = await supa.from('charging_sessions').insert(sessionRows.slice(i, i + CHUNK))
+    if (ins.error) throw ins.error
+  }
+
+  await loadRemote()
+  return { providersAdded: providerRows.length, sessionsAdded: sessionRows.length }
 }
