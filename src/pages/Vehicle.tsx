@@ -61,18 +61,18 @@ export default function Vehicle() {
           {(
             [
               ['efficiency', 'Efficiency (kWh / 100 km)', 0.1],
-              ['petrolPrice', 'Petrol price ($ / L)', 0.01],
-              ['petrolUse', 'Petrol car use (L / 100 km)', 0.1],
+              ['petrolPrice', 'Petrol price ($ / L)', 0.1],
+              ['petrolUse', 'Petrol car use (L / 100 km)', 1.0],
             ] as const
           ).map(([key, label, step]) => (
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <span style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: 'var(--mut)' }}>{label}</span>
               <div className="kstep" style={{ width: 150 }}>
-                <button type="button" onClick={() => save({ [key]: Math.max(0, +(a[key] - step * 10).toFixed(2)) } as Partial<Assumptions>)}>
+                <button type="button" onClick={() => save({ [key]: Math.max(0, +(a[key] - step).toFixed(2)) } as Partial<Assumptions>)}>
                   −
                 </button>
                 <span className="v">{a[key]}</span>
-                <button type="button" onClick={() => save({ [key]: +(a[key] + step * 10).toFixed(2) } as Partial<Assumptions>)}>
+                <button type="button" onClick={() => save({ [key]: +(a[key] + step).toFixed(2) } as Partial<Assumptions>)}>
                   +
                 </button>
               </div>
