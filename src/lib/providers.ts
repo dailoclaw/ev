@@ -6,6 +6,8 @@ export interface Provider {
   name: string
   color: string
   freeKwhPerDay: number
+  /** Hidden from pickers, but every session it ever contributed still counts everywhere. Local-only flag. */
+  archived?: boolean
 }
 
 // Palette used when a new provider is added without picking a colour.

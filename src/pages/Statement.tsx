@@ -1,12 +1,120 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import type { EnrichedSession } from '../lib/savings'
+import type { Session } from '../lib/savings'
+import type { Provider } from '../lib/providers'
 import { aud, dayHeader, kwh, monthTitle, rate, thisMonth } from '../lib/format'
 import { FreeTag, Icon, Mark } from '../components/ui'
 import ReceiptSheet from '../components/ReceiptSheet'
+import EditSessionSheet from '../components/EditSessionSheet'
 import MonthNarrative from '../components/MonthNarrative'
 import { narrateMonth } from '../lib/narrate'
+import { deleteSession, undoDeleteSession } from '../lib/data'
+
+const SWIPE_ACTIONS_WIDTH = 84
+
+function SessionRow({
+  session,
+  provider,
+  open,
+  onOpenChange,
+  onTap,
+  onEdit,
+  onDelete,
+}: {
+  session: EnrichedSession
+  provider?: Provider
+  open: boolean
+  onOpenChange: (id: string | null) => void
+  onTap: () => void
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const contentRef = useRef<HTMLButtonElement>(null)
+  const dragging = useRef<{ startX: number; startedOpen: boolean; moved: boolean } | null>(null)
+
+  const setTx = (px: number, animate: boolean) => {
+    const el = contentRef.current
+    if (!el) return
+    el.style.transition = animate ? 'transform 0.18s ease' : 'none'
+    el.style.transform = `translateX(${px}px)`
+  }
+
+  useEffect(() => {
+    setTx(open ? -SWIPE_ACTIONS_WIDTH : 0, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    dragging.current = { startX: e.touches[0].clientX, startedOpen: open, moved: false }
+  }
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!dragging.current) return
+    const dx = e.touches[0].clientX - dragging.current.startX
+    if (Math.abs(dx) > 4) dragging.current.moved = true
+    const base = dragging.current.startedOpen ? -SWIPE_ACTIONS_WIDTH : 0
+    const next = Math.min(0, Math.max(-SWIPE_ACTIONS_WIDTH, base + dx))
+    setTx(next, false)
+  }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!dragging.current) return
+    const dx = e.changedTouches[0].clientX - dragging.current.startX
+    const base = dragging.current.startedOpen ? -SWIPE_ACTIONS_WIDTH : 0
+    const finalPx = base + dx
+    const moved = dragging.current.moved
+    dragging.current = null
+    if (!moved) {
+      // a tap, not a drag
+      if (open) onOpenChange(null)
+      else onTap()
+      return
+    }
+    const shouldOpen = finalPx < -SWIPE_ACTIONS_WIDTH / 2
+    onOpenChange(shouldOpen ? session.id : null)
+  }
+
+  return (
+    <div className="swiperow">
+      <div className="swipe-actions">
+        <button type="button" className="edit" onClick={onEdit} aria-label="Edit charge">
+          <Icon name="edit" size={16} />
+        </button>
+        <button type="button" className="del" onClick={onDelete} aria-label="Delete charge">
+          <Icon name="trash" size={16} />
+        </button>
+      </div>
+      <button
+        className="row swipe-content"
+        type="button"
+        ref={contentRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <Mark provider={provider} name={session.type} />
+        <span>
+          <strong>
+            {session.isFee ? `${session.type} membership` : session.type}
+            {session.cost === 0 && session.freeKwh > 0 && <FreeTag />}
+          </strong>
+          <small>
+            {session.isFee
+              ? 'monthly charge — funds the free allowance'
+              : `${session.amount.toFixed(1)} kWh · ${
+                  session.freeKwh > 0 && session.paidKwh > 0
+                    ? `${session.freeKwh.toFixed(1)} free + ${session.paidKwh.toFixed(1)} paid`
+                    : session.freeKwh > 0
+                      ? 'allowance covered it'
+                      : `${rate(session.rate)}/kWh`
+                }`}
+          </small>
+        </span>
+        <b className="amt">{aud(session.cost)}</b>
+      </button>
+    </div>
+  )
+}
 
 export default function Statement() {
   const ev = useEv()
@@ -18,6 +126,31 @@ export default function Statement() {
     return requested ?? monthsDesc[0]?.month ?? thisMonth()
   })
   const [receipt, setReceipt] = useState<EnrichedSession | null>(null)
+  const [editing, setEditing] = useState<EnrichedSession | null>(null)
+  const [openRowId, setOpenRowId] = useState<string | null>(null)
+  const [snack, setSnack] = useState<{ session: Session; msg: string } | null>(null)
+  const snackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleDelete = async (s: EnrichedSession) => {
+    setOpenRowId(null)
+    try {
+      const removed = await deleteSession(s.id)
+      if (removed) {
+        if (snackTimer.current) clearTimeout(snackTimer.current)
+        setSnack({ session: removed, msg: `${s.isFee ? 'Fee' : 'Charge'} deleted` })
+        snackTimer.current = setTimeout(() => setSnack(null), 6000)
+      }
+    } catch {
+      // optimistic state already reverted inside deleteSession
+    }
+  }
+
+  const handleUndo = () => {
+    if (!snack) return
+    undoDeleteSession(snack.session)
+    if (snackTimer.current) clearTimeout(snackTimer.current)
+    setSnack(null)
+  }
 
   const idx = monthsDesc.findIndex(m => m.month === ym)
   const cur = monthsDesc[idx]
@@ -118,27 +251,19 @@ export default function Statement() {
           {g.sessions.map(s => {
             const provider = ev.providers.find(p => p.name === s.type)
             return (
-              <button className="row" type="button" key={s.id} onClick={() => setReceipt(s)}>
-                <Mark provider={provider} name={s.type} />
-                <span>
-                  <strong>
-                    {s.isFee ? `${s.type} membership` : s.type}
-                    {s.cost === 0 && s.freeKwh > 0 && <FreeTag />}
-                  </strong>
-                  <small>
-                    {s.isFee
-                      ? 'monthly charge — funds the free allowance'
-                      : `${s.amount.toFixed(1)} kWh · ${
-                          s.freeKwh > 0 && s.paidKwh > 0
-                            ? `${s.freeKwh.toFixed(1)} free + ${s.paidKwh.toFixed(1)} paid`
-                            : s.freeKwh > 0
-                              ? 'allowance covered it'
-                              : `${rate(s.rate)}/kWh`
-                        }`}
-                  </small>
-                </span>
-                <b className="amt">{aud(s.cost)}</b>
-              </button>
+              <SessionRow
+                key={s.id}
+                session={s}
+                provider={provider}
+                open={openRowId === s.id}
+                onOpenChange={setOpenRowId}
+                onTap={() => setReceipt(s)}
+                onEdit={() => {
+                  setOpenRowId(null)
+                  setEditing(s)
+                }}
+                onDelete={() => handleDelete(s)}
+              />
             )
           })}
         </section>
@@ -150,6 +275,17 @@ export default function Statement() {
           provider={ev.providers.find(p => p.name === receipt.type)}
           onClose={() => setReceipt(null)}
         />
+      )}
+
+      {editing && <EditSessionSheet session={editing} onClose={() => setEditing(null)} />}
+
+      {snack && (
+        <div className="snackbar">
+          <span>{snack.msg}</span>
+          <button type="button" onClick={handleUndo}>
+            Undo
+          </button>
+        </div>
       )}
     </main>
   )

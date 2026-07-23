@@ -13,6 +13,7 @@ import {
   restoreReplaceLocal,
   restoreReplaceRemote,
   setBudgetCap,
+  setProviderArchived,
   updateProvider,
   type Backup,
 } from '../lib/data'
@@ -125,56 +126,96 @@ export default function Settings() {
 
       <h2 className="sec-h2">Charger types</h2>
       <p className="sec-sub">Free allowances are per-charger settings — they drive every savings figure.</p>
-      {ev.providers.map(p => (
-        <div key={p.id}>
-          <button
-            className="row"
-            type="button"
-            onClick={() => setEditingId(editingId === p.id ? null : p.id)}
-            style={{ marginBottom: editingId === p.id ? 4 : 8 }}
-          >
-            <Mark provider={p} />
-            <span>
-              <strong>{p.name}</strong>
-              <small>{p.freeKwhPerDay > 0 ? `Free allowance: ${p.freeKwhPerDay} kWh/day` : 'No free allowance'}</small>
-            </span>
-            <b className="amt chev">
-              <Icon name="chev" size={17} />
-            </b>
-          </button>
-          {editingId === p.id && (
-            <div className="hero-card" style={{ marginTop: 0 }}>
-              <span className="cap" style={{ marginBottom: 8 }}>
-                Free kWh per day — {p.name}
+      {ev.providers
+        .filter(p => !p.archived)
+        .map(p => (
+          <div key={p.id}>
+            <button
+              className="row"
+              type="button"
+              onClick={() => setEditingId(editingId === p.id ? null : p.id)}
+              style={{ marginBottom: editingId === p.id ? 4 : 8 }}
+            >
+              <Mark provider={p} />
+              <span>
+                <strong>{p.name}</strong>
+                <small>{p.freeKwhPerDay > 0 ? `Free allowance: ${p.freeKwhPerDay} kWh/day` : 'No free allowance'}</small>
               </span>
-              <div className="kstep">
-                <button
-                  type="button"
-                  onClick={() => updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(1)) })}
-                >
-                  −
-                </button>
-                <span className="v">
-                  {p.freeKwhPerDay}
-                  <small>kWh free daily</small>
+              <b className="amt chev">
+                <Icon name="chev" size={17} />
+              </b>
+            </button>
+            {editingId === p.id && (
+              <div className="hero-card" style={{ marginTop: 0 }}>
+                <span className="cap" style={{ marginBottom: 8 }}>
+                  Free kWh per day — {p.name}
                 </span>
+                <div className="kstep">
+                  <button
+                    type="button"
+                    onClick={() => updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(1)) })}
+                  >
+                    −
+                  </button>
+                  <span className="v">
+                    {p.freeKwhPerDay}
+                    <small>kWh free daily</small>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => updateProvider(p.id, { freeKwhPerDay: +(p.freeKwhPerDay + 0.5).toFixed(1) })}
+                  >
+                    +
+                  </button>
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--fnt)', fontWeight: 700, marginTop: 9 }}>
+                  Savings, receipts and rings update instantly — the allowance is data, not code.
+                </p>
                 <button
                   type="button"
-                  onClick={() => updateProvider(p.id, { freeKwhPerDay: +(p.freeKwhPerDay + 0.5).toFixed(1) })}
+                  className="text-btn"
+                  style={{ marginTop: 10, color: 'var(--fnt)' }}
+                  onClick={() => {
+                    setProviderArchived(p.id, true)
+                    setEditingId(null)
+                  }}
                 >
-                  +
+                  Archive this charger ›
                 </button>
               </div>
-              <p style={{ fontSize: 11, color: 'var(--fnt)', fontWeight: 700, marginTop: 9 }}>
-                Savings, receipts and rings update instantly — the allowance is data, not code.
-              </p>
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+          </div>
+        ))}
       <p className="sec-sub" style={{ marginTop: 2 }}>
         Add a new charger type from the + Add charge sheet.
       </p>
+
+      {ev.providers.some(p => p.archived) && (
+        <>
+          <p className="sec-sub" style={{ marginTop: 12, marginBottom: 8 }}>
+            Archived — hidden from pickers, still counted in every total
+          </p>
+          {ev.providers
+            .filter(p => p.archived)
+            .map(p => (
+              <div className="row" key={p.id} style={{ opacity: 0.6 }}>
+                <Mark provider={p} />
+                <span>
+                  <strong>{p.name}</strong>
+                  <small>Archived</small>
+                </span>
+                <button
+                  type="button"
+                  className="text-btn"
+                  style={{ whiteSpace: 'nowrap' }}
+                  onClick={() => setProviderArchived(p.id, false)}
+                >
+                  Unarchive
+                </button>
+              </div>
+            ))}
+        </>
+      )}
 
       <h2 className="sec-h2">Budget</h2>
       <p className="sec-sub">Monthly spending cap for the home-screen thermometer.</p>
@@ -353,7 +394,7 @@ export default function Settings() {
         </div>
       )}
 
-      <footer className="app-footer">EV Command v3.6.5 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.6.6 · Cockpit Ledger</footer>
     </main>
   )
 }

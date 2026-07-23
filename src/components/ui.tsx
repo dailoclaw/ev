@@ -24,6 +24,8 @@ const PATHS: Record<string, string> = {
   rweek: 'M4 9.5h16 M8 3v4 M16 3v4 M7.5 13h.01 M12 13h.01 M16.5 13h.01 M7.5 16.5h.01 M12 16.5h.01 M16.5 16.5h.01',
   rgauge: 'M4 19a8.5 8.5 0 0 1 16 0 M12 19l3.5-5',
   rfreeze: 'M12 3v18 M5.5 6.5l13 11 M18.5 6.5l-13 11 M12 3l-2 2.4 M12 3l2 2.4 M12 21l-2-2.4 M12 21l2-2.4',
+  edit: 'M4 20l3.5-1 10-10-2.5-2.5-10 10-1 3.5z M14 8.5l1.5 1.5',
+  trash: 'M5 7h14 M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2 M7 7l1 13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-13 M10 11v6 M14 11v6',
 }
 const EXTRAS: Record<string, ReactNode> = {
   gear: (

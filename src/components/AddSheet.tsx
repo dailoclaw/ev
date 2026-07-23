@@ -9,7 +9,8 @@ import { SyncBadge, TickSvg } from './ui'
 type Mode = 'charge' | 'fee'
 
 export default function AddSheet({ onClose }: { onClose: () => void }) {
-  const { providers, sessions, refRate, synced } = useEv()
+  const { providers: allProviders, sessions, refRate, synced } = useEv()
+  const providers = useMemo(() => allProviders.filter(p => !p.archived), [allProviders])
   const [mode, setMode] = useState<Mode>('charge')
   const [providerName, setProviderName] = useState(providers[0]?.name ?? '')
   const [showNew, setShowNew] = useState(false)

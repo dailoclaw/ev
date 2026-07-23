@@ -11,6 +11,7 @@ import { supa, type DbProvider, type DbSession } from './supa'
 const LS_SESSIONS = 'ev.extraSessions.v1'
 const LS_PROVIDERS = 'ev.providers.v1'
 const LS_BUDGET = 'ev.budgetCap.v1'
+const LS_ARCHIVED = 'ev.archivedProviders.v1'
 
 interface EvState {
   sessions: Session[]
@@ -38,9 +39,27 @@ const seedSessions: Session[] = (rawData as Array<Record<string, unknown>>).map(
   notes: (item.Notes as string) || null,
 }))
 
+// Archived providers are a purely local overlay — never sent to Supabase, never
+// part of the seed/CSV/backup data. Applied to whatever the backend hands back,
+// so it works identically whether providers come from localStorage or Supabase.
+const readArchivedSet = () => new Set(readLS<string[]>(LS_ARCHIVED, []))
+const withArchived = (providers: Provider[]): Provider[] => {
+  const archived = readArchivedSet()
+  return providers.map(p => ({ ...p, archived: archived.has(p.id) }))
+}
+
+export function setProviderArchived(id: string, archived: boolean) {
+  const set = readArchivedSet()
+  if (archived) set.add(id)
+  else set.delete(id)
+  localStorage.setItem(LS_ARCHIVED, JSON.stringify([...set]))
+  state = { ...state, providers: withArchived(state.providers) }
+  emit()
+}
+
 let state: EvState = {
   sessions: [...seedSessions, ...readLS<Session[]>(LS_SESSIONS, [])],
-  providers: readLS<Provider[]>(LS_PROVIDERS, DEFAULT_PROVIDERS),
+  providers: withArchived(readLS<Provider[]>(LS_PROVIDERS, DEFAULT_PROVIDERS)),
   budgetCap: readLS<number>(LS_BUDGET, 50),
   synced: false,
   loading: !!supa,
@@ -94,7 +113,7 @@ async function loadRemote(): Promise<void> {
   const providersById = new Map(providers.map(p => [p.id, p.name]))
   const sessions = (sessRes.data as DbSession[]).map(s => mapSession(s, providersById))
 
-  state = { ...state, providers, sessions, synced: true, loading: false }
+  state = { ...state, providers: withArchived(providers), sessions, synced: true, loading: false }
   emit()
 
   // one-time: push any records captured locally before Supabase was connected
@@ -173,6 +192,60 @@ function persistLocalExtra(session: Session) {
   const extras = readLS<Session[]>(LS_SESSIONS, [])
   extras.push(session)
   localStorage.setItem(LS_SESSIONS, JSON.stringify(extras))
+}
+
+const isRemoteId = (id: string) => !id.startsWith('seed-') && !id.startsWith('local-')
+
+/** Edits a logged charge in place — date, energy, cost, notes. Provider stays fixed. */
+export async function updateSession(id: string, patch: Partial<Pick<Session, 'date' | 'amount' | 'cost' | 'notes'>>) {
+  const prevSessions = state.sessions
+  state = { ...state, sessions: state.sessions.map(s => (s.id === id ? { ...s, ...patch } : s)) }
+  emit()
+
+  if (supa && state.synced && isRemoteId(id)) {
+    const db: Record<string, unknown> = {}
+    if (patch.date !== undefined) db.date = patch.date
+    if (patch.amount !== undefined) db.amount = patch.amount
+    if (patch.cost !== undefined) db.cost = patch.cost
+    if (patch.notes !== undefined) db.notes = patch.notes
+    const { error } = await supa.from('charging_sessions').update(db).eq('id', id)
+    if (error) {
+      console.error('Update failed, reverting', error)
+      state = { ...state, sessions: prevSessions }
+      emit()
+      throw error
+    }
+    return
+  }
+  const extras = readLS<Session[]>(LS_SESSIONS, []).map(s => (s.id === id ? { ...s, ...patch } : s))
+  localStorage.setItem(LS_SESSIONS, JSON.stringify(extras))
+}
+
+/** Removes a logged charge. Returns the removed session so callers can offer Undo. */
+export async function deleteSession(id: string): Promise<Session | null> {
+  const removed = state.sessions.find(s => s.id === id) ?? null
+  const prevSessions = state.sessions
+  state = { ...state, sessions: state.sessions.filter(s => s.id !== id) }
+  emit()
+
+  if (supa && state.synced && isRemoteId(id)) {
+    const { error } = await supa.from('charging_sessions').delete().eq('id', id)
+    if (error) {
+      console.error('Delete failed, reverting', error)
+      state = { ...state, sessions: prevSessions }
+      emit()
+      throw error
+    }
+    return removed
+  }
+  const extras = readLS<Session[]>(LS_SESSIONS, []).filter(s => s.id !== id)
+  localStorage.setItem(LS_SESSIONS, JSON.stringify(extras))
+  return removed
+}
+
+/** Powers the Undo snackbar after a delete — re-adds the session as a fresh row. */
+export function undoDeleteSession(session: Session) {
+  addSession({ date: session.date, type: session.type, amount: session.amount, cost: session.cost, notes: session.notes })
 }
 
 export function addProvider(name: string, freeKwhPerDay: number, color?: string): Provider {

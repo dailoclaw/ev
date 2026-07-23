@@ -416,6 +416,69 @@
 .row .amt.chev {
   color: var(--fnt);
 }
+
+/* ---- swipe actions (Statement rows) ---- */
+.swiperow {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.swiperow .swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+.swiperow .swipe-actions button {
+  width: 42px;
+  border: 0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.swiperow .swipe-actions .edit {
+  background: var(--steel);
+}
+.swiperow .swipe-actions .del {
+  background: var(--neg);
+}
+.swiperow .swipe-content {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0;
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+/* ---- snackbar (Undo after delete) ---- */
+.snackbar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 86px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: #0f1a24;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--cardshadow);
+}
+.snackbar button {
+  color: #34d399;
+  font-weight: 800;
+  font-size: 13px;
+  flex: none;
+}
+
 .mark {
   width: 34px;
   height: 34px;
