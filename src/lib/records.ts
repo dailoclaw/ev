@@ -29,6 +29,11 @@ export interface Records {
   bestStreak: number
   /** What ends the current streak, phrased for the card. */
   streakNote: string
+  /** Freezes currently banked (0..freezeCap) — a held freeze absorbs the next overflow. */
+  freezesHeld: number
+  freezeCap: number
+  /** Date of the freeze protecting the *current* run, if the streak survived one. */
+  freezeSavedDate: string | null
   trophies: Trophy[]
   targets: Target[]
 }
@@ -39,6 +44,7 @@ const SAVED_TIERS = [250, 500, 1_000, 2_500]
 const CENTURY = 100 // free charges in a row
 const WEEK_DAYS = 7 // allowance days claimed Mon–Sun
 const SUB_RATE = 0.1 // $/kWh effective, over a completed month
+const FREEZE_CAP = 1 // freezes held at once — earned again each century milestone
 
 /** Largest tier crossed, or null. */
 const crossed = (tiers: number[], value: number) => [...tiers].reverse().find(t => value >= t) ?? null
@@ -57,14 +63,31 @@ export function records(ev: EvData): Records {
   const energy = ev.sessions.filter(s => !s.isFee) // chronological
   const isFree = (s: (typeof energy)[number]) => s.cost === 0 && s.amount > 0
 
-  // ---- free-charge streaks ----
+  // ---- free-charge streaks, with earned freeze protection ----
+  // A freeze is earned every time a run crosses a century milestone (100, 200, …),
+  // capped at FREEZE_CAP held at once. The next overflow after that spends it
+  // instead of breaking the streak — deterministic and fully re-derivable, so
+  // nothing about this needs to be stored.
   let bestStreak = 0
   let run = 0
+  let freezeBank = 0
+  let runFreezeDate: string | null = null // set while the *current* run survives on a freeze
   for (const s of energy) {
-    run = isFree(s) ? run + 1 : 0
-    if (run > bestStreak) bestStreak = run
+    if (isFree(s)) {
+      run += 1
+      if (run > bestStreak) bestStreak = run
+      if (run % CENTURY === 0 && freezeBank < FREEZE_CAP) freezeBank += 1
+    } else if (freezeBank > 0) {
+      freezeBank -= 1
+      runFreezeDate = s.date // streak survives — run carries on unbroken
+    } else {
+      run = 0
+      runFreezeDate = null
+    }
   }
   const currentStreak = run
+  const freezesHeld = freezeBank
+  const freezeSavedDate = currentStreak > 0 ? runFreezeDate : null
 
   // ---- lifetime kWh milestone, with the date it was crossed ----
   const kwhTier = crossed(KWH_TIERS, ev.lifetime.kwh)
@@ -255,14 +278,28 @@ export function records(ev: EvData): Records {
   }
 
   const free = ev.providers.find(p => p.freeKwhPerDay > 0)
+  const hasFreeze = freezesHeld > 0
   const streakNote =
     currentStreak > 0
       ? currentStreak >= bestStreak
-        ? 'personal best — a paid charge ends it'
-        : `best ${bestStreak} · survives while charges stay inside the ${free?.freeKwhPerDay ?? 7} kWh allowance`
+        ? hasFreeze
+          ? 'personal best — a freeze in reserve would absorb the next overflow'
+          : 'personal best — a paid charge ends it'
+        : hasFreeze
+          ? `best ${bestStreak} · a freeze in reserve would absorb the next overflow`
+          : `best ${bestStreak} · survives while charges stay inside the ${free?.freeKwhPerDay ?? 7} kWh allowance`
       : bestStreak > 0
         ? `best ${bestStreak} — a $0.00 charge starts a new one`
         : 'a $0.00 charge starts one'
 
-  return { currentStreak, bestStreak, streakNote, trophies, targets }
+  return {
+    currentStreak,
+    bestStreak,
+    streakNote,
+    freezesHeld,
+    freezeCap: FREEZE_CAP,
+    freezeSavedDate,
+    trophies,
+    targets,
+  }
 }

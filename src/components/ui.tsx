@@ -23,6 +23,7 @@ const PATHS: Record<string, string> = {
   rstreak: 'M13 2 5 13h5l-1 9 8-11h-5l1-9z M19 3.5c1.2 1.6 1.2 3.4 0 5',
   rweek: 'M4 9.5h16 M8 3v4 M16 3v4 M7.5 13h.01 M12 13h.01 M16.5 13h.01 M7.5 16.5h.01 M12 16.5h.01 M16.5 16.5h.01',
   rgauge: 'M4 19a8.5 8.5 0 0 1 16 0 M12 19l3.5-5',
+  rfreeze: 'M12 3v18 M5.5 6.5l13 11 M18.5 6.5l-13 11 M12 3l-2 2.4 M12 3l2 2.4 M12 21l-2-2.4 M12 21l2-2.4',
 }
 const EXTRAS: Record<string, ReactNode> = {
   gear: (

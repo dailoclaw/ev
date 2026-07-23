@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh } from '../lib/format'
+import { aud, kwh, shortDate } from '../lib/format'
 import { Icon } from '../components/ui'
 import { yearOnYear } from '../lib/yearOnYear'
 import { records } from '../lib/records'
@@ -199,7 +199,26 @@ function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
             {r.currentStreak} free charge{r.currentStreak !== 1 ? 's' : ''} running
           </strong>
           <small>{r.streakNote}</small>
+          {r.freezeCap > 0 && (
+            <div className="freeze-row">
+              {Array.from({ length: r.freezeCap }, (_, i) => (
+                <span key={i} className={`freeze-chip ${i < r.freezesHeld ? '' : 'used'}`} aria-hidden="true">
+                  <Icon name="rfreeze" size={13} />
+                </span>
+              ))}
+              <span className="freeze-label">
+                {r.freezesHeld > 0
+                  ? `${r.freezesHeld} freeze earned at the Century milestone`
+                  : 'earn a freeze at the Century milestone'}
+              </span>
+            </div>
+          )}
         </div>
+        {r.freezeSavedDate && (
+          <div className="freepreview" style={{ gridColumn: '1 / -1' }}>
+            Survived an overflow on {shortDate(r.freezeSavedDate)} with a freeze — the streak never noticed.
+          </div>
+        )}
       </div>
 
       <div className="trophy-grid">
