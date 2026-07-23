@@ -479,6 +479,33 @@
   flex: none;
 }
 
+/* ---- what's new ---- */
+.changerow {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bd2);
+}
+.changerow:last-child {
+  border-bottom: 0;
+}
+.changerow .ver {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--fnt);
+  margin-bottom: 3px;
+}
+.changerow p {
+  font-size: 13px;
+  color: var(--tx);
+  font-weight: 600;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+.changerow p:first-of-type {
+  margin-top: 0;
+}
+
 .mark {
   width: 34px;
   height: 34px;

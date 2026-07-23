@@ -169,7 +169,7 @@ export default function Home() {
         )
       })}
 
-      <footer className="app-footer">EV Command v3.6.6 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.6.7 · Cockpit Ledger</footer>
     </main>
   )
 }

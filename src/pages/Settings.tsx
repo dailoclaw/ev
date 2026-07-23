@@ -20,6 +20,7 @@ import {
 import { aud, stamp, todayIso } from '../lib/format'
 import { useTheme } from '../lib/theme'
 import { Icon, Mark, SyncBadge } from '../components/ui'
+import WhatsNewSheet from '../components/WhatsNewSheet'
 
 type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
 
@@ -28,6 +29,7 @@ export default function Settings() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [exported, setExported] = useState(false)
   const [theme, setTheme] = useTheme()
+  const [showWhatsNew, setShowWhatsNew] = useState(false)
 
   const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
   const [restoreError, setRestoreError] = useState<string | null>(null)
@@ -394,7 +396,11 @@ export default function Settings() {
         </div>
       )}
 
-      <footer className="app-footer">EV Command v3.6.6 · Cockpit Ledger</footer>
+      <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
+        EV Command v3.6.7 · Cockpit Ledger · what's new ›
+      </button>
+
+      {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}
     </main>
   )
 }

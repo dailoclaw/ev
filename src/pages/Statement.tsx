@@ -43,7 +43,6 @@ function SessionRow({
 
   useEffect(() => {
     setTx(open ? -SWIPE_ACTIONS_WIDTH : 0, true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   const onTouchStart = (e: React.TouchEvent) => {
