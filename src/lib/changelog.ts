@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.9',
+    date: '24 Jul 2026',
+    notes: ['Vehicle Photo — add a picture of your actual car to the Vehicle page.'],
+  },
+  {
     version: '3.6.8',
     date: '24 Jul 2026',
     notes: ['Provider Order — reorder your chargers so the one you use daily comes first in every picker.'],

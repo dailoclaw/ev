@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
@@ -19,15 +19,64 @@ const read = (): Assumptions => {
   }
 }
 
+// The vehicle photo lives on this device only — a compressed data URL in
+// localStorage, never synced. It's personalisation, not data worth backing up.
+const LS_PHOTO = 'ev.vehiclePhoto.v1'
+
+function compressImage(file: File, maxWidth = 960, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('Canvas unavailable'))
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.onerror = () => reject(new Error('Could not read that image'))
+      img.src = reader.result as string
+    }
+    reader.onerror = () => reject(new Error('Could not read that file'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function Vehicle() {
   const ev = useEv()
   const [a, setA] = useState<Assumptions>(read)
   const [editing, setEditing] = useState(false)
+  const [photo, setPhoto] = useState<string | null>(() => localStorage.getItem(LS_PHOTO))
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   const save = (patch: Partial<Assumptions>) => {
     const next = { ...a, ...patch }
     setA(next)
     localStorage.setItem(LS_KEY, JSON.stringify(next))
+  }
+
+  const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      const compressed = await compressImage(file)
+      localStorage.setItem(LS_PHOTO, compressed)
+      setPhoto(compressed)
+      setPhotoError(null)
+    } catch {
+      setPhotoError('Could not read that photo — try a different one.')
+    }
+  }
+
+  const removePhoto = () => {
+    localStorage.removeItem(LS_PHOTO)
+    setPhoto(null)
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -52,6 +101,36 @@ export default function Vehicle() {
           <Icon name="gear" />
         </button>
       </header>
+
+      <button
+        type="button"
+        className="vehicle-photo"
+        onClick={() => photoInputRef.current?.click()}
+        aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
+      >
+        {photo ? (
+          <img src={photo} alt="Your vehicle" />
+        ) : (
+          <span className="vehicle-photo-empty">
+            <Icon name="car" size={22} />
+            <small>Tap to add a photo</small>
+          </span>
+        )}
+      </button>
+      <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <p className="sec-sub" style={{ margin: 0 }}>
+          Kept on this device only — not synced or backed up.
+        </p>
+        {photo && (
+          <button type="button" className="text-btn" onClick={removePhoto}>
+            Remove
+          </button>
+        )}
+      </div>
+      {photoError && (
+        <p style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: -8, marginBottom: 12 }}>{photoError}</p>
+      )}
 
       {editing && (
         <section className="hero-card">
