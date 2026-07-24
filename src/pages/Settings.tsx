@@ -14,6 +14,7 @@ import {
   restoreReplaceRemote,
   setBudgetCap,
   setProviderArchived,
+  setProviderOrder,
   updateProvider,
   type Backup,
 } from '../lib/data'
@@ -38,6 +39,17 @@ export default function Settings() {
   const [confirmText, setConfirmText] = useState('')
   const [replacing, setReplacing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const activeProviders = ev.providers.filter(p => !p.archived)
+  const moveProvider = (id: string, dir: -1 | 1) => {
+    const ids = activeProviders.map(p => p.id)
+    const idx = ids.indexOf(id)
+    const swapIdx = idx + dir
+    if (swapIdx < 0 || swapIdx >= ids.length) return
+    ;[ids[idx], ids[swapIdx]] = [ids[swapIdx], ids[idx]]
+    const archivedIds = ev.providers.filter(p => p.archived).map(p => p.id)
+    setProviderOrder([...ids, ...archivedIds])
+  }
 
   const exportAll = () => {
     downloadCsv(buildCsv(ev.sessions), 'ev-charging-export.csv')
@@ -127,10 +139,8 @@ export default function Settings() {
       </div>
 
       <h2 className="sec-h2">Charger types</h2>
-      <p className="sec-sub">Free allowances are per-charger settings — they drive every savings figure.</p>
-      {ev.providers
-        .filter(p => !p.archived)
-        .map(p => (
+      <p className="sec-sub">Free allowances are per-charger settings — they drive every savings figure. Order here is the order chargers appear when logging a charge.</p>
+      {activeProviders.map((p, i) => (
           <div key={p.id}>
             <button
               className="row"
@@ -173,6 +183,34 @@ export default function Settings() {
                 <p style={{ fontSize: 11, color: 'var(--fnt)', fontWeight: 700, marginTop: 9 }}>
                   Savings, receipts and rings update instantly — the allowance is data, not code.
                 </p>
+                <div className="row" style={{ marginTop: 10, marginBottom: 0, boxShadow: 'none', padding: '10px 12px' }}>
+                  <span>
+                    <strong style={{ fontSize: 12 }}>Order in pickers</strong>
+                    <small>Position {i + 1} of {activeProviders.length}</small>
+                  </span>
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="text-btn"
+                      style={{ color: i === 0 ? 'var(--bd)' : 'var(--fnt)' }}
+                      disabled={i === 0}
+                      onClick={() => moveProvider(p.id, -1)}
+                      aria-label={`Move ${p.name} up`}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className="text-btn"
+                      style={{ color: i === activeProviders.length - 1 ? 'var(--bd)' : 'var(--fnt)' }}
+                      disabled={i === activeProviders.length - 1}
+                      onClick={() => moveProvider(p.id, 1)}
+                      aria-label={`Move ${p.name} down`}
+                    >
+                      ▼
+                    </button>
+                  </span>
+                </div>
                 <button
                   type="button"
                   className="text-btn"
@@ -397,7 +435,7 @@ export default function Settings() {
       )}
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
-        EV Command v3.6.7 · Cockpit Ledger · what's new ›
+        EV Command v3.6.8 · Cockpit Ledger · what's new ›
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}

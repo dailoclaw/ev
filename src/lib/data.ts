@@ -12,6 +12,7 @@ const LS_SESSIONS = 'ev.extraSessions.v1'
 const LS_PROVIDERS = 'ev.providers.v1'
 const LS_BUDGET = 'ev.budgetCap.v1'
 const LS_ARCHIVED = 'ev.archivedProviders.v1'
+const LS_PROVIDER_ORDER = 'ev.providerOrder.v1'
 
 interface EvState {
   sessions: Session[]
@@ -39,13 +40,23 @@ const seedSessions: Session[] = (rawData as Array<Record<string, unknown>>).map(
   notes: (item.Notes as string) || null,
 }))
 
-// Archived providers are a purely local overlay — never sent to Supabase, never
-// part of the seed/CSV/backup data. Applied to whatever the backend hands back,
-// so it works identically whether providers come from localStorage or Supabase.
+// Archived flag and custom order are both purely local overlays — never sent
+// to Supabase, never part of the seed/CSV/backup data. Applied to whatever the
+// backend hands back, so it works identically whether providers come from
+// localStorage or Supabase.
 const readArchivedSet = () => new Set(readLS<string[]>(LS_ARCHIVED, []))
-const withArchived = (providers: Provider[]): Provider[] => {
+const readProviderOrder = () => readLS<string[]>(LS_PROVIDER_ORDER, [])
+
+const finalizeProviders = (providers: Provider[]): Provider[] => {
   const archived = readArchivedSet()
-  return providers.map(p => ({ ...p, archived: archived.has(p.id) }))
+  const withFlags = providers.map(p => ({ ...p, archived: archived.has(p.id) }))
+  const order = readProviderOrder()
+  if (order.length === 0) return withFlags
+  const rank = new Map(order.map((id, i) => [id, i]))
+  return withFlags
+    .map((p, i) => ({ p, key: rank.has(p.id) ? rank.get(p.id)! : order.length + i }))
+    .sort((a, b) => a.key - b.key)
+    .map(x => x.p)
 }
 
 export function setProviderArchived(id: string, archived: boolean) {
@@ -53,13 +64,20 @@ export function setProviderArchived(id: string, archived: boolean) {
   if (archived) set.add(id)
   else set.delete(id)
   localStorage.setItem(LS_ARCHIVED, JSON.stringify([...set]))
-  state = { ...state, providers: withArchived(state.providers) }
+  state = { ...state, providers: finalizeProviders(state.providers) }
+  emit()
+}
+
+/** Persist a full provider id order — callers pass the complete desired sequence. */
+export function setProviderOrder(order: string[]) {
+  localStorage.setItem(LS_PROVIDER_ORDER, JSON.stringify(order))
+  state = { ...state, providers: finalizeProviders(state.providers) }
   emit()
 }
 
 let state: EvState = {
   sessions: [...seedSessions, ...readLS<Session[]>(LS_SESSIONS, [])],
-  providers: withArchived(readLS<Provider[]>(LS_PROVIDERS, DEFAULT_PROVIDERS)),
+  providers: finalizeProviders(readLS<Provider[]>(LS_PROVIDERS, DEFAULT_PROVIDERS)),
   budgetCap: readLS<number>(LS_BUDGET, 50),
   synced: false,
   loading: !!supa,
@@ -113,7 +131,7 @@ async function loadRemote(): Promise<void> {
   const providersById = new Map(providers.map(p => [p.id, p.name]))
   const sessions = (sessRes.data as DbSession[]).map(s => mapSession(s, providersById))
 
-  state = { ...state, providers: withArchived(providers), sessions, synced: true, loading: false }
+  state = { ...state, providers: finalizeProviders(providers), sessions, synced: true, loading: false }
   emit()
 
   // one-time: push any records captured locally before Supabase was connected

@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.8',
+    date: '24 Jul 2026',
+    notes: ['Provider Order — reorder your chargers so the one you use daily comes first in every picker.'],
+  },
+  {
     version: '3.6.7',
     date: '23 Jul 2026',
     notes: ["What's New — this list, reachable by tapping the version number in Settings."],
