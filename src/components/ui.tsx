@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { providerInitial, type Provider } from '../lib/providers'
 
 /* ---- icons ---- */
@@ -113,10 +113,27 @@ export function Ring({
 
 /* ---- budget thermometer ---- */
 export function Thermo({ spent, projected, cap }: { spent: number; projected: number; cap: number }) {
+  const reduceMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  )
+  const [armed, setArmed] = useState(reduceMotion)
   const pct = (n: number) => Math.min(100, Math.max(0, (n / cap) * 100))
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setArmed(true)
+      return
+    }
+
+    setArmed(false)
+    const id = requestAnimationFrame(() => setArmed(true))
+    return () => cancelAnimationFrame(id)
+  }, [cap, projected, reduceMotion, spent])
+
   return (
-    <div className="thermo" role="img" aria-label={`Spent ${spent.toFixed(2)} of ${cap} budget`}>
-      <span className="fill" style={{ width: `${pct(spent)}%` }} />
+    <div className={`thermo ${armed ? 'armed' : ''}`} role="img" aria-label={`Spent ${spent.toFixed(2)} of ${cap} budget`}>
+      <span className="fill" style={{ width: armed ? `${pct(spent)}%` : '0%' }} />
       {projected > spent && <span className="proj" style={{ left: `${pct(projected)}%` }} />}
       <span className="cap100" />
     </div>

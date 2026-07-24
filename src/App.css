@@ -117,11 +117,18 @@
   color: var(--fnt);
 }
 .hero-num {
+  display: block;
   font-size: 40px;
   font-weight: 800;
   line-height: 0.95;
   margin-top: 7px;
   letter-spacing: -0.02em;
+}
+.countup-num {
+  animation: countup-pop 520ms cubic-bezier(0.3, 1.45, 0.35, 1) both;
+}
+.countup-inline {
+  color: var(--fnt);
 }
 .hero-sub {
   font-size: 12.5px;
@@ -665,6 +672,11 @@
   width: 2.5px;
   border-radius: 2px;
   background: #f59e0b;
+  transform: scaleY(0);
+  transition: transform 360ms ease 420ms;
+}
+.thermo.armed .proj {
+  transform: scaleY(1);
 }
 .thermo .cap100 {
   position: absolute;
@@ -685,6 +697,20 @@
 }
 .thermoleg .warn {
   color: var(--warn);
+}
+
+@keyframes countup-pop {
+  0% {
+    opacity: 0.7;
+    transform: translateY(4px) scale(0.98);
+  }
+  70% {
+    transform: translateY(0) scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ---- split bar ---- */

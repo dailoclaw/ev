@@ -6,6 +6,7 @@ import { aud, kwh, monthTitle, thisMonth, todayIso, shortDate, rate } from '../l
 import { FreeTag, Icon, Mark, Ring, Thermo } from '../components/ui'
 import Explainable from '../components/Explainable'
 import { deriveMonthSpend } from '../lib/derive'
+import CountUpNumber from '../components/CountUpNumber'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -60,7 +61,7 @@ export default function Home() {
           <div>
             <span className="cap">Spent this month</span>
             <Explainable derive={() => deriveMonthSpend(ev, ym)} label="Spent this month">
-              <div className="hero-num">{aud(cur?.cost ?? 0)}</div>
+              <CountUpNumber className="hero-num countup-num" value={cur?.cost ?? 0} format={aud} />
             </Explainable>
           </div>
           {deltaPct != null && (
@@ -102,7 +103,8 @@ export default function Home() {
 
       <section className="hero-card" style={{ paddingBottom: 14 }}>
         <span className="cap" style={{ marginBottom: 10 }}>
-          {monthTitle(ym).split(' ')[0]} budget · {aud(ev.budgetCap, 0)}
+          {monthTitle(ym).split(' ')[0]} budget ·{' '}
+          <CountUpNumber className="countup-inline" value={ev.budgetCap} format={value => aud(value, 0)} durationMs={650} />
         </span>
         <Thermo spent={cur?.cost ?? 0} projected={projected} cap={ev.budgetCap} />
         <div className="thermoleg">
@@ -169,7 +171,7 @@ export default function Home() {
         )
       })}
 
-      <footer className="app-footer">EV Command v3.6.9 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.6.10 · Cockpit Ledger</footer>
     </main>
   )
 }

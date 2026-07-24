@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EV Command Component and Animation Mockups</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f3f5f7;
+      --surf: #ffffff;
+      --surf2: #f7f9fa;
+      --bd: #e3e8ec;
+      --bd2: #edf1f3;
+      --tx: #0f1a24;
+      --mut: #4e5e6b;
+      --fnt: #8496a3;
+      --money: #059669;
+      --money-deep: #047857;
+      --money-soft: #e7f6ef;
+      --money-line: #b8e6d0;
+      --steel: #334155;
+      --neg: #e11d48;
+      --warn: #b45309;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --cardshadow: 0 1px 2px rgba(15, 26, 36, 0.05), 0 10px 24px rgba(15, 26, 36, 0.07);
+      --sheetshadow: 0 -14px 40px rgba(15, 26, 36, 0.3);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(5, 150, 105, .13), transparent 28%),
+        radial-gradient(circle at 90% 0%, rgba(51, 65, 85, .10), transparent 30%),
+        var(--canvas);
+      color: var(--tx);
+    }
+    button { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 2px solid rgba(5, 150, 105, .7); outline-offset: 3px; }
+
+    .page {
+      width: min(100%, 1180px);
+      margin: 0 auto;
+      padding: 28px 16px 54px;
+    }
+    .cover {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+    .eyebrow {
+      display: block;
+      color: var(--money);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 6px 0 0;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .lead {
+      max-width: 760px;
+      margin-top: 12px;
+      color: var(--mut);
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 600;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid var(--bd);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      color: var(--mut);
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: var(--cardshadow);
+    }
+    .pill.on { background: var(--steel); color: #fff; border-color: var(--steel); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .mock {
+      min-width: 0;
+      border: 1px solid var(--bd);
+      border-radius: 22px;
+      background: rgba(255,255,255,.72);
+      box-shadow: var(--cardshadow);
+      overflow: hidden;
+    }
+    .mock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(227,232,236,.7);
+    }
+    .mock-head h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      letter-spacing: -.02em;
+    }
+    .mock-head span {
+      color: var(--fnt);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .stage {
+      position: relative;
+      min-height: 285px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.58), rgba(247,249,250,.9));
+    }
+    .hero-card, .chart-card, .metric-card, .row {
+      border: 1px solid var(--bd);
+      background: var(--surf);
+      box-shadow: var(--cardshadow);
+    }
+    .hero-card, .chart-card { border-radius: var(--radius); padding: 16px; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-card { border-radius: var(--radius-sm); padding: 12px; min-height: 78px; }
+    .cap {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--fnt);
+    }
+    .big {
+      display: block;
+      margin-top: 6px;
+      font-size: 34px;
+      line-height: .95;
+      letter-spacing: -.035em;
+      font-weight: 850;
+    }
+    .sub {
+      margin-top: 7px;
+      color: var(--mut);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+    .delta {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: var(--money-soft);
+      color: var(--money-deep);
+      font-size: 10px;
+      font-weight: 850;
+    }
+    .mark {
+      width: 34px;
+      height: 34px;
+      flex: none;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: #fff;
+      background: var(--pc, var(--money));
+      box-shadow: 0 4px 10px color-mix(in srgb, var(--pc, var(--money)) 40%, transparent);
+      font-size: 14px;
+      font-weight: 850;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 11px;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: left;
+    }
+    .row strong { display: block; font-size: 13px; font-weight: 850; }
+    .row small { display: block; margin-top: 3px; color: var(--mut); font-size: 11px; font-weight: 650; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .amt { color: var(--steel); font-size: 13px; font-weight: 850; white-space: nowrap; }
+    .primary-btn {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--money), #0d9488);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 850;
+      box-shadow: 0 12px 24px rgba(5,150,105,.28);
+    }
+    .seg {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--bd);
+      border-radius: 13px;
+      background: var(--surf2);
+    }
+    .seg button {
+      min-height: 34px;
+      border-radius: 9px;
+      color: var(--mut);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .seg button.on {
+      background: var(--steel);
+      color: #fff;
+      box-shadow: 0 5px 14px rgba(51,65,85,.18);
+    }
+
+    .count-source { opacity: 0; transform: translateY(8px); animation: fadeUp .55s ease forwards; }
+    .counter-pop { animation: counterPop .42s cubic-bezier(.3,1.7,.36,1) .35s both; }
+
+    .donut {
+      --p: 0;
+      --size: 116px;
+      width: var(--size);
+      height: var(--size);
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: conic-gradient(var(--money) calc(var(--p) * 1%), var(--bd2) 0);
+      transition: --p 900ms cubic-bezier(.32, 1, .36, 1);
+    }
+    @property --p { syntax: "<number>"; initial-value: 0; inherits: true; }
+    .donut::before {
+      content: "";
+      position: absolute;
+      width: calc(var(--size) - 28px);
+      height: calc(var(--size) - 28px);
+      border-radius: 50%;
+      background: var(--surf);
+      box-shadow: inset 0 0 0 1px var(--bd2);
+    }
+    .donut b { position: relative; font-size: 20px; letter-spacing: -.02em; }
+
+    .thermo {
+      position: relative;
+      height: 14px;
+      margin-top: 14px;
+      border: 1px solid var(--bd);
+      border-radius: 999px;
+      background: var(--surf2);
+      overflow: hidden;
+    }
+    .thermo i {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--money), #34d399);
+      transition: width 950ms cubic-bezier(.28, 1, .32, 1);
+    }
+    .thermo b {
+      position: absolute;
+      top: -5px;
+      width: 3px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--warn);
+      transform: translateX(-50%) scaleY(0);
+      transition: transform .45s ease .55s;
+    }
+
+    .splitbar {
+      display: flex;
+      height: 12px;
+      margin: 16px 0 10px;
+      overflow: hidden;
+      border: 1px solid var(--bd);
+      border-radius: 999px;
+      background: var(--surf2);
+    }
+    .splitbar i { width: 0; transition: width 900ms cubic-bezier(.28, 1, .32, 1); }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; color: var(--mut); font-size: 10px; font-weight: 800; }
+    .legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 3px; vertical-align: -1px; }
+
+    .bars {
+      display: flex;
+      align-items: end;
+      gap: 7px;
+      height: 140px;
+      padding: 8px 2px 0;
+    }
+    .bars i {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      height: 4px;
+      border-radius: 7px 7px 3px 3px;
+      background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 30%, var(--surf)));
+      transition: height 860ms cubic-bezier(.28, 1, .32, 1);
+    }
+    .bars i::before {
+      content: attr(data-v);
+      position: absolute;
+      left: 50%;
+      top: -18px;
+      transform: translateX(-50%);
+      color: var(--steel);
+      font-size: 9px;
+      font-weight: 850;
+      opacity: 0;
+      transition: opacity .35s ease .65s;
+    }
+    .animate .bars i::before { opacity: 1; }
+
+    .spark {
+      width: 100%;
+      height: 118px;
+      margin-top: 4px;
+    }
+    .spark path.line {
+      fill: none;
+      stroke: var(--money);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 420;
+      stroke-dashoffset: 420;
+      transition: stroke-dashoffset 1100ms cubic-bezier(.35, .8, .25, 1);
+    }
+    .spark path.area { fill: var(--money); opacity: 0; transition: opacity .5s ease .55s; }
+
+    .allowance-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 144px;
+      border-radius: var(--radius);
+      padding: 16px 108px 16px 16px;
+      color: #fff;
+      background: linear-gradient(140deg, #047857, #059669 55%, #0d9488);
+      box-shadow: 0 14px 30px rgba(5, 150, 105, .32);
+    }
+    .allowance-card::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: -18px;
+      width: 110px;
+      height: 110px;
+      border-radius: 36px;
+      border: 16px solid rgba(255,255,255,.11);
+      transform: rotate(15deg);
+    }
+    .allowance-card .cap { color: rgba(255,255,255,.75); }
+    .allowance-card .ring-small {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      --size: 76px;
+      background: conic-gradient(#fff calc(var(--p) * 1%), rgba(255,255,255,.22) 0);
+    }
+    .allowance-card .ring-small::before { background: #058662; }
+    .allowance-card .ring-small b { color: #fff; }
+
+    .swipe-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+    }
+    .swipe-actions {
+      position: absolute;
+      inset: 0 0 0 auto;
+      display: flex;
+    }
+    .swipe-actions button {
+      width: 44px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .swipe-actions .edit { background: var(--steel); }
+    .swipe-actions .del { background: var(--neg); }
+    .swipe-content {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0;
+      transition: transform .22s ease;
+    }
+    .swipe-shell.open .swipe-content { transform: translateX(-88px); }
+
+    .receipt {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      border: 1px solid var(--bd);
+      border-radius: var(--radius);
+      background: var(--surf);
+      box-shadow: var(--cardshadow);
+      padding: 15px;
+      transform-style: preserve-3d;
+      transition: transform .6s cubic-bezier(.28,1,.32,1);
+    }
+    .receipt.flipped { transform: rotateX(360deg); }
+    .rl {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      color: var(--mut);
+      font-size: 12px;
+    }
+    .rl b { color: var(--tx); }
+    .rl.free, .rl.free b { color: var(--money-deep); }
+    .rl.tot { margin-top: 7px; padding-top: 10px; border-top: 1.5px dashed var(--bd); font-weight: 850; }
+
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: end;
+      padding: 12px;
+      border-radius: 0 0 22px 22px;
+      background: rgba(15, 26, 36, 0);
+      pointer-events: none;
+      transition: background .35s ease;
+    }
+    .sheet {
+      width: 100%;
+      padding: 10px 14px 14px;
+      border: 1px solid var(--bd);
+      border-radius: 22px;
+      background: var(--surf);
+      box-shadow: var(--sheetshadow);
+      transform: translateY(114%);
+      transition: transform .52s cubic-bezier(.28, 1.32, .28, 1);
+    }
+    .sheet-backdrop.open { background: rgba(15, 26, 36, .26); pointer-events: auto; }
+    .sheet-backdrop.open .sheet { transform: translateY(0); }
+    .handle {
+      width: 42px;
+      height: 4px;
+      margin: 0 auto 12px;
+      border-radius: 99px;
+      background: var(--bd);
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      color: var(--fnt);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .fld {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 11px;
+      border: 1px solid var(--bd);
+      border-radius: 11px;
+      background: var(--surf2);
+      color: var(--tx);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .fld span { color: var(--fnt); font-size: 11px; font-weight: 800; }
+
+    .setting-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--bd);
+      border-radius: var(--radius-sm);
+      background: var(--surf);
+      box-shadow: var(--cardshadow);
+    }
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--bd);
+      transition: background .25s ease;
+    }
+    .switch::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 3px 8px rgba(15,26,36,.18);
+      transition: transform .25s ease;
+    }
+    .switch.on { background: var(--money); }
+    .switch.on::after { transform: translateX(20px); }
+
+    .provider-card {
+      position: relative;
+      overflow: hidden;
+      padding: 14px;
+      border: 1px solid var(--bd);
+      border-radius: var(--radius);
+      background: var(--surf);
+      box-shadow: var(--cardshadow);
+    }
+    .provider-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--pc, var(--money));
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform .62s ease;
+    }
+    .provider-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ratebadge {
+      border-radius: 999px;
+      padding: 5px 8px;
+      background: var(--money-soft);
+      color: var(--money-deep);
+      font-size: 10px;
+      font-weight: 850;
+    }
+    .provider-card .mini-meter {
+      height: 8px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: var(--surf2);
+      overflow: hidden;
+    }
+    .provider-card .mini-meter i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--pc, var(--money));
+      transition: width .8s ease .2s;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      padding: 20px;
+      border: 1px dashed var(--bd);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.58);
+      text-align: center;
+    }
+    .battery {
+      position: relative;
+      width: 96px;
+      height: 44px;
+      margin: 0 auto 14px;
+      border: 3px solid var(--bd);
+      border-radius: 13px;
+    }
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: 13px;
+      width: 7px;
+      height: 14px;
+      border-radius: 0 5px 5px 0;
+      background: var(--bd);
+    }
+    .battery i {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 9px;
+      background: linear-gradient(90deg, var(--money), #34d399);
+      transition: width 1s cubic-bezier(.28,1,.32,1);
+    }
+
+    .toast {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: #0f1a24;
+      color: #fff;
+      box-shadow: var(--cardshadow);
+      transform: translateY(78px);
+      opacity: 0;
+      transition: transform .36s cubic-bezier(.28,1,.32,1), opacity .25s ease;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .toast button { color: #34d399; font-size: 12px; font-weight: 850; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .focus-demo button {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--bd);
+      border-radius: 13px;
+      background: var(--surf);
+      color: var(--steel);
+      box-shadow: var(--cardshadow);
+      transition: transform .14s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .focus-demo button:hover {
+      transform: translateY(-1px);
+      border-color: var(--money-line);
+      box-shadow: 0 12px 24px rgba(5,150,105,.12);
+    }
+    .focus-demo button:active { transform: scale(.94); }
+
+    .screen-stage {
+      min-height: 470px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(5,150,105,.10), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.7), rgba(247,249,250,.96));
+    }
+    .phone-screen {
+      position: relative;
+      width: min(100%, 285px);
+      min-height: 430px;
+      overflow: hidden;
+      border: 1px solid var(--bd);
+      border-radius: 28px;
+      background: var(--canvas);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.65), 0 20px 44px rgba(15,26,36,.18);
+      padding: 14px 12px 58px;
+    }
+    .phone-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .phone-bar h3 {
+      margin: 4px 0 0;
+      font-size: 25px;
+      line-height: .98;
+      letter-spacing: -.035em;
+    }
+    .mini-icon {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--bd);
+      border-radius: 13px;
+      background: var(--surf);
+      box-shadow: var(--cardshadow);
+      display: grid;
+      place-items: center;
+      color: var(--steel);
+      font-weight: 850;
+    }
+    .phone-tabs {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      height: 42px;
+      border: 1px solid var(--bd);
+      border-radius: 19px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 12px 24px rgba(15,26,36,.14);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+    }
+    .phone-tabs i {
+      width: 18px;
+      height: 18px;
+      border-radius: 8px;
+      background: var(--bd2);
+      display: block;
+    }
+    .phone-tabs i.on { background: var(--money); }
+    .phone-tabs i.fab {
+      width: 34px;
+      height: 34px;
+      border-radius: 15px;
+      background: var(--steel);
+      box-shadow: 0 10px 20px rgba(51,65,85,.24);
+    }
+    .screen-card {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .45s ease, transform .45s cubic-bezier(.28,1,.32,1);
+    }
+    .screen-card:nth-of-type(2) { transition-delay: .08s; }
+    .screen-card:nth-of-type(3) { transition-delay: .16s; }
+    .screen-card:nth-of-type(4) { transition-delay: .24s; }
+    .month-chip {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      border: 1px solid var(--bd);
+      border-radius: 999px;
+      background: var(--surf);
+      color: var(--mut);
+      font-size: 11px;
+      font-weight: 850;
+      transition: background .25s ease, color .25s ease, transform .25s ease;
+    }
+    .analytics-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .mini-chart {
+      height: 74px;
+      display: flex;
+      align-items: end;
+      gap: 5px;
+      padding-top: 12px;
+    }
+    .mini-chart i {
+      flex: 1;
+      height: 4px;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--money), #8fe6bf);
+      transition: height .72s cubic-bezier(.28,1,.32,1);
+    }
+    .screen-pulse {
+      position: absolute;
+      inset: auto 16px 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: #0f1a24;
+      color: #fff;
+      box-shadow: var(--cardshadow);
+      transform: translateY(68px);
+      opacity: 0;
+      transition: transform .35s ease, opacity .25s ease;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .animate .count-source { opacity: 1; transform: none; }
+    .animate .donut { --p: 73; }
+    .animate .thermo i { width: var(--w, 42%); }
+    .animate .thermo b { transform: translateX(-50%) scaleY(1); }
+    .animate .splitbar i:nth-child(1) { width: 72%; }
+    .animate .splitbar i:nth-child(2) { width: 18%; }
+    .animate .splitbar i:nth-child(3) { width: 10%; }
+    .animate .spark path.line { stroke-dashoffset: 0; }
+    .animate .spark path.area { opacity: .10; }
+    .animate .battery i { width: 68%; }
+    .animate .provider-card::before { transform: scaleY(1); }
+    .animate .provider-card .mini-meter i { width: var(--w, 76%); }
+    .animate .screen-card { opacity: 1; transform: translateY(0); }
+    .animate .phone-screen .mini-chart i { height: var(--h, 50%); }
+    .animate .month-chip.on { background: var(--steel); color: #fff; transform: translateY(-1px); }
+    .animate .screen-pulse { opacity: 1; transform: translateY(0); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes counterPop {
+      0% { transform: scale(.965); filter: blur(.4px); }
+      70% { transform: scale(1.025); }
+      100% { transform: scale(1); filter: none; }
+    }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cover { grid-template-columns: 1fr; align-items: start; }
+      .toolbar { justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .page { padding-inline: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="cover">
+      <div>
+        <span class="eyebrow">EV Command extension kit</span>
+        <h1>25 component and screen animation mockups.</h1>
+        <p class="lead">Working UI prototypes designed to suit the current compact mobile-card layout. The first 15 isolate reusable components; the next 10 show the animations inside actual EV Command screen layouts.</p>
+      </div>
+      <div class="toolbar" aria-label="Prototype controls">
+        <button class="pill on" id="replay" type="button">Replay animations</button>
+        <button class="pill" id="openSheets" type="button">Open sheets</button>
+        <button class="pill" id="toastBtn" type="button">Show toast</button>
+      </div>
+    </header>
+
+    <section class="grid" id="mockGrid">
+      <article class="mock">
+        <div class="mock-head"><h2>1. Opening KPI Count-Up</h2><span>Home hero</span></div>
+        <div class="stage">
+          <section class="hero-card count-source">
+            <span class="cap">Spent this month</span>
+            <b class="big counter counter-pop" data-prefix="$" data-value="37.62" data-decimals="2">$0.00</b>
+            <p class="sub">Counts up after splash, then settles into the dashboard hierarchy.</p>
+            <span class="delta" style="margin-top:12px">Down 18% vs last month</span>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>2. Daily Allowance Donut</h2><span>Free energy</span></div>
+        <div class="stage">
+          <section class="hero-card" style="display:flex;align-items:center;gap:18px">
+            <div class="donut" aria-label="5.1 of 7 kWh used"><b>5.1</b></div>
+            <div>
+              <span class="cap">Today's allowance</span>
+              <b style="display:block;margin-top:6px;font-size:17px">1.9 kWh still free</b>
+              <p class="sub">Conic progress animates once on entry and respects reduced repeat motion by replaying only on request.</p>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>3. Budget Projection Thermometer</h2><span>Dashboard</span></div>
+        <div class="stage">
+          <section class="hero-card">
+            <span class="cap">July budget - $50</span>
+            <b class="big counter" data-prefix="$" data-value="31.4" data-decimals="1">$0.0</b>
+            <div class="thermo" style="--w:62%"><i></i><b style="left:82%"></b></div>
+            <div class="legend" style="justify-content:space-between;margin-top:9px"><span>$31 spent</span><span style="color:var(--warn)">projected $41</span><span>cap $50</span></div>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>4. Provider Split Bar</h2><span>Accounts</span></div>
+        <div class="stage">
+          <section class="hero-card">
+            <span class="cap">Where your kWh come from</span>
+            <div class="splitbar"><i style="background:#059669"></i><i style="background:#334155"></i><i style="background:#0891b2"></i></div>
+            <div class="legend">
+              <span><i style="background:#059669"></i>Jolt 72%</span>
+              <span><i style="background:#334155"></i>Supercharger 18%</span>
+              <span><i style="background:#0891b2"></i>Other 10%</span>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>5. Animated Monthly Bars</h2><span>Analytics</span></div>
+        <div class="stage">
+          <section class="chart-card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="cap">Saved per month</span><span class="delta">$ value</span></div>
+            <div class="bars">
+              <i data-v="$42" style="--h:48%"></i>
+              <i data-v="$55" style="--h:62%"></i>
+              <i data-v="$39" style="--h:44%"></i>
+              <i data-v="$77" style="--h:86%"></i>
+              <i data-v="$63" style="--h:70%"></i>
+              <i data-v="$89" style="--h:98%"></i>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>6. Trend Line Draw-In</h2><span>Analytics</span></div>
+        <div class="stage">
+          <section class="chart-card">
+            <span class="cap">Effective rate trend</span>
+            <svg class="spark" viewBox="0 0 320 140" role="img" aria-label="Rate trend">
+              <path class="area" d="M6 105 C44 91 56 61 91 72 C126 83 132 45 169 52 C211 60 219 101 253 72 C278 52 293 43 314 35 L314 134 L6 134 Z"></path>
+              <path class="line" d="M6 105 C44 91 56 61 91 72 C126 83 132 45 169 52 C211 60 219 101 253 72 C278 52 293 43 314 35"></path>
+            </svg>
+            <p class="sub">Path stroke draw makes Analytics feel live without needing heavy motion.</p>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>7. Savings Hero Card</h2><span>Home / Savings</span></div>
+        <div class="stage">
+          <section class="allowance-card">
+            <span class="cap">Free Jolt energy - July</span>
+            <b class="big counter" data-prefix="$" data-value="582" data-decimals="0">$0</b>
+            <p class="sub" style="color:rgba(255,255,255,.88)">Lifetime net benefit. Today: 5.1 of 7 kWh used.</p>
+            <div class="donut ring-small"><b>73%</b></div>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>8. Swipe Ledger Row</h2><span>Statement</span></div>
+        <div class="stage">
+          <div class="swipe-shell" id="swipeRow">
+            <div class="swipe-actions"><button class="edit" type="button">Edit</button><button class="del" type="button">Del</button></div>
+            <button class="row swipe-content" type="button">
+              <span class="mark">J</span>
+              <span><strong>Jolt</strong><small>7.0 kWh - allowance covered it</small></span>
+              <b class="amt">$0.00</b>
+            </button>
+          </div>
+          <button class="primary-btn" style="margin-top:14px" id="swipeToggle" type="button">Toggle row actions</button>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>9. Receipt Flip Refresh</h2><span>Receipt sheet</span></div>
+        <div class="stage">
+          <div class="receipt" id="receiptCard">
+            <div class="rl"><span>Energy delivered</span><b>7.00 kWh</b></div>
+            <div class="rl free"><span>Free allowance</span><b>-7.00 kWh</b></div>
+            <div class="rl"><span>Billable energy</span><b>0.00 kWh</b></div>
+            <div class="rl tot"><span>Total paid</span><b>$0.00</b></div>
+            <div class="rl free"><span>You saved</span><b>$2.90</b></div>
+          </div>
+          <button class="primary-btn" style="margin-top:14px" id="flipReceipt" type="button">Refresh receipt motion</button>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>10. Add Charge Sheet</h2><span>Form</span></div>
+        <div class="stage">
+          <button class="primary-btn" id="addSheetBtn" type="button">Open add charge</button>
+          <div class="sheet-backdrop open sheet-demo">
+            <div class="sheet">
+              <div class="handle"></div>
+              <div style="display:flex;justify-content:space-between;gap:12px"><b>New charge</b><span class="delta">Syncs live</span></div>
+              <div class="seg" style="margin-top:12px"><button class="on" type="button">Charge</button><button type="button">Membership fee</button></div>
+              <label>Energy</label><div class="fld">7.0 <span>kWh</span></div>
+              <label>Cost</label><div class="fld">0.00 <span>AUD</span></div>
+              <button class="primary-btn" style="margin-top:12px" type="button">Save charge</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>11. Segmented View Switch</h2><span>Analytics tabs</span></div>
+        <div class="stage">
+          <div class="seg" id="segDemo">
+            <button class="on" type="button" data-view="Cluster">Cluster</button>
+            <button type="button" data-view="Trends">Trends</button>
+            <button type="button" data-view="Split">Split</button>
+          </div>
+          <section class="hero-card" style="margin-top:12px">
+            <span class="cap">Current view</span>
+            <b class="big" id="segLabel">Cluster</b>
+            <p class="sub">Content fades and slides while the selected segment uses the same steel active treatment as the app.</p>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>12. Provider Network Card</h2><span>Accounts detail</span></div>
+        <div class="stage">
+          <section class="provider-card" style="--pc:#059669;--w:82%">
+            <div class="provider-top">
+              <div style="display:flex;gap:10px;align-items:center"><span class="mark">J</span><div><strong>Jolt</strong><p class="sub" style="margin-top:2px">235 charges - 1,725 kWh</p></div></div>
+              <span class="ratebadge">$0.102/kWh</span>
+            </div>
+            <div class="mini-meter"><i></i></div>
+            <p class="sub">Left accent grows in, then the meter fills to show provider share.</p>
+          </section>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>13. Restore Preview Modal</h2><span>Settings</span></div>
+        <div class="stage">
+          <div class="sheet-backdrop open">
+            <div class="sheet">
+              <div class="handle"></div>
+              <b>Restore preview</b>
+              <p class="sub">This file has 249 charges and 4 providers. 12 new charges are not in your ledger yet.</p>
+              <button class="primary-btn" type="button">Merge safely</button>
+              <label style="color:var(--neg)">Replace everything instead</label>
+              <div class="fld" style="border-color:rgba(225,29,72,.3)">Type REPLACE <span>required</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>14. Actionable Empty State</h2><span>No data</span></div>
+        <div class="stage">
+          <div class="empty">
+            <div>
+              <div class="battery"><i></i></div>
+              <b>No charges yet</b>
+              <p class="sub">Log your first charge and analytics build here automatically.</p>
+              <button class="primary-btn" style="margin-top:12px" type="button">Add first charge</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>15. Micro Feedback Set</h2><span>Settings / rows</span></div>
+        <div class="stage focus-demo">
+          <div class="setting-line">
+            <div><strong>Supabase sync</strong><p class="sub" style="margin-top:2px">249 sessions synced</p></div>
+            <button type="button" aria-label="Open sync details">i</button>
+          </div>
+          <div class="setting-line" style="margin-top:10px">
+            <div><strong>Live backup reminder</strong><p class="sub" style="margin-top:2px">Subtle switch and focus states</p></div>
+            <button class="switch on" id="switchDemo" type="button" aria-label="Toggle backup reminder"></button>
+          </div>
+          <button class="primary-btn" style="margin-top:14px" id="toastLocal" type="button">Trigger undo toast</button>
+          <div class="toast" id="toast"><span>Charge deleted</span><button type="button">Undo</button></div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>16. Home Opening Sequence</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">EV Command</span><h3>July</h3><p class="sub">2 charges - 14 kWh</p></div><div class="mini-icon">S</div></div>
+            <section class="hero-card screen-card"><span class="cap">Spent this month</span><b class="big counter" data-prefix="$" data-value="0" data-decimals="2">$0.00</b><p class="sub">14 kWh added - 100% of it free</p></section>
+            <section class="allowance-card screen-card" style="min-height:128px"><span class="cap">Free Jolt energy</span><b class="big counter" data-prefix="$" data-value="5.76" data-decimals="2">$0.00</b><p class="sub" style="color:rgba(255,255,255,.88)">Today: 0 of 7 kWh free used</p></section>
+            <section class="hero-card screen-card"><span class="cap">July budget - $50</span><div class="thermo" style="--w:0%"><i></i><b style="left:12%"></b></div></section>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>17. Analytics Cluster Build</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Instruments</span><h3>Analytics</h3><p class="sub">249 charges - 1,959 kWh all-time</p></div><div class="mini-icon">⌂</div></div>
+            <div class="seg screen-card"><button class="on" type="button">Cluster</button><button type="button">Trends</button><button type="button">Split</button></div>
+            <div class="analytics-cards screen-card"><div class="metric-card"><span class="cap">Avg rate</span><b>$0.18</b></div><div class="metric-card"><span class="cap">Free kWh</span><b>1,602</b></div></div>
+            <section class="chart-card screen-card"><span class="cap">Cost per month</span><div class="mini-chart"><i style="--h:35%"></i><i style="--h:58%"></i><i style="--h:42%"></i><i style="--h:88%"></i><i style="--h:62%"></i><i style="--h:78%"></i></div></section>
+            <div class="phone-tabs"><i></i><i class="on"></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>18. Statement Month Switch</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Statement</span><h3>July 2026</h3><p class="sub">2 charges - 14 kWh</p></div><div class="mini-icon">‹</div></div>
+            <div style="display:flex;gap:6px;margin-bottom:10px" class="screen-card"><span class="month-chip">June</span><span class="month-chip on">July</span><span class="month-chip">Aug</span></div>
+            <section class="hero-card screen-card"><div style="display:flex;justify-content:space-between"><div><span class="cap">Paid</span><b style="font-size:25px">$0.00</b></div><div style="text-align:right"><span class="cap" style="color:var(--money-deep)">Saved free</span><b style="font-size:25px;color:var(--money-deep)">$5.76</b></div></div></section>
+            <button class="row screen-card" type="button"><span class="mark">J</span><span><strong>Jolt</strong><small>7.0 kWh - allowance covered it</small></span><b class="amt">$0</b></button>
+            <button class="row screen-card" type="button"><span class="mark">J</span><span><strong>Jolt</strong><small>6.9 kWh - allowance covered it</small></span><b class="amt">$0</b></button>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>19. Savings Allowance Detail</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Free energy</span><h3>Savings</h3><p class="sub">Powered by Jolt's 7 kWh/day</p></div><div class="mini-icon">‹</div></div>
+            <section class="allowance-card screen-card"><span class="cap">Lifetime net benefit</span><b class="big counter" data-prefix="$" data-value="582.28" data-decimals="2">$0.00</b><p class="sub" style="color:rgba(255,255,255,.88)">1,602 kWh free of 1,959 charged</p></section>
+            <section class="hero-card screen-card" style="display:flex;gap:14px;align-items:center"><div class="donut"><b>5.1</b></div><div><span class="cap">Today's allowance</span><b>1.9 kWh still free</b><p class="sub">Resets midnight</p></div></section>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>20. Accounts Drilldown</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Networks</span><h3>Accounts</h3><p class="sub">Lifetime by charger network</p></div><div class="mini-icon">‹</div></div>
+            <section class="hero-card screen-card"><span class="cap">Where your kWh come from</span><div class="splitbar"><i style="background:#059669"></i><i style="background:#334155"></i><i style="background:#0891b2"></i></div></section>
+            <button class="row screen-card" type="button"><span class="mark">J</span><span><strong>Jolt</strong><small>235 charges - eff. $0.102/kWh</small></span><b class="amt">$175</b></button>
+            <button class="row screen-card" type="button"><span class="mark" style="--pc:#334155">S</span><span><strong>Supercharger</strong><small>3 charges - eff. $0.428/kWh</small></span><b class="amt">$39</b></button>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>21. Vehicle Cost Race</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Vehicle</span><h3>Cockpit</h3><p class="sub">Efficiency, cost and petrol comparison</p></div><div class="mini-icon">⚙</div></div>
+            <section class="hero-card screen-card"><span class="cap">Estimated distance powered</span><b class="big counter" data-value="13800" data-decimals="0" data-suffix=" km">0 km</b><p class="sub">Lifetime kWh divided by 14.2 kWh/100km</p></section>
+            <section class="chart-card screen-card"><span class="cap">Cost per 100 km</span><div class="mini-chart"><i style="--h:92%;background:#94a3b8"></i><i style="--h:22%;background:linear-gradient(180deg,var(--money),#8fe6bf)"></i></div><div class="legend"><span>Petrol $12.95</span><span>EV $2.53</span></div></section>
+            <div class="phone-tabs"><i></i><i></i><i class="fab"></i><i class="on"></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>22. Cost Anatomy Reveal</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Fixed vs variable</span><h3>Cost anatomy</h3><p class="sub">Since first membership fee</p></div><div class="mini-icon">‹</div></div>
+            <section class="hero-card screen-card"><span class="cap">What you actually pay per kWh</span><b class="big counter" data-prefix="$" data-value="0.218" data-decimals="3">$0.000</b><div class="splitbar"><i style="background:var(--warn)"></i><i style="background:var(--steel)"></i><i style="background:var(--money)"></i></div></section>
+            <div class="metric-grid screen-card"><div class="metric-card"><span class="cap">Subscription</span><b style="color:var(--warn)">$165</b></div><div class="metric-card"><span class="cap">Energy</span><b>$268</b></div></div>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>23. Settings Provider Edit</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Settings</span><h3>Manage</h3><p class="sub">Chargers - budget - data</p></div><div class="mini-icon">S</div></div>
+            <div class="seg screen-card"><button class="on" type="button">Light</button><button type="button">Dark</button></div>
+            <button class="row screen-card" type="button"><span class="mark">J</span><span><strong>Jolt</strong><small>Free allowance: 7 kWh/day</small></span><b class="amt">›</b></button>
+            <section class="hero-card screen-card"><span class="cap">Free kWh per day - Jolt</span><div class="fld">7.0 <span>kWh free daily</span></div><button class="primary-btn" style="margin-top:10px" type="button">Save allowance</button></section>
+            <div class="phone-tabs"><i></i><i></i><i class="fab"></i><i></i><i class="on"></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>24. Add Charge Success</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">EV Command</span><h3>July</h3><p class="sub">Tap + to log a charge</p></div><div class="mini-icon">S</div></div>
+            <section class="hero-card screen-card"><span class="cap">Spent this month</span><b class="big">$0.00</b><p class="sub">New session will update this immediately.</p></section>
+            <div class="sheet-backdrop open"><div class="sheet"><div class="handle"></div><b>Charge saved</b><p class="sub">Synced to Supabase. Dashboard values count up after close.</p><button class="primary-btn" type="button">Done</button></div></div>
+            <div class="screen-pulse"><span>Charge saved</span><span>Synced</span></div>
+            <div class="phone-tabs"><i class="on"></i><i></i><i class="fab"></i><i></i><i></i></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="mock">
+        <div class="mock-head"><h2>25. Restore Flow Preview</h2><span>Actual screen</span></div>
+        <div class="stage screen-stage">
+          <div class="phone-screen">
+            <div class="phone-bar"><div><span class="eyebrow">Settings</span><h3>Backup</h3><p class="sub">Portable ledger copy</p></div><div class="mini-icon">S</div></div>
+            <button class="row screen-card" type="button"><span class="mark" style="--pc:#334155">B</span><span><strong>Restore from file</strong><small>Nothing changes until you confirm</small></span><b class="amt">›</b></button>
+            <div class="sheet-backdrop open"><div class="sheet"><div class="handle"></div><b>Restore preview</b><p class="sub">249 charges - 12 new rows detected.</p><button class="primary-btn" type="button">Merge safely</button><label style="color:var(--neg)">Replace everything instead</label><div class="fld" style="border-color:rgba(225,29,72,.3)">Type REPLACE <span>locked</span></div></div></div>
+            <div class="phone-tabs"><i></i><i></i><i class="fab"></i><i></i><i class="on"></i></div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const grid = document.getElementById("mockGrid");
+
+    function countUp(el) {
+      const value = Number(el.dataset.value || 0);
+      const decimals = Number(el.dataset.decimals || 0);
+      const prefix = el.dataset.prefix || "";
+      const suffix = el.dataset.suffix || "";
+      if (reduce) {
+        el.textContent = prefix + value.toFixed(decimals) + suffix;
+        return;
+      }
+      const start = performance.now();
+      const duration = 980;
+      function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = prefix + (value * eased).toFixed(decimals) + suffix;
+        if (t < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function replay() {
+      grid.classList.remove("animate");
+      document.querySelectorAll(".bars i").forEach((bar) => { bar.style.height = "4px"; });
+      document.querySelectorAll(".counter").forEach((el) => {
+        const decimals = Number(el.dataset.decimals || 0);
+        el.textContent = (el.dataset.prefix || "") + Number(0).toFixed(decimals) + (el.dataset.suffix || "");
+        el.classList.remove("counter-pop");
+      });
+      document.getElementById("swipeRow").classList.remove("open");
+      document.getElementById("receiptCard").classList.remove("flipped");
+      document.querySelectorAll(".sheet-demo").forEach((el) => el.classList.remove("open"));
+      document.querySelectorAll("#segDemo button").forEach((b, i) => b.classList.toggle("on", i === 0));
+      document.getElementById("segLabel").textContent = "Cluster";
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          grid.classList.add("animate");
+          document.querySelectorAll(".bars i").forEach((bar) => { bar.style.height = bar.style.getPropertyValue("--h") || "60%"; });
+          document.querySelectorAll(".counter").forEach((el) => {
+            el.classList.add("counter-pop");
+            countUp(el);
+          });
+          window.setTimeout(() => document.getElementById("swipeRow").classList.add("open"), 520);
+          window.setTimeout(() => document.getElementById("receiptCard").classList.add("flipped"), 720);
+          window.setTimeout(() => document.querySelectorAll(".sheet-demo").forEach((el) => el.classList.add("open")), 360);
+          window.setTimeout(showToast, 1050);
+        });
+      });
+    }
+
+    function showToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    document.getElementById("replay").addEventListener("click", replay);
+    document.getElementById("openSheets").addEventListener("click", () => {
+      document.querySelectorAll(".sheet-demo").forEach((el) => el.classList.toggle("open"));
+    });
+    document.getElementById("addSheetBtn").addEventListener("click", () => {
+      document.querySelectorAll(".sheet-demo").forEach((el) => el.classList.add("open"));
+    });
+    document.getElementById("toastBtn").addEventListener("click", showToast);
+    document.getElementById("toastLocal").addEventListener("click", showToast);
+    document.getElementById("swipeToggle").addEventListener("click", () => document.getElementById("swipeRow").classList.toggle("open"));
+    document.getElementById("flipReceipt").addEventListener("click", () => {
+      const card = document.getElementById("receiptCard");
+      card.classList.remove("flipped");
+      requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("flipped")));
+    });
+    document.getElementById("switchDemo").addEventListener("click", (e) => e.currentTarget.classList.toggle("on"));
+    document.querySelectorAll("#segDemo button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("#segDemo button").forEach((b) => b.classList.remove("on"));
+        button.classList.add("on");
+        const label = document.getElementById("segLabel");
+        label.style.opacity = "0";
+        label.style.transform = "translateY(5px)";
+        setTimeout(() => {
+          label.textContent = button.dataset.view;
+          label.style.transition = "opacity .22s ease, transform .22s ease";
+          label.style.opacity = "1";
+          label.style.transform = "translateY(0)";
+        }, 120);
+      });
+    });
+
+    window.addEventListener("load", replay);
+    window.setInterval(() => {
+      if (!document.hidden && !reduce) replay();
+    }, 6500);
+  </script>
+</body>
+</html>
