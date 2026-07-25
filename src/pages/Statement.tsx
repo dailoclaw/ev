@@ -9,6 +9,7 @@ import { FreeTag, Icon, Mark } from '../components/ui'
 import ReceiptSheet from '../components/ReceiptSheet'
 import EditSessionSheet from '../components/EditSessionSheet'
 import MonthNarrative from '../components/MonthNarrative'
+import CountUpNumber from '../components/CountUpNumber'
 import { narrateMonth } from '../lib/narrate'
 import { deleteSession, undoDeleteSession } from '../lib/data'
 
@@ -33,6 +34,9 @@ function SessionRow({
 }) {
   const contentRef = useRef<HTMLButtonElement>(null)
   const dragging = useRef<{ startX: number; startedOpen: boolean; moved: boolean } | null>(null)
+  const showMicroSplit = !session.isFee && session.amount > 0
+  const freePct = showMicroSplit ? Math.max(0, Math.min(100, (session.freeKwh / session.amount) * 100)) : 0
+  const paidPct = showMicroSplit ? Math.max(0, 100 - freePct) : 0
 
   const setTx = (px: number, animate: boolean) => {
     const el = contentRef.current
@@ -108,6 +112,12 @@ function SessionRow({
                       : `${rate(session.rate)}/kWh`
                 }`}
           </small>
+          {showMicroSplit && (
+            <span className="row-micro-split" aria-hidden="true">
+              <i className="free" style={{ width: `${freePct}%` }} />
+              <i className="paid" style={{ width: `${paidPct}%` }} />
+            </span>
+          )}
         </span>
         <b className="amt">{aud(session.cost)}</b>
       </button>
@@ -215,13 +225,17 @@ export default function Statement() {
         <section className="hero-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span className="cap">Paid</span>
-            <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4 }}>{aud(cur.cost)}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4 }}>
+              <CountUpNumber value={cur.cost} format={aud} durationMs={820} />
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <span className="cap" style={{ color: 'var(--money-deep)' }}>
               Saved free
             </span>
-            <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4, color: 'var(--money-deep)' }}>{aud(cur.saved)}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4, color: 'var(--money-deep)' }}>
+              <CountUpNumber value={cur.saved} format={aud} durationMs={820} />
+            </div>
           </div>
         </section>
       )}

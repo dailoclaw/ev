@@ -458,12 +458,44 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.row-micro-split {
+  display: flex;
+  height: 7px;
+  max-width: 148px;
+  margin-top: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surf2);
+  border: 1px solid var(--bd2);
+}
+.row-micro-split i {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  animation: row-micro-split-fill 680ms cubic-bezier(0.3, 1, 0.4, 1) both;
+}
+.row-micro-split .free {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+.row-micro-split .paid {
+  background: var(--steel);
+  animation-delay: 90ms;
+}
 .row .amt {
   font-size: 14px;
   font-weight: 800;
   color: var(--steel);
   text-align: right;
   white-space: nowrap;
+}
+
+@keyframes row-micro-split-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 .row .amt.chev {
   color: var(--fnt);
@@ -1611,6 +1643,18 @@ input[type='range'].capslider::-webkit-slider-thumb {
   flex: 0 0 auto;
   border-radius: 50%;
   position: relative;
+  background: var(--surf2);
+}
+.donut svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.donutseg {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-width: 20;
+  animation: donut-segment-sweep 880ms cubic-bezier(0.3, 1, 0.4, 1) both;
 }
 .donut::before {
   content: '';
@@ -1618,6 +1662,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   inset: 19px;
   border-radius: 50%;
   background: var(--surf);
+  z-index: 1;
 }
 .donut .din {
   position: absolute;
@@ -1625,6 +1670,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   display: grid;
   place-items: center;
   text-align: center;
+  z-index: 2;
 }
 .donut .din b {
   font-size: 19px;
@@ -1692,6 +1738,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
   display: block;
   width: 100%;
   border-radius: 4px;
+  transform-origin: bottom center;
+  animation: split-stack-rise 760ms cubic-bezier(0.3, 1, 0.4, 1) both;
 }
 .sbars .col i.free {
   background: linear-gradient(180deg, #34d399, #059669);
@@ -1700,6 +1748,24 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .sbars .col i.paid {
   background: var(--steel);
   border-radius: 4px 4px 6px 6px;
+  animation-delay: 120ms;
+}
+
+@keyframes donut-segment-sweep {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+@keyframes split-stack-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 /* ---- line/scrub chart ---- */
@@ -1828,6 +1894,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   font-weight: 800;
   color: var(--fnt);
   text-align: center;
+  animation: compare-delta-settle 360ms ease 720ms both;
 }
 .cmpbar {
   display: flex;
@@ -1841,6 +1908,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .cmpbar i {
   display: block;
   height: 100%;
+  transform-origin: left center;
+  animation: cmpbar-fill 780ms cubic-bezier(0.3, 1, 0.4, 1) both;
 }
 .cmpbar i.a {
   background: linear-gradient(90deg, #047857, #34d399);
@@ -1856,6 +1925,26 @@ input[type='range'].capslider::-webkit-slider-thumb {
   color: var(--fnt);
   text-align: center;
   margin-bottom: 8px;
+}
+
+@keyframes cmpbar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes compare-delta-settle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---- monthly ledger table ---- */
@@ -1918,6 +2007,20 @@ input[type='range'].capslider::-webkit-slider-thumb {
   width: 4px;
   border-radius: 2px;
   background: color-mix(in srgb, var(--money) 55%, var(--surf));
+  transform-origin: bottom center;
+  animation: ledger-spark-rise 620ms cubic-bezier(0.3, 1, 0.4, 1) both;
+}
+.ledger .lrow .spk i:nth-child(2) {
+  animation-delay: 45ms;
+}
+.ledger .lrow .spk i:nth-child(3) {
+  animation-delay: 90ms;
+}
+.ledger .lrow .spk i:nth-child(4) {
+  animation-delay: 135ms;
+}
+.ledger .lrow .spk i:nth-child(5) {
+  animation-delay: 180ms;
 }
 .ledger .lrow.tot {
   background: var(--surf2);
@@ -1927,6 +2030,17 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .ledger .lrow.tot .num {
   font-weight: 800;
   color: var(--tx);
+}
+
+@keyframes ledger-spark-rise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 /* ============ Cost anatomy ============ */
@@ -1948,6 +2062,24 @@ input[type='range'].capslider::-webkit-slider-thumb {
   vertical-align: -1px;
   margin-left: 2px;
   color: var(--fnt);
+}
+
+.compare-support .metric-card {
+  animation: compare-card-stagger 460ms cubic-bezier(0.3, 1, 0.4, 1) both;
+}
+.compare-support .metric-card:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+@keyframes compare-card-stagger {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .anat-rate {
@@ -2123,6 +2255,32 @@ input[type='range'].capslider::-webkit-slider-thumb {
   display: block;
   height: 100%;
   border-radius: 5px;
+  transform-origin: left center;
+  animation: yoybar-cascade 760ms cubic-bezier(0.3, 1, 0.4, 1) both;
+}
+.yoyrow:nth-child(1) .yline:first-child .yt i {
+  animation-delay: 40ms;
+}
+.yoyrow:nth-child(1) .yline:nth-child(2) .yt i {
+  animation-delay: 170ms;
+}
+.yoyrow:nth-child(2) .yline:first-child .yt i {
+  animation-delay: 120ms;
+}
+.yoyrow:nth-child(2) .yline:nth-child(2) .yt i {
+  animation-delay: 250ms;
+}
+.yoyrow:nth-child(3) .yline:first-child .yt i {
+  animation-delay: 200ms;
+}
+.yoyrow:nth-child(3) .yline:nth-child(2) .yt i {
+  animation-delay: 330ms;
+}
+.yoyrow:nth-child(4) .yline:first-child .yt i {
+  animation-delay: 280ms;
+}
+.yoyrow:nth-child(4) .yline:nth-child(2) .yt i {
+  animation-delay: 410ms;
 }
 .yline .yt i.prev {
   background: var(--steel);
@@ -2186,6 +2344,17 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .yoynote b {
   font-weight: 800;
+}
+
+@keyframes yoybar-cascade {
+  from {
+    transform: scaleX(0);
+    opacity: 0.45;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
 }
 
 /* ---- reference-rate basis note (Savings) ---- */
@@ -2639,7 +2808,15 @@ input[type='range'].capslider::-webkit-slider-thumb {
   .scrub .ln,
   .scrub .area,
   .scrub .dot,
-  .scrub .flag {
+  .scrub .flag,
+  .donutseg,
+  .sbars .col i,
+  .cmp .mid,
+  .cmpbar i,
+  .ledger .lrow .spk i,
+  .compare-support .metric-card,
+  .yline .yt i,
+  .row-micro-split i {
     animation: none;
   }
   .scrub .ln {
@@ -2650,6 +2827,14 @@ input[type='range'].capslider::-webkit-slider-thumb {
   }
   .scrub .dot,
   .scrub .flag {
+    opacity: 1;
+  }
+  .sbars .col i,
+  .cmpbar i,
+  .ledger .lrow .spk i,
+  .yline .yt i,
+  .row-micro-split i {
+    transform: none;
     opacity: 1;
   }
   .splitb i,

@@ -296,7 +296,9 @@ function StatementView({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
           <div>
             <span className="cap">Spent · {activeYear}</span>
-            <div className="hero-num">{aud(tot.cost)}</div>
+            <div className="hero-num">
+              <CountUpNumber value={tot.cost} format={aud} durationMs={860} />
+            </div>
           </div>
           {deltaCost != null && (
             <span className={`delta ${deltaCost > 0 ? 'up' : ''}`}>
@@ -338,8 +340,12 @@ function StatementView({
                   {m.sessions} charge{m.sessions !== 1 ? 's' : ''}
                 </small>
               </div>
-              <div className="num">{kwh(m.kwh)}</div>
-              <div className="num">{aud(m.cost)}</div>
+              <div className="num">
+                <CountUpNumber value={m.kwh} format={kwh} durationMs={640} />
+              </div>
+              <div className="num">
+                <CountUpNumber value={m.cost} format={aud} durationMs={640} />
+              </div>
               <div className="spk">
                 {spark.map((h, i) => (
                   <i key={i} style={{ height: `${h}%` }} />
@@ -350,8 +356,12 @@ function StatementView({
         })}
         <div className="lrow tot">
           <div className="mo">{activeYear} total</div>
-          <div className="num">{kwh(tot.kwh)}</div>
-          <div className="num">{aud(tot.cost)}</div>
+          <div className="num">
+            <CountUpNumber value={tot.kwh} format={kwh} durationMs={760} />
+          </div>
+          <div className="num">
+            <CountUpNumber value={tot.cost} format={aud} durationMs={760} />
+          </div>
           <div className="spk" />
         </div>
       </div>
@@ -779,14 +789,14 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
   const [sel, setSel] = useState<string | null>(null)
   const byCost = ev.byProvider.filter(p => p.cost > 0)
   const totalCost = byCost.reduce((a, p) => a + p.cost, 0)
-  const stops = byCost
-    .map((p, i) => {
-      const before = byCost.slice(0, i).reduce((s, q) => s + q.cost, 0)
-      const start = (before / totalCost) * 100
-      const end = ((before + p.cost) / totalCost) * 100
-      return `${provColor(p.name)} ${start.toFixed(2)}% ${end.toFixed(2)}%`
-    })
-    .join(', ')
+  const donutSegments = byCost.reduce<Array<(typeof byCost)[number] & { pct: number; offset: number }>>(
+    (segments, p) => {
+      const pct = totalCost > 0 ? (p.cost / totalCost) * 100 : 0
+      const offset = segments.reduce((sum, segment) => sum + segment.pct, 0)
+      return [...segments, { ...p, pct, offset }]
+    },
+    [],
+  )
 
   const byKwh = [...ev.byProvider].sort((a, b) => b.kwh - a.kwh)
   const maxKwh = Math.max(...byKwh.map(p => p.kwh), 0.01)
@@ -802,13 +812,32 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
         </span>
         <div className="donutwrap">
           <div
-            className="donut"
-            style={{ background: `conic-gradient(${stops || 'var(--bd2) 0 100%'})` }}
+            className="donut donut-animated"
             role="img"
             aria-label="Cost split by network"
           >
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              {donutSegments.map((p, i) => (
+                <circle
+                  key={p.name}
+                  className="donutseg"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  pathLength="100"
+                  style={{
+                    stroke: provColor(p.name),
+                    strokeDasharray: `${p.pct} ${100 - p.pct}`,
+                    strokeDashoffset: -p.offset,
+                    animationDelay: `${i * 80}ms`,
+                  }}
+                />
+              ))}
+            </svg>
             <div className="din">
-              <b>{aud(totalCost, 0)}</b>
+              <b>
+                <CountUpNumber value={totalCost} format={value => aud(value, 0)} durationMs={920} />
+              </b>
             </div>
           </div>
           <div className="leg">
@@ -828,11 +857,13 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
           <span>Energy by network</span>
           <em>kWh · {kwh(ev.lifetime.kwh)} total</em>
         </h4>
-        {byKwh.map(p => (
+        {byKwh.map((p, i) => (
           <div className="rrow" key={p.name} style={{ ['--pc' as string]: provColor(p.name) }}>
             <div className="rl2">
               <b>{p.name}</b>
-              <span>{kwh(p.kwh)} kWh</span>
+              <span>
+                <CountUpNumber value={p.kwh} format={kwh} delayMs={i * 90} durationMs={760} /> kWh
+              </span>
             </div>
             <div className="bar">
               <i style={{ width: `${Math.max(3, (p.kwh / maxKwh) * 100)}%` }} />
@@ -937,13 +968,15 @@ function CompareView({
         <div className="cmp-metric">Total cost</div>
         <div className="cmp">
           <div className="side">
-            <div className="v">{aud(a.cost, 0)}</div>
+            <div className="v">
+              <CountUpNumber value={a.cost} format={value => aud(value, 0)} durationMs={860} />
+            </div>
             <div className="l">{A}</div>
           </div>
           <div className="mid">{delta(b.cost, a.cost)}</div>
           <div className="side">
             <div className="v" style={{ color: 'var(--money-deep)' }}>
-              {aud(b.cost, 0)}
+              <CountUpNumber value={b.cost} format={value => aud(value, 0)} durationMs={860} />
             </div>
             <div className="l">{B}</div>
           </div>
@@ -956,12 +989,16 @@ function CompareView({
         <div className="cmp-metric">Energy added</div>
         <div className="cmp">
           <div className="side">
-            <div className="v">{kwh(a.kwh)}</div>
+            <div className="v">
+              <CountUpNumber value={a.kwh} format={kwh} durationMs={860} />
+            </div>
             <div className="l">kWh {A}</div>
           </div>
           <div className="mid">{delta(b.kwh, a.kwh)}</div>
           <div className="side">
-            <div className="v">{kwh(b.kwh)}</div>
+            <div className="v">
+              <CountUpNumber value={b.kwh} format={kwh} durationMs={860} />
+            </div>
             <div className="l">kWh {B}</div>
           </div>
         </div>
@@ -973,7 +1010,9 @@ function CompareView({
         <div className="cmp-metric">Effective rate</div>
         <div className="cmp">
           <div className="side">
-            <div className="v">{perKwh(a.cost, a.kwh)}</div>
+            <div className="v">
+              <CountUpNumber value={rateA} format={value => `$${value.toFixed(2)}`} durationMs={860} />
+            </div>
             <div className="l">{A}</div>
           </div>
           <div className="mid">
@@ -981,7 +1020,9 @@ function CompareView({
             {rateB > rateA ? 'higher' : 'lower'}
           </div>
           <div className="side">
-            <div className="v">{perKwh(b.cost, b.kwh)}</div>
+            <div className="v">
+              <CountUpNumber value={rateB} format={value => `$${value.toFixed(2)}`} durationMs={860} />
+            </div>
             <div className="l">{B}</div>
           </div>
         </div>
@@ -991,11 +1032,12 @@ function CompareView({
         </div>
       </section>
 
-      <div className="metric-grid" style={{ marginBottom: 0 }}>
+      <div className="metric-grid compare-support" style={{ marginBottom: 0 }}>
         <div className="metric-card">
           <span>Charges</span>
           <strong>
-            {a.sessions} → {b.sessions}
+            <CountUpNumber value={a.sessions} format={value => Math.round(value).toLocaleString('en-AU')} durationMs={720} /> →{' '}
+            <CountUpNumber value={b.sessions} format={value => Math.round(value).toLocaleString('en-AU')} delayMs={120} durationMs={720} />
           </strong>
           <small>
             {A} → {B}
@@ -1004,7 +1046,8 @@ function CompareView({
         <div className="metric-card">
           <span>Free saved</span>
           <strong>
-            {aud(a.saved - a.fees, 0)} → {aud(b.saved - b.fees, 0)}
+            <CountUpNumber value={a.saved - a.fees} format={value => aud(value, 0)} durationMs={720} /> →{' '}
+            <CountUpNumber value={b.saved - b.fees} format={value => aud(value, 0)} delayMs={120} durationMs={720} />
           </strong>
           <small className="pos">net free energy</small>
         </div>

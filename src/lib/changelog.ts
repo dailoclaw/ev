@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.18',
+    date: '25 Jul 2026',
+    notes: ['Split, Compare and Statement motion — donut, bar, sparkline and statement number animations now run in the live app without changing typography.'],
+  },
+  {
     version: '3.6.17',
     date: '25 Jul 2026',
     notes: ['Release housekeeping — version references updated after the Density Profiles release.'],
