@@ -19,6 +19,7 @@ import {
   type Backup,
 } from '../lib/data'
 import { aud, stamp, todayIso } from '../lib/format'
+import { useDensity } from '../lib/density'
 import { useTheme } from '../lib/theme'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
@@ -29,6 +30,7 @@ export default function Settings() {
   const ev = useEv()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [exported, setExported] = useState(false)
+  const [density, setDensity] = useDensity()
   const [theme, setTheme] = useTheme()
   const [showWhatsNew, setShowWhatsNew] = useState(false)
 
@@ -136,6 +138,36 @@ export default function Settings() {
         <button type="button" className={theme === 'dark' ? 'on' : ''} onClick={() => setTheme('dark')}>
           ☾ Dark
         </button>
+      </div>
+      <p className="sec-sub">Row density for ledger-heavy screens.</p>
+      <div className="seg density-seg" role="group" aria-label="Display density">
+        <button type="button" className={density === 'comfortable' ? 'on' : ''} onClick={() => setDensity('comfortable')}>
+          Comfortable
+        </button>
+        <button type="button" className={density === 'compact' ? 'on' : ''} onClick={() => setDensity('compact')}>
+          Compact
+        </button>
+        <button type="button" className={density === 'presentation' ? 'on' : ''} onClick={() => setDensity('presentation')}>
+          Present
+        </button>
+      </div>
+      <div className="density-preview" aria-label="Display density preview">
+        <div className="density-preview-row">
+          <span className="mark" style={{ ['--pc' as string]: '#059669' }}>
+            J
+          </span>
+          <span>
+            <strong>{density === 'presentation' ? 'Presentation totals' : density === 'compact' ? 'Compact ledger rows' : 'Comfortable rows'}</strong>
+            <small>
+              {density === 'presentation'
+                ? 'larger totals and calmer review spacing'
+                : density === 'compact'
+                  ? 'more rows visible on Statement and Stats'
+                  : 'the current app rhythm'}
+            </small>
+          </span>
+          <b>{density === 'presentation' ? 'Large' : density === 'compact' ? 'Tight' : 'Default'}</b>
+        </div>
       </div>
 
       <h2 className="sec-h2">Charger types</h2>
@@ -435,7 +467,7 @@ export default function Settings() {
       )}
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
-        EV Command v3.6.15 · Cockpit Ledger · what's new ›
+        EV Command v3.6.16 · Cockpit Ledger · what's new ›
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}

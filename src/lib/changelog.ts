@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.16',
+    date: '25 Jul 2026',
+    notes: ['Density Profiles — Settings now offers Comfortable, Compact and Present display modes for ledger-heavy screens.'],
+  },
+  {
     version: '3.6.15',
     date: '25 Jul 2026',
     notes: ['Stats Typography Fix — animated KPI numbers now keep the original card sizing, weight and spacing.'],

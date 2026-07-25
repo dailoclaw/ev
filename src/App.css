@@ -607,6 +607,40 @@
   background: var(--steel);
   color: #fff;
 }
+.density-seg {
+  margin-bottom: 8px;
+}
+.density-preview {
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-sm);
+  background: var(--surf);
+  box-shadow: var(--cardshadow);
+  padding: 10px;
+  margin-bottom: 14px;
+}
+.density-preview-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.density-preview-row strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+}
+.density-preview-row small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mut);
+  font-size: 11px;
+  font-weight: 600;
+}
+.density-preview-row b {
+  color: var(--steel);
+  font-size: 12px;
+  font-weight: 800;
+}
 
 /* ---- charts ---- */
 .chart-card h4 {
@@ -2402,6 +2436,201 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .explainable.inline b {
   color: var(--money-deep);
+}
+
+/* ============ Density profiles ============ */
+:root[data-density='compact'] .app-shell {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+:root[data-density='compact'] .appbar {
+  margin-bottom: 12px;
+}
+:root[data-density='compact'] .appbar h1 {
+  font-size: 25px;
+}
+:root[data-density='compact'] .hero-card,
+:root[data-density='compact'] .chart-card,
+:root[data-density='compact'] .savecard,
+:root[data-density='compact'] .metric-card,
+:root[data-density='compact'] .narr-wrap {
+  margin-bottom: 8px;
+}
+:root[data-density='compact'] .hero-card,
+:root[data-density='compact'] .chart-card {
+  padding: 13px;
+}
+:root[data-density='compact'] .savecard {
+  padding: 13px 92px 13px 13px;
+}
+:root[data-density='compact'] .savecard.no-ring {
+  padding-right: 13px;
+}
+:root[data-density='compact'] .hero-num {
+  font-size: 34px;
+}
+:root[data-density='compact'] .savecard .big.xl {
+  font-size: 32px;
+}
+:root[data-density='compact'] .savecard .big {
+  font-size: 23px;
+}
+:root[data-density='compact'] .metric-grid {
+  gap: 6px;
+  margin-bottom: 10px;
+}
+:root[data-density='compact'] .metric-card {
+  padding: 9px;
+}
+:root[data-density='compact'] .metric-card strong {
+  font-size: 19px;
+  margin-top: 4px;
+}
+:root[data-density='compact'] .metric-card small,
+:root[data-density='compact'] .hero-sub {
+  font-size: 10.5px;
+}
+:root[data-density='compact'] .row {
+  gap: 9px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+}
+:root[data-density='compact'] .row strong {
+  font-size: 13px;
+}
+:root[data-density='compact'] .row small {
+  font-size: 10.5px;
+  margin-top: 2px;
+}
+:root[data-density='compact'] .row .amt {
+  font-size: 13px;
+}
+:root[data-density='compact'] .mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+:root[data-density='compact'] .seg {
+  margin-bottom: 8px;
+}
+:root[data-density='compact'] .seg button {
+  min-height: 30px;
+  font-size: 12px;
+}
+:root[data-density='compact'] .sec-h2 {
+  margin-top: 14px;
+}
+:root[data-density='compact'] .sec-sub {
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+:root[data-density='compact'] .swiperow {
+  margin-bottom: 6px;
+}
+:root[data-density='compact'] .ledger .lrow,
+:root[data-density='compact'] .yoyrow,
+:root[data-density='compact'] .exp-row {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+:root[data-density='compact'] .narr-toggle {
+  padding: 11px 13px;
+}
+:root[data-density='compact'] .narr-body {
+  padding: 10px 13px 12px;
+}
+:root[data-density='compact'] .narr {
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+:root[data-density='presentation'] .app-shell {
+  width: min(100%, 560px);
+  padding-left: 18px;
+  padding-right: 18px;
+}
+:root[data-density='presentation'] .appbar {
+  margin-bottom: 20px;
+}
+:root[data-density='presentation'] .appbar h1 {
+  font-size: 32px;
+}
+:root[data-density='presentation'] .hero-card,
+:root[data-density='presentation'] .chart-card {
+  padding: 19px;
+  margin-bottom: 13px;
+}
+:root[data-density='presentation'] .savecard {
+  padding: 19px 114px 19px 19px;
+  margin-bottom: 13px;
+}
+:root[data-density='presentation'] .savecard.no-ring {
+  padding-right: 19px;
+}
+:root[data-density='presentation'] .hero-num {
+  font-size: 46px;
+}
+:root[data-density='presentation'] .savecard .big.xl {
+  font-size: 43px;
+}
+:root[data-density='presentation'] .savecard .big {
+  font-size: 30px;
+}
+:root[data-density='presentation'] .hero-sub,
+:root[data-density='presentation'] .savecard small {
+  font-size: 13.5px;
+}
+:root[data-density='presentation'] .metric-grid {
+  gap: 10px;
+  margin-bottom: 16px;
+}
+:root[data-density='presentation'] .metric-card {
+  padding: 15px;
+}
+:root[data-density='presentation'] .metric-card strong {
+  font-size: 25px;
+}
+:root[data-density='presentation'] .row {
+  padding: 14px;
+  margin-bottom: 10px;
+}
+:root[data-density='presentation'] .row strong {
+  font-size: 15px;
+}
+:root[data-density='presentation'] .row small {
+  font-size: 12px;
+  white-space: normal;
+}
+:root[data-density='presentation'] .row .amt {
+  font-size: 15px;
+}
+:root[data-density='presentation'] .mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+:root[data-density='presentation'] .seg button {
+  min-height: 38px;
+}
+:root[data-density='presentation'] .sec-h2 {
+  margin-top: 22px;
+  font-size: 18px;
+}
+:root[data-density='presentation'] .sec-sub {
+  font-size: 12.5px;
+}
+:root[data-density='presentation'] .narr-toggle {
+  padding: 15px 18px;
+  font-size: 14.5px;
+}
+:root[data-density='presentation'] .narr-body {
+  padding: 15px 18px 18px;
+}
+:root[data-density='presentation'] .narr {
+  font-size: 14px;
+  line-height: 1.8;
 }
 
 @media (prefers-reduced-motion: reduce) {
