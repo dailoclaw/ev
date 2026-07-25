@@ -5,6 +5,7 @@ import { aud, kwh, shortDate } from '../lib/format'
 import { Icon } from '../components/ui'
 import { yearOnYear } from '../lib/yearOnYear'
 import { records } from '../lib/records'
+import { useUnitRoll } from '../lib/useUnitRoll'
 import CountUpNumber from '../components/CountUpNumber'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
@@ -420,11 +421,13 @@ function ClusterView({
   const dKwh = prev ? pct(cur.kwh, prev.kwh) : null
   const priciest = bk.reduce((a, b) => (b.cost > a.cost ? b : a), bk[0])
 
+  const rolling = useUnitRoll(metric)
+
   const bars = series('All', metric).slice(-6)
   const max = Math.max(...bars.map(b => b.value), 0.01)
-  const selectedValue = (b: (typeof bars)[number]) => (metric === 'cost' ? aud(b.cost, 0) : `${kwh(b.kwh)} kWh`)
-  const savedBars = ev.months.slice(-5)
-  const savedMax = Math.max(...savedBars.map(m => m.saved), 0.01)
+  const barLabel = (b: (typeof bars)[number], m: 'cost' | 'kwh') => (m === 'cost' ? aud(b.cost, 0) : `${kwh(b.kwh)} kWh`)
+  const selectedValue = (b: (typeof bars)[number]) => barLabel(b, metric)
+  const otherValue = (b: (typeof bars)[number]) => barLabel(b, metric === 'cost' ? 'kwh' : 'cost')
   const rateValue = cur.kwh > 0 ? cur.cost / cur.kwh : 0
 
   return (
@@ -437,8 +440,8 @@ function ClusterView({
         ))}
       </div>
 
-      <div className="metric-grid stats-cascade" key={gran}>
-        <div className="metric-card stats-kpi">
+      <div className="metric-grid" key={gran}>
+        <div className="metric-card">
           <span>Total cost</span>
           <strong>
             <CountUpNumber value={cur.cost} format={aud} delayMs={80} durationMs={850} />
@@ -451,7 +454,7 @@ function ClusterView({
             <small>{cur.label}</small>
           )}
         </div>
-        <div className="metric-card stats-kpi">
+        <div className="metric-card">
           <span>Energy added</span>
           <strong>
             <CountUpNumber value={cur.kwh} format={value => `${kwh(value)} kWh`} delayMs={180} durationMs={850} />
@@ -464,7 +467,7 @@ function ClusterView({
             <small>{cur.label}</small>
           )}
         </div>
-        <button className="metric-card tappable stats-kpi" type="button" onClick={() => navigate('/cost-anatomy')}>
+        <button className="metric-card tappable" type="button" onClick={() => navigate('/cost-anatomy')}>
           <span>
             Avg rate <Icon name="chev" size={12} />
           </span>
@@ -473,7 +476,7 @@ function ClusterView({
           </strong>
           <small>per kWh · see the split</small>
         </button>
-        <div className="metric-card stats-kpi">
+        <div className="metric-card">
           <span>Charges</span>
           <strong>
             <CountUpNumber value={cur.sessions} format={value => Math.round(value).toLocaleString('en-AU')} delayMs={380} durationMs={850} />
@@ -481,33 +484,6 @@ function ClusterView({
           <small>{cur.sessions > 0 ? `${(cur.kwh / cur.sessions).toFixed(1)} kWh avg` : '—'}</small>
         </div>
       </div>
-
-      {savedBars.length > 0 && (
-        <section className="chart-card stats-saved-card" key={`saved-${gran}`}>
-          <h4>
-            <span>Saved per month</span>
-            <em>free allocation value</em>
-          </h4>
-          <div className="stats-saved-bars">
-            {savedBars.map((m, i) => (
-              <span
-                className="stats-bar"
-                key={m.month}
-                data-v={aud(m.saved, 0)}
-                style={{
-                  ['--h' as string]: `${Math.max(8, (m.saved / savedMax) * 100)}%`,
-                  ['--d' as string]: `${160 + i * 80}ms`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="blbl">
-            {savedBars.map(m => (
-              <span key={m.month}>{m.label.split(' ')[0]}</span>
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="chart-card">
         <h4>
@@ -536,9 +512,10 @@ function ClusterView({
             <button
               key={b.month}
               type="button"
-              className={`b ${i === bars.length - 1 ? 'hi' : ''} ${sel === b.month ? 'show' : ''}`}
+              className={`b ${i === bars.length - 1 ? 'hi' : ''} ${sel === b.month ? 'show' : ''} ${rolling ? 'rolling' : ''}`}
               data-v={selectedValue(b)}
-              style={{ height: `${Math.max(6, (b.value / max) * 100)}%` }}
+              data-prev={otherValue(b)}
+              style={{ height: `${Math.max(6, (b.value / max) * 100)}%`, ['--i' as string]: i }}
               aria-label={`${b.label}: ${selectedValue(b)}`}
               onClick={() => setSel(sel === b.month ? null : b.month)}
             />

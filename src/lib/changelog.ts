@@ -8,6 +8,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.15',
+    date: '25 Jul 2026',
+    notes: ['Stats Typography Fix — animated KPI numbers now keep the original card sizing, weight and spacing.'],
+  },
+  {
+    version: '3.6.14',
+    date: '25 Jul 2026',
+    notes: ['Unit Switch — flipping $ ⇄ kWh now re-scales the bars on a cascade and rolls the value labels.'],
+  },
+  {
     version: '3.6.13',
     date: '25 Jul 2026',
     notes: ['Stats Cascade — Analytics now animates its KPI numbers and saved-per-month bars.'],

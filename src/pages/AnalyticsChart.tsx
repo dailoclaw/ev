@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
+import { useUnitRoll } from '../lib/useUnitRoll'
 import { Icon } from '../components/ui'
 
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
@@ -16,6 +17,7 @@ export default function AnalyticsChart() {
   const [metric, setMetric] = useState<'cost' | 'kwh'>('cost')
   const [prov, setProv] = useState('All')
   const [sel, setSel] = useState<string | null>(null)
+  const rolling = useUnitRoll(metric)
   const provNames = ['All', ...ev.byProvider.map(p => p.name)]
   const provColor = (name: string) => ev.providers.find(p => p.name === name)?.color ?? 'var(--steel)'
 
@@ -85,7 +87,9 @@ export default function AnalyticsChart() {
         const max = Math.max(...rows.map(r => r.value), 0.01)
         const total = rows.reduce((s, r) => s + (metric === 'cost' ? r.cost : r.kwh), 0)
         const inProgress = Number(year) === latestYear
-        const selectedValue = (r: (typeof rows)[number]) => (metric === 'cost' ? aud(r.cost, 0) : `${kwh(r.kwh)} kWh`)
+        const barLabel = (r: (typeof rows)[number], m: 'cost' | 'kwh') => (m === 'cost' ? aud(r.cost, 0) : `${kwh(r.kwh)} kWh`)
+        const selectedValue = (r: (typeof rows)[number]) => barLabel(r, metric)
+        const otherValue = (r: (typeof rows)[number]) => barLabel(r, metric === 'cost' ? 'kwh' : 'cost')
         return (
           <section className="chart-card" key={year}>
             <h4>
@@ -100,9 +104,10 @@ export default function AnalyticsChart() {
                 <button
                   key={r.ym}
                   type="button"
-                  className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''} ${sel === r.ym ? 'show' : ''}`}
+                  className={`b ${inProgress && i === rows.length - 1 ? 'hi' : ''} ${sel === r.ym ? 'show' : ''} ${rolling ? 'rolling' : ''}`}
                   data-v={selectedValue(r)}
-                  style={{ height: `${Math.max(3, (r.value / max) * 100)}%` }}
+                  data-prev={otherValue(r)}
+                  style={{ height: `${Math.max(3, (r.value / max) * 100)}%`, ['--i' as string]: i }}
                   aria-label={`${r.label} ${year}: ${selectedValue(r)}`}
                   onClick={() => setSel(sel === r.ym ? null : r.ym)}
                 />
