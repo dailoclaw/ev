@@ -92,11 +92,38 @@ export function Ring({
   color?: string
 }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
+  const reduceMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  )
+  const [displayPct, setDisplayPct] = useState(reduceMotion ? pct : 0)
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setDisplayPct(pct)
+      return
+    }
+
+    let raf = 0
+    const start = performance.now()
+    const duration = 850
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplayPct(pct * eased)
+      if (progress < 1) raf = requestAnimationFrame(tick)
+    }
+
+    setDisplayPct(0)
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [pct, reduceMotion])
+
   return (
     <div
       className={`ringd ${onSurface ? 'on-surface' : ''}`}
       style={{
-        ['--v' as string]: pct,
+        ['--v' as string]: displayPct,
         ['--sz' as string]: `${size}px`,
         ...(onSurface ? { ['--hole' as string]: 'var(--surf)', ['--rc' as string]: color ?? 'var(--money)' } : {}),
       }}
@@ -142,10 +169,28 @@ export function Thermo({ spent, projected, cap }: { spent: number; projected: nu
 
 /* ---- free/paid split bar ---- */
 export function SplitBar({ segments }: { segments: Array<{ pct: number; color?: string; cls?: string }> }) {
+  const reduceMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  )
+  const segmentKey = segments.map(s => `${s.pct}:${s.color ?? ''}:${s.cls ?? ''}`).join('|')
+  const [armed, setArmed] = useState(reduceMotion)
+
+  useEffect(() => {
+    if (reduceMotion) {
+      setArmed(true)
+      return
+    }
+
+    setArmed(false)
+    const id = requestAnimationFrame(() => setArmed(true))
+    return () => cancelAnimationFrame(id)
+  }, [reduceMotion, segmentKey])
+
   return (
-    <div className="splitb">
+    <div className={`splitb ${armed ? 'armed' : ''}`}>
       {segments.map((s, i) => (
-        <i key={i} className={s.cls} style={{ width: `${s.pct}%`, ...(s.color ? { background: s.color } : {}) }} />
+        <i key={i} className={s.cls} style={{ width: armed ? `${s.pct}%` : '0%', ...(s.color ? { background: s.color } : {}) }} />
       ))}
     </div>
   )

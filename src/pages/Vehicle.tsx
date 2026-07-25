@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
+import CountUpNumber from '../components/CountUpNumber'
 
 // Cockpit assumptions — editable, persisted locally.
 const LS_KEY = 'ev.vehicle.v1'
@@ -163,7 +164,8 @@ export default function Vehicle() {
       <section className="hero-card">
         <span className="cap">Estimated distance powered</span>
         <div className="hero-num">
-          {kwh(distanceKm)} <span style={{ fontSize: 16, color: 'var(--fnt)', fontWeight: 750 }}>km</span>
+          <CountUpNumber value={distanceKm} format={kwh} durationMs={900} />{' '}
+          <span style={{ fontSize: 16, color: 'var(--fnt)', fontWeight: 750 }}>km</span>
         </div>
         <p className="hero-sub">
           {kwh(ev.lifetime.kwh)} kWh lifetime ÷ {num(a.efficiency)} kWh/100km
@@ -183,12 +185,16 @@ export default function Vehicle() {
         </article>
         <article className="metric-card">
           <span>Energy cost</span>
-          <strong style={{ color: 'var(--money-deep)' }}>{aud(evPer100)}</strong>
+          <strong style={{ color: 'var(--money-deep)' }}>
+            <CountUpNumber value={evPer100} format={aud} durationMs={760} />
+          </strong>
           <small>/100 km actual</small>
         </article>
         <article className="metric-card">
           <span>Without free kWh</span>
-          <strong>{aud(noFreePer100)}</strong>
+          <strong>
+            <CountUpNumber value={noFreePer100} format={aud} durationMs={760} />
+          </strong>
           <small>/100 km at paid rate</small>
         </article>
       </section>
@@ -198,7 +204,9 @@ export default function Vehicle() {
         <div className="rrow">
           <div className="rl2">
             <span>Petrol equivalent ({num(a.petrolUse)} L @ {aud(a.petrolPrice)})</span>
-            <b>{aud(petrolPer100)}</b>
+            <b>
+              <CountUpNumber value={petrolPer100} format={aud} durationMs={760} />
+            </b>
           </div>
           <div className="bar pet">
             <i style={{ width: '92%' }} />
@@ -207,7 +215,9 @@ export default function Vehicle() {
         <div className="rrow">
           <div className="rl2">
             <span>You (incl. free energy)</span>
-            <b style={{ color: 'var(--money-deep)' }}>{aud(evPer100)}</b>
+            <b style={{ color: 'var(--money-deep)' }}>
+              <CountUpNumber value={evPer100} format={aud} durationMs={760} />
+            </b>
           </div>
           <div className="bar ev">
             <i style={{ width: `${evPct * 0.92}%` }} />

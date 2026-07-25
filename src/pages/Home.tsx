@@ -84,7 +84,9 @@ export default function Home() {
         >
           <span className="bolt">⚡</span>
           <span className="cap">Free {freeProvider.name} energy · {monthTitle(ym).split(' ')[0]}</span>
-          <b className="big">{aud(cur?.saved ?? 0)} saved</b>
+          <b className="big">
+            <CountUpNumber value={cur?.saved ?? 0} format={aud} durationMs={780} /> saved
+          </b>
           <small>
             {kwh(cur?.freeKwh ?? 0, 1)} kWh free this month · lifetime <b>{aud(ev.lifetime.netSaved, 0)}</b> net
             <br />
@@ -171,7 +173,7 @@ export default function Home() {
         )
       })}
 
-      <footer className="app-footer">EV Command v3.6.10 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v3.6.11 · Cockpit Ledger</footer>
     </main>
   )
 }

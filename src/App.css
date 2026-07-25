@@ -136,6 +136,15 @@
   color: var(--mut);
   margin-top: 8px;
 }
+.account-hero-num {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 5px;
+}
+.account-hero-num.money {
+  color: var(--money-deep);
+}
 .delta {
   display: inline-flex;
   align-items: center;
@@ -725,6 +734,7 @@
 .splitb i {
   display: block;
   height: 100%;
+  transition: width 760ms cubic-bezier(0.3, 1, 0.4, 1);
 }
 .splitb .f {
   background: linear-gradient(90deg, #059669, #34d399);
@@ -809,6 +819,8 @@
   display: block;
   height: 100%;
   border-radius: 8px;
+  transform-origin: left center;
+  animation: race-fill 800ms cubic-bezier(0.3, 1, 0.4, 1) both;
   transition: width 800ms cubic-bezier(0.3, 1, 0.4, 1);
 }
 .race .ev i {
@@ -822,6 +834,15 @@
   color: var(--fnt);
   font-weight: 700;
   margin-top: 5px;
+}
+
+@keyframes race-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* ---- stepper ---- */
@@ -2274,4 +2295,17 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .explainable.inline b {
   color: var(--money-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countup-num,
+  .race .bar i {
+    animation: none;
+  }
+  .splitb i,
+  .thermo .fill,
+  .thermo .proj,
+  .race .bar i {
+    transition: none;
+  }
 }

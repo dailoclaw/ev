@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.11',
+    date: '25 Jul 2026',
+    notes: ['Motion Pass — savings, accounts and vehicle comparison screens now animate their key numbers and progress bars.'],
+  },
+  {
     version: '3.6.10',
     date: '24 Jul 2026',
     notes: ['Dashboard Motion — monthly spend now counts up and the budget thermometer animates into place.'],

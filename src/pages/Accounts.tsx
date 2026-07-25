@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate, shortDate } from '../lib/format'
 import { FreeTag, Icon, Mark, SplitBar } from '../components/ui'
+import CountUpNumber from '../components/CountUpNumber'
 
 export function AccountsList() {
   const navigate = useNavigate()
@@ -60,7 +61,9 @@ export function AccountsList() {
                 {p.sessions} charges · {kwh(p.kwh)} kWh · eff. {rate(p.effectiveRate)}/kWh
               </small>
             </span>
-            <b className="amt">{aud(p.cost)}</b>
+            <b className="amt">
+              <CountUpNumber value={p.cost} format={aud} durationMs={720} />
+            </b>
           </button>
         )
       })}
@@ -111,16 +114,24 @@ export function AccountDetail() {
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div>
             <span className="cap">Total paid</span>
-            <div style={{ fontSize: 28, fontWeight: 800, marginTop: 5 }}>{aud(summary.cost)}</div>
+            <CountUpNumber
+              value={summary.cost}
+              format={aud}
+              durationMs={820}
+              className="account-hero-num"
+            />
           </div>
           {summary.saved > 0 && (
             <div style={{ textAlign: 'right' }}>
               <span className="cap" style={{ color: 'var(--money-deep)' }}>
                 Free banked
               </span>
-              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 5, color: 'var(--money-deep)' }}>
-                {aud(summary.saved, 0)}
-              </div>
+              <CountUpNumber
+                value={summary.saved}
+                format={value => aud(value, 0)}
+                durationMs={820}
+                className="account-hero-num money"
+              />
             </div>
           )}
         </div>
@@ -150,13 +161,15 @@ export function AccountDetail() {
         <article className="metric-card">
           <span>Effective rate</span>
           <strong style={{ color: summary.effectiveRate < 0.2 ? 'var(--money-deep)' : undefined }}>
-            {rate(summary.effectiveRate)}
+            <CountUpNumber value={summary.effectiveRate} format={rate} durationMs={760} />
           </strong>
           <small>/kWh all-in</small>
         </article>
         <article className="metric-card">
           <span>Energy</span>
-          <strong>{kwh(summary.kwh)}</strong>
+          <strong>
+            <CountUpNumber value={summary.kwh} format={kwh} durationMs={760} />
+          </strong>
           <small>kWh lifetime</small>
         </article>
       </section>

@@ -5,6 +5,7 @@ import { aud, kwh, rate, todayIso } from '../lib/format'
 import { Bars, Icon, Ring } from '../components/ui'
 import Explainable from '../components/Explainable'
 import { deriveNetBenefit } from '../lib/derive'
+import CountUpNumber from '../components/CountUpNumber'
 
 export default function Savings() {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ export default function Savings() {
         <span className="bolt">⚡</span>
         <span className="cap">Lifetime net benefit</span>
         <Explainable derive={() => deriveNetBenefit(ev)} label="Lifetime net benefit" className="on-dark">
-          <b className="big xl">{aud(ev.lifetime.netSaved)}</b>
+          <CountUpNumber className="big xl" value={ev.lifetime.netSaved} format={aud} />
         </Explainable>
         <small>
           {kwh(ev.lifetime.freeKwh)} kWh free of {kwh(ev.lifetime.kwh)} charged · valued at{' '}
@@ -49,17 +50,23 @@ export default function Savings() {
         <div className="rcpt" style={{ border: 0, boxShadow: 'none', padding: 0 }}>
           <div className="rl free">
             <span>Free energy value</span>
-            <b>{aud(ev.lifetime.saved)}</b>
+            <b>
+              <CountUpNumber value={ev.lifetime.saved} format={aud} durationMs={760} />
+            </b>
           </div>
           {ev.lifetime.fees > 0 && (
             <div className="rl">
               <span>Membership fees paid</span>
-              <b>− {aud(ev.lifetime.fees)}</b>
+              <b>
+                − <CountUpNumber value={ev.lifetime.fees} format={aud} durationMs={760} />
+              </b>
             </div>
           )}
           <div className="rl tot">
             <span>Net benefit</span>
-            <b style={{ color: 'var(--money-deep)' }}>{aud(ev.lifetime.netSaved)}</b>
+            <b style={{ color: 'var(--money-deep)' }}>
+              <CountUpNumber value={ev.lifetime.netSaved} format={aud} durationMs={850} />
+            </b>
           </div>
         </div>
       </section>
