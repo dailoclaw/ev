@@ -639,6 +639,8 @@ function TrendsView({
   const xAt = (i: number) => (n > 1 ? (i / (n - 1)) * 300 : 150)
   const yAt = (v: number) => 128 - (v / max) * 108
   const d = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)} ${yAt(p.value).toFixed(1)}`).join(' ')
+  const areaD = n > 0 ? `${d} L${xAt(n - 1).toFixed(1)} 148 L${xAt(0).toFixed(1)} 148 Z` : ''
+  const chartKey = `${prov}-${metric}-${data.map(p => p.month).join('-')}`
   const fmt = (v: number) => (metric === 'cost' ? aud(v) : metric === 'kwh' ? `${kwh(v)} kWh` : '$' + v.toFixed(3))
   const activeIdx = selIdx == null ? n - 1 : selIdx
   const sp = data[activeIdx]
@@ -681,10 +683,11 @@ function TrendsView({
               {sp.label} · {fmt(sp.value)}
             </div>
           )}
-          <svg viewBox="0 0 300 148" preserveAspectRatio="none">
+          <svg key={chartKey} viewBox="0 0 300 148" preserveAspectRatio="none">
             <line className="gl" x1="0" y1="38" x2="300" y2="38" />
             <line className="gl" x1="0" y1="94" x2="300" y2="94" />
-            <path className="ln" d={d} />
+            {areaD && <path className="area" d={areaD} />}
+            <path className="ln" d={d} pathLength={1} />
             {data.map((p, i) => (
               <circle
                 key={p.month}

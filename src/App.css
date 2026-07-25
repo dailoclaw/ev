@@ -1623,11 +1623,21 @@ input[type='range'].capslider::-webkit-slider-thumb {
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: trend-draw 900ms cubic-bezier(0.35, 0.8, 0.25, 1) forwards;
+}
+.scrub .area {
+  fill: var(--money);
+  opacity: 0;
+  animation: trend-area 520ms ease 420ms forwards;
 }
 .scrub .dot {
   fill: var(--surf);
   stroke: var(--money);
   stroke-width: 2.5;
+  opacity: 0;
+  animation: trend-dot 360ms ease 720ms forwards;
 }
 .scrub .flag {
   position: absolute;
@@ -1639,6 +1649,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
   padding: 4px 8px;
   border-radius: 8px;
   white-space: nowrap;
+  opacity: 0;
+  animation: trend-flag 360ms ease 760ms forwards;
 }
 .scrub .flag::after {
   content: '';
@@ -1657,6 +1669,35 @@ input[type='range'].capslider::-webkit-slider-thumb {
   font-weight: 750;
   color: var(--fnt);
   margin-top: 6px;
+}
+
+@keyframes trend-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes trend-area {
+  to {
+    opacity: 0.1;
+  }
+}
+
+@keyframes trend-dot {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes trend-flag {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 5px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
 }
 
 /* ---- period comparison ---- */
@@ -2299,8 +2340,22 @@ input[type='range'].capslider::-webkit-slider-thumb {
 
 @media (prefers-reduced-motion: reduce) {
   .countup-num,
-  .race .bar i {
+  .race .bar i,
+  .scrub .ln,
+  .scrub .area,
+  .scrub .dot,
+  .scrub .flag {
     animation: none;
+  }
+  .scrub .ln {
+    stroke-dashoffset: 0;
+  }
+  .scrub .area {
+    opacity: 0.1;
+  }
+  .scrub .dot,
+  .scrub .flag {
+    opacity: 1;
   }
   .splitb i,
   .thermo .fill,
