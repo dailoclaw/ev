@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.13',
+    date: '25 Jul 2026',
+    notes: ['Stats Cascade — Analytics now animates its KPI numbers and saved-per-month bars.'],
+  },
+  {
     version: '3.6.12',
     date: '25 Jul 2026',
     notes: ['Analytics Motion — Trends now draws the line in, fades the area fill, and reveals the selected point.'],
