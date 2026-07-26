@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.19',
+    date: '26 Jul 2026',
+    notes: ['New Charge provider order — Jolt now appears first and is selected by default, with Chargefox moved to the end of the picker.'],
+  },
+  {
     version: '3.6.18',
     date: '25 Jul 2026',
     notes: ['Split, Compare and Statement motion — donut, bar, sparkline and statement number animations now run in the live app without changing typography.'],

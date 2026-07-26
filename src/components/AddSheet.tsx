@@ -10,9 +10,25 @@ type Mode = 'charge' | 'fee'
 
 export default function AddSheet({ onClose }: { onClose: () => void }) {
   const { providers: allProviders, sessions, refRate, synced } = useEv()
-  const providers = useMemo(() => allProviders.filter(p => !p.archived), [allProviders])
+  const providers = useMemo(
+    () =>
+      allProviders
+        .filter(p => !p.archived)
+        .map((provider, index) => ({ provider, index }))
+        .sort((a, b) => {
+          const rank = (name: string) => {
+            if (name === 'Jolt') return 0
+            if (name === 'Chargefox') return 2
+            return 1
+          }
+          return rank(a.provider.name) - rank(b.provider.name) || a.index - b.index
+        })
+        .map(({ provider }) => provider),
+    [allProviders],
+  )
+  const defaultProviderName = providers.find(p => p.name === 'Jolt')?.name ?? providers[0]?.name ?? ''
   const [mode, setMode] = useState<Mode>('charge')
-  const [providerName, setProviderName] = useState(providers[0]?.name ?? '')
+  const [providerName, setProviderName] = useState(defaultProviderName)
   const [showNew, setShowNew] = useState(false)
   const [newName, setNewName] = useState('')
   const [newFree, setNewFree] = useState(0)
@@ -22,11 +38,12 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const [costStr, setCostStr] = useState('')
   const [notes, setNotes] = useState('')
   const [saved, setSaved] = useState(false)
+  const selectedProviderName = providers.some(p => p.name === providerName) ? providerName : defaultProviderName
 
   const isFee = mode === 'fee'
   const kwh = parseFloat(kwhStr) || 0
   const cost = parseFloat(costStr) || 0
-  const provider = providers.find(p => p.name === providerName)
+  const provider = providers.find(p => p.name === selectedProviderName)
 
   const preview = useMemo(
     () => previewFreeAllocation(sessions, provider, date, kwh, refRate),
@@ -37,7 +54,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const canSave = isFee ? providerChosen && cost > 0 : providerChosen && kwh > 0 && cost >= 0
 
   const handleSave = () => {
-    let typeName = providerName
+    let typeName = selectedProviderName
     if (showNew) {
       const p = addProvider(newName, newFree, newColor)
       typeName = p.name
@@ -87,7 +104,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                 <button
                   key={p.id}
                   type="button"
-                  className={!showNew && providerName === p.name ? 'on' : ''}
+                  className={!showNew && selectedProviderName === p.name ? 'on' : ''}
                   onClick={() => {
                     setShowNew(false)
                     setProviderName(p.name)
