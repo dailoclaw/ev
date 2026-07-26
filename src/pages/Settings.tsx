@@ -21,6 +21,7 @@ import {
 import { aud, stamp, todayIso } from '../lib/format'
 import { useDensity } from '../lib/density'
 import { useTheme } from '../lib/theme'
+import { useStyle } from '../lib/style'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
 
@@ -32,6 +33,7 @@ export default function Settings() {
   const [exported, setExported] = useState(false)
   const [density, setDensity] = useDensity()
   const [theme, setTheme] = useTheme()
+  const [style, setStyle] = useStyle()
   const [showWhatsNew, setShowWhatsNew] = useState(false)
 
   const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
@@ -130,6 +132,36 @@ export default function Settings() {
       <h2 className="sec-h2" style={{ marginTop: 4 }}>
         Appearance
       </h2>
+      <p className="sec-sub">
+        Style changes how every screen is drawn — same numbers, same navigation. Switch back any time.
+      </p>
+      <div className="seg" role="group" aria-label="Visual style">
+        <button type="button" className={style === 'classic' ? 'on' : ''} onClick={() => setStyle('classic')}>
+          Classic
+        </button>
+        <button type="button" className={style === 'minimal' ? 'on' : ''} onClick={() => setStyle('minimal')}>
+          Minimal
+        </button>
+      </div>
+      <div className="style-preview" aria-label="Visual style preview">
+        <span className="style-preview-cap">
+          {style === 'minimal' ? 'Minimal' : 'Classic'} · live preview
+        </span>
+        <div className="style-preview-row">
+          <span className="mark" style={{ ['--pc' as string]: 'var(--p-jolt)' }}>
+            J
+          </span>
+          <span>
+            <strong>Jolt</strong>
+            <small>
+              {style === 'minimal'
+                ? 'Softer corners, no card borders, more air'
+                : 'The original Cockpit Ledger look'}
+            </small>
+          </span>
+          <b>$203.35</b>
+        </div>
+      </div>
       <p className="sec-sub">Carbon OLED dark theme — easy on the eyes and the battery.</p>
       <div className="seg" role="group" aria-label="Theme">
         <button type="button" className={theme === 'light' ? 'on' : ''} onClick={() => setTheme('light')}>
@@ -467,7 +499,7 @@ export default function Settings() {
       )}
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
-        EV Command v3.6.19 · Cockpit Ledger · what's new ›
+        EV Command v3.7.0 · Cockpit Ledger · what's new ›
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}

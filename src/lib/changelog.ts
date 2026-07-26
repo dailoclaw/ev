@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.0',
+    date: '27 Jul 2026',
+    notes: [
+      'Minimal style — a second look for the whole app, switchable in Settings › Appearance. Same numbers, same navigation: softer corners, no card borders, sentence-case labels and more air. Works alongside Light/Dark.',
+    ],
+  },
+  {
     version: '3.6.19',
     date: '26 Jul 2026',
     notes: ['New Charge provider order — Jolt now appears first and is selected by default, with Chargefox moved to the end of the picker.'],
