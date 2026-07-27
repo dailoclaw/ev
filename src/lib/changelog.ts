@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.5',
+    date: '27 Jul 2026',
+    notes: [
+      'Minimal Home polish — the month label and spend amount are larger for a stronger first-glance hierarchy.',
+    ],
+  },
+  {
     version: '3.7.4',
     date: '27 Jul 2026',
     notes: [
