@@ -2,14 +2,16 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, shortDate } from '../lib/format'
-import { Icon } from '../components/ui'
+import { Icon, Mark } from '../components/ui'
 import { yearOnYear } from '../lib/yearOnYear'
 import { records } from '../lib/records'
 import { useUnitRoll } from '../lib/useUnitRoll'
 import CountUpNumber from '../components/CountUpNumber'
+import { useStyle } from '../lib/style'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
+type CanvasStatsView = 'overview' | 'energy' | 'free' | 'providers'
 
 const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
   {
@@ -57,6 +59,275 @@ const pct = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 1
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 
 export default function Analytics() {
+  const [style] = useStyle()
+  return style === 'minimal' ? <CanvasStats /> : <ClassicAnalytics />
+}
+
+function CanvasStats() {
+  const ev = useEv()
+  const navigate = useNavigate()
+  const [view, setView] = useState<CanvasStatsView>('overview')
+
+  const years = useMemo(() => {
+    const set = new Set(ev.months.map(m => m.month.slice(0, 4)))
+    return [...set].sort((a, b) => b.localeCompare(a))
+  }, [ev.months])
+
+  const model = useMemo(() => {
+    const activeYear = years[0] ?? String(new Date().getFullYear())
+    const prevYear = String(Number(activeYear) - 1)
+    const months = ev.months.filter(m => m.month.startsWith(activeYear))
+    const prevMonths = ev.months.filter(m => m.month.startsWith(prevYear))
+    const sum = (list: typeof ev.months) =>
+      list.reduce(
+        (a, m) => ({
+          cost: a.cost + m.cost,
+          kwh: a.kwh + m.kwh,
+          sessions: a.sessions + m.sessions,
+          freeKwh: a.freeKwh + m.freeKwh,
+          saved: a.saved + m.saved,
+        }),
+        { cost: 0, kwh: 0, sessions: 0, freeKwh: 0, saved: 0 },
+      )
+    const cur = sum(months)
+    const prev = sum(prevMonths)
+    const rateNow = cur.kwh > 0 ? cur.cost / cur.kwh : 0
+    const ratePrev = prev.kwh > 0 ? prev.cost / prev.kwh : 0
+    const rateDelta = ratePrev > 0 ? ((rateNow - ratePrev) / ratePrev) * 100 : null
+    const freePct = cur.kwh > 0 ? Math.round((cur.freeKwh / cur.kwh) * 100) : 0
+    const avgMonth = months.length > 0 ? cur.kwh / months.length : 0
+    const largestMonth = months.reduce((max, m) => Math.max(max, m.kwh), 0)
+    const bestProvider =
+      ev.byProvider
+        .filter(p => p.kwh > 0)
+        .slice()
+        .sort((a, b) => a.effectiveRate - b.effectiveRate)[0] ?? ev.byProvider[0]
+    return { activeYear, months, cur, prev, rateNow, rateDelta, freePct, avgMonth, largestMonth, bestProvider }
+  }, [ev.months, ev.byProvider, years])
+
+  const rates = model.months.map(m => (m.kwh > 0 ? m.cost / m.kwh : 0))
+  const energyBars = model.months.slice(-8)
+  const maxEnergy = Math.max(...energyBars.map(m => m.kwh), 1)
+  const freeTrend = model.months.map(m => (m.kwh > 0 ? (m.freeKwh / m.kwh) * 100 : 0))
+  const r = useMemo(() => records(ev), [ev])
+  const providerMaxRate = Math.max(...ev.byProvider.map(p => p.effectiveRate), 0.01)
+
+  const back = () => setView('overview')
+  const deltaText =
+    model.rateDelta == null
+      ? 'Building trend.'
+      : `${model.rateDelta > 0 ? 'Up' : 'Down'} ${Math.abs(model.rateDelta).toFixed(0)}% on last year.`
+
+  return (
+    <main className="app-shell cv cv-stats">
+      {view === 'overview' ? (
+        <>
+          <header className="appbar">
+            <div>
+              <p className="cv-eyebrow">Stats</p>
+              <h1 className="cv-big cv-rate">{model.rateNow > 0 ? `${perKwh(model.cur.cost, model.cur.kwh)}` : '$0.00'}</h1>
+            </div>
+            <button className="icon-btn" type="button" aria-label="Back home" onClick={() => navigate('/')}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--steel)' }}>⌂</span>
+            </button>
+          </header>
+          <p className="cv-ctx">
+            All-in rate per kWh. <em>{deltaText}</em>
+          </p>
+          <CanvasTrend values={rates} kind="rate" />
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => setView('energy')}>
+              <span className="k">Energy added</span>
+              <span className="v">{kwh(model.cur.kwh, 0)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('free')}>
+              <span className="k">Free energy</span>
+              <span className="v">{model.freePct}%</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => navigate('/savings')}>
+              <span className="k">Saved on free</span>
+              <span className="v">{aud(model.cur.saved, 0)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('providers')}>
+              <span className="k">Best network</span>
+              <span className="v">{model.bestProvider?.name ?? '—'}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : view === 'energy' ? (
+        <>
+          <CanvasStatsHeader title="Energy" value={Math.round(model.cur.kwh).toLocaleString()} ctx={`${model.activeYear} charging rhythm.`} onBack={back} />
+          <div className="cv-barviz" aria-label="Recent monthly energy">
+            {energyBars.map((m, i) => (
+              <i
+                key={m.month}
+                style={{ ['--h' as string]: `${Math.max(10, (m.kwh / maxEnergy) * 100)}%`, ['--i' as string]: i }}
+                aria-label={`${m.label}: ${kwh(m.kwh)}`}
+              />
+            ))}
+          </div>
+          <section className="cv-mini-grid">
+            <article>
+              <span>Average month</span>
+              <b>{kwh(model.avgMonth, 0)}</b>
+            </article>
+            <article>
+              <span>Largest month</span>
+              <b>{kwh(model.largestMonth, 0)}</b>
+            </article>
+          </section>
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => navigate('/statement')}>
+              <span className="k">Statement view</span>
+              <span className="v">Open</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('overview')}>
+              <span className="k">Back to rate trend</span>
+              <span className="v">{perKwh(model.cur.cost, model.cur.kwh)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : view === 'free' ? (
+        <>
+          <CanvasStatsHeader title="Free energy" value={`${model.freePct}%`} ctx={`${aud(model.cur.saved, 0)} saved in ${model.activeYear}.`} onBack={back} />
+          <CanvasTrend values={freeTrend} kind="free" />
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => navigate('/savings')}>
+              <span className="k">Free kWh captured</span>
+              <span className="v">{kwh(model.cur.freeKwh, 0)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => navigate('/cost-anatomy')}>
+              <span className="k">Paid overflow</span>
+              <span className="v">{kwh(Math.max(0, model.cur.kwh - model.cur.freeKwh), 0)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('overview')}>
+              <span className="k">Free streak</span>
+              <span className="v">{r.currentStreak}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <CanvasStatsHeader
+            title="Networks"
+            value={model.bestProvider?.name ?? '—'}
+            ctx={
+              model.bestProvider
+                ? `Best effective rate: ${perKwh(model.bestProvider.cost, model.bestProvider.kwh)}/kWh.`
+                : 'Add charges to compare networks.'
+            }
+            onBack={back}
+          />
+          <div className="cv-seg" aria-label="Provider metric">
+            <button className="on" type="button">
+              Cost
+            </button>
+            <button type="button">kWh</button>
+            <button type="button">Free</button>
+          </div>
+          <div className="cv-providers">
+            {ev.byProvider.slice(0, 4).map(p => {
+              const provider = ev.providers.find(x => x.name === p.name)
+              const color = provider?.color ?? 'var(--steel)'
+              const rateValue = p.kwh > 0 ? p.cost / p.kwh : 0
+              const width = Math.max(7, ((providerMaxRate - rateValue) / providerMaxRate) * 100)
+              return (
+                <button
+                  className="cv-provider"
+                  key={p.name}
+                  type="button"
+                  onClick={() => navigate(`/accounts/${encodeURIComponent(p.name)}`)}
+                  style={{ ['--pc' as string]: color, ['--w' as string]: `${width}%` }}
+                >
+                  <Mark provider={provider} name={p.name} />
+                  <span>
+                    <strong>{p.name}</strong>
+                    <small>{provider?.freeKwhPerDay ? `${provider.freeKwhPerDay} kWh/day allowance` : `${kwh(p.kwh, 0)} lifetime`}</small>
+                    <i />
+                  </span>
+                  <b>{perKwh(p.cost, p.kwh)}</b>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </main>
+  )
+}
+
+function CanvasStatsHeader({ title, value, ctx, onBack }: { title: string; value: string; ctx: string; onBack: () => void }) {
+  return (
+    <>
+      <header className="appbar">
+        <div>
+          <p className="cv-eyebrow">{title}</p>
+          <h1 className="cv-big">{value}</h1>
+        </div>
+        <button className="icon-btn" type="button" aria-label="Back to stats overview" onClick={onBack}>
+          <Icon name="back" />
+        </button>
+      </header>
+      <p className="cv-ctx">
+        {ctx} <em>Tap rows for the full view.</em>
+      </p>
+    </>
+  )
+}
+
+function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free' }) {
+  const normalized = values.length > 0 ? values : [0]
+  const max = Math.max(...normalized, 0.01)
+  const min = Math.min(...normalized, max)
+  const range = Math.max(0.01, max - min)
+  const pts = normalized.map((v, i) => {
+    const x = normalized.length === 1 ? 50 : (i / (normalized.length - 1)) * 100
+    const y = 82 - ((v - min) / range) * 54
+    return { x, y }
+  })
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
+  const area = `${line} L 100 100 L 0 100 Z`
+  const last = pts[pts.length - 1]
+
+  return (
+    <div className={`cv-trend ${kind}`}>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label={kind === 'rate' ? 'Rate trend' : 'Free energy trend'}>
+        <path className="area" d={area} />
+        <path className="line" d={line} />
+        <circle className="dot" cx={last.x} cy={last.y} r="2.7" />
+      </svg>
+    </div>
+  )
+}
+
+function ClassicAnalytics() {
   const ev = useEv()
   const navigate = useNavigate()
   const [view, setView] = useState<View>('cluster')

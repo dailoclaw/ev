@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.8.0',
+    date: '27 Jul 2026',
+    notes: [
+      'Minimal Stats — the Stats tab now has a simplified Minimal-only layout with an all-in-rate hero, trend chart, and focused drill-ins for energy, free charging and networks.',
+    ],
+  },
+  {
     version: '3.7.9',
     date: '27 Jul 2026',
     notes: [

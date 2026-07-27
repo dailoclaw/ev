@@ -2995,3 +2995,238 @@ input[type='range'].capslider::-webkit-slider-thumb {
   outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* ============ Canvas Stats — minimal analytics ============ */
+.cv-stats .cv-rate {
+  font-size: 72px;
+}
+.cv-trend {
+  height: 230px;
+  margin-top: 30px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 34px;
+  background:
+    linear-gradient(var(--bd2) 1px, transparent 1px) 0 0 / 100% 33.333%,
+    linear-gradient(90deg, color-mix(in srgb, var(--bd2) 70%, transparent) 1px, transparent 1px) 0 0 / 25% 100%,
+    color-mix(in srgb, var(--surf) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
+}
+.cv-trend svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.cv-trend .area {
+  fill: color-mix(in srgb, var(--money) 24%, transparent);
+  animation: cv-fade 820ms ease both;
+}
+.cv-trend .line {
+  fill: none;
+  stroke: var(--money);
+  stroke-width: 3.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: cv-draw 1.35s cubic-bezier(0.22, 0.85, 0.3, 1) forwards;
+}
+.cv-trend .dot {
+  fill: var(--surf);
+  stroke: var(--money);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transform-origin: center;
+  animation: cv-pop 520ms ease 900ms both;
+}
+.cv-trend.free .area {
+  fill: color-mix(in srgb, var(--money) 30%, transparent);
+}
+
+.cv-barviz {
+  height: 230px;
+  margin-top: 30px;
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  padding: 18px;
+  border-radius: 34px;
+  background: color-mix(in srgb, var(--surf) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
+}
+.cv-barviz i {
+  flex: 1;
+  height: var(--h);
+  border-radius: 999px 999px 8px 8px;
+  background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 18%, var(--surf)));
+  animation: cv-grow 820ms ease both;
+  animation-delay: calc(var(--i) * 65ms);
+}
+
+.cv-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+.cv-mini-grid article {
+  min-height: 104px;
+  padding: 16px;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surf) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
+}
+.cv-mini-grid span {
+  display: block;
+  color: var(--mut);
+  font-size: 12px;
+  font-weight: 740;
+}
+.cv-mini-grid b {
+  display: block;
+  margin-top: 8px;
+  font-size: 30px;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  font-weight: 760;
+}
+
+.cv-seg {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bd2) 76%, transparent);
+  margin-top: 26px;
+}
+.cv-seg button {
+  flex: 1;
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mut);
+  font-size: 12px;
+  font-weight: 820;
+}
+.cv-seg .on {
+  color: var(--tx);
+  background: var(--surf);
+  box-shadow: 0 8px 22px rgba(15, 26, 36, 0.08);
+}
+
+.cv-providers {
+  display: grid;
+  gap: 0;
+  margin-top: 22px;
+}
+.cv-provider {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 0;
+  border: 0;
+  border-bottom: 1px solid var(--bd2);
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+.cv-provider .mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 15px;
+}
+.cv-provider strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+}
+.cv-provider small {
+  display: block;
+  margin-top: 3px;
+  color: var(--mut);
+  font-size: 12px;
+  font-weight: 650;
+}
+.cv-provider span i {
+  display: block;
+  height: 8px;
+  width: 100%;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--bd2);
+}
+.cv-provider span i::before {
+  content: '';
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pc);
+  animation: cv-fill 850ms ease both;
+}
+.cv-provider b {
+  font-size: 15px;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+@keyframes cv-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cv-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cv-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes cv-grow {
+  from {
+    height: 8%;
+    opacity: 0.35;
+  }
+  to {
+    height: var(--h);
+    opacity: 1;
+  }
+}
+@keyframes cv-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--w);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-trend .area,
+  .cv-trend .line,
+  .cv-trend .dot,
+  .cv-barviz i,
+  .cv-provider span i::before {
+    animation: none;
+  }
+  .cv-trend .line {
+    stroke-dashoffset: 0;
+  }
+}

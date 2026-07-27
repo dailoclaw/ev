@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EV Command · Minimal Stats Mockups</title>
+  <style>
+    :root {
+      --canvas: #f3f5f2;
+      --surface: #fbfcf9;
+      --ink: #101412;
+      --muted: #69736d;
+      --faint: #99a49d;
+      --line: rgba(16, 20, 18, .09);
+      --green: #059669;
+      --green-soft: #dff6eb;
+      --blue: #496fd6;
+      --violet: #8972d8;
+      --rose: #e66886;
+      --shadow: 0 22px 60px rgba(16, 20, 18, .1);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 360px;
+      background:
+        radial-gradient(1200px 520px at 50% -10%, rgba(5,150,105,.14), transparent 58%),
+        linear-gradient(180deg, #fff 0, var(--canvas) 52%);
+    }
+    h1, h2, h3, p { margin: 0; }
+    button { font: inherit; }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px clamp(18px, 4vw, 48px);
+      border-bottom: 1px solid rgba(16,20,18,.08);
+      background: rgba(243,245,242,.76);
+      backdrop-filter: blur(18px);
+    }
+    .brand {
+      display: grid;
+      line-height: 1.05;
+      font-weight: 820;
+      letter-spacing: -.035em;
+    }
+    .brand small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .nav {
+      display: flex;
+      gap: 8px;
+      overflow: auto;
+      scrollbar-width: none;
+    }
+    .nav a {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #59625d;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 750;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(16,20,18,.07);
+    }
+
+    .hero {
+      padding: clamp(42px, 7vw, 82px) clamp(18px, 5vw, 68px) 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+      gap: 36px;
+      align-items: end;
+    }
+    .kicker {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 920px;
+      margin-top: 16px;
+      font-size: clamp(50px, 8vw, 106px);
+      line-height: .9;
+      letter-spacing: -.075em;
+      font-weight: 860;
+    }
+    .lede {
+      max-width: 720px;
+      margin-top: 22px;
+      color: #3f4742;
+      font-size: clamp(16px, 2vw, 21px);
+      line-height: 1.5;
+      letter-spacing: -.015em;
+    }
+    .strategy {
+      display: grid;
+      gap: 10px;
+    }
+    .strategy div {
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.68);
+      border: 1px solid rgba(16,20,18,.08);
+      box-shadow: 0 12px 36px rgba(16,20,18,.06);
+    }
+    .strategy b {
+      display: block;
+      margin-bottom: 4px;
+      letter-spacing: -.02em;
+    }
+    .strategy span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    section {
+      padding: 36px clamp(18px, 4vw, 54px) 54px;
+      border-top: 1px solid rgba(16,20,18,.08);
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+    .section-head h2 {
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: .95;
+      letter-spacing: -.055em;
+      font-weight: 850;
+    }
+    .section-head p {
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(4, 390px);
+      gap: 22px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scroll-snap-type: x mandatory;
+    }
+    .concept { scroll-snap-align: start; }
+    .label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 820;
+      letter-spacing: -.015em;
+    }
+    .label span {
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .phone {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      border-radius: 42px;
+      background:
+        radial-gradient(420px 260px at 50% -40px, rgba(5,150,105,.14), transparent 70%),
+        linear-gradient(180deg, #fff 0, #f7f8f4 62%, #eef1ec 100%);
+      border: 1px solid rgba(16,20,18,.1);
+      box-shadow: var(--shadow);
+    }
+    .phone::before {
+      content: "";
+      position: absolute;
+      z-index: 8;
+      top: 10px;
+      left: 50%;
+      width: 126px;
+      height: 31px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #111412;
+    }
+    .status {
+      position: absolute;
+      top: 18px;
+      left: 28px;
+      right: 28px;
+      z-index: 9;
+      display: flex;
+      justify-content: space-between;
+      color: rgba(16,20,18,.72);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .status i {
+      display: inline-block;
+      width: 18px;
+      height: 8px;
+      margin-left: 5px;
+      border-radius: 3px;
+      border: 1.5px solid currentColor;
+      vertical-align: 1px;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 54px 22px 22px;
+    }
+    .screen::after {
+      content: "";
+      position: absolute;
+      left: 126px;
+      right: 126px;
+      bottom: 8px;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(16,20,18,.22);
+    }
+    .appbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .month {
+      font-size: 36px;
+      line-height: .95;
+      letter-spacing: -.055em;
+      font-weight: 690;
+      color: var(--faint);
+    }
+    .headline {
+      margin-top: 10px;
+      font-size: 76px;
+      line-height: .84;
+      letter-spacing: -.075em;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .headline.rate { font-size: 72px; }
+    .subcopy {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 560;
+      line-height: 1.5;
+    }
+    .subcopy em {
+      font-style: normal;
+      color: var(--green);
+      font-weight: 730;
+    }
+    .iconbtn {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      border: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(16,20,18,.06);
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .chart {
+      margin-top: 30px;
+      height: 230px;
+      position: relative;
+      border-radius: 34px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(16,20,18,.055) 1px, transparent 1px) 0 0 / 100% 33.33%,
+        linear-gradient(90deg, rgba(16,20,18,.045) 1px, transparent 1px) 0 0 / 25% 100%,
+        rgba(255,255,255,.64);
+      border: 1px solid rgba(16,20,18,.07);
+    }
+    .chart svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .area {
+      fill: url(#greenFade);
+      opacity: .7;
+      animation: fadeIn .8s ease both;
+    }
+    .line {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 520;
+      stroke-dashoffset: 520;
+      animation: draw 1.35s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    .dot {
+      fill: #fff;
+      stroke: var(--green);
+      stroke-width: 5;
+      animation: pop .55s ease .95s both;
+      transform-origin: center;
+    }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: .7; } }
+    @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .bars {
+      height: 230px;
+      margin-top: 30px;
+      display: flex;
+      align-items: end;
+      gap: 9px;
+      padding: 18px;
+      border-radius: 34px;
+      background: rgba(255,255,255,.64);
+      border: 1px solid rgba(16,20,18,.07);
+    }
+    .bars i {
+      position: relative;
+      flex: 1;
+      height: var(--h);
+      border-radius: 999px 999px 8px 8px;
+      background: linear-gradient(180deg, var(--green), rgba(5,150,105,.2));
+      animation: grow .85s ease both;
+      animation-delay: calc(var(--n) * 70ms);
+    }
+    .bars i.alt { background: linear-gradient(180deg, var(--blue), rgba(73,111,214,.16)); }
+    @keyframes grow { from { height: 8%; opacity: .3; } to { height: var(--h); opacity: 1; } }
+
+    .rows {
+      margin-top: 26px;
+      display: grid;
+    }
+    .row {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 0;
+      border: 0;
+      border-bottom: 1px solid rgba(16,20,18,.08);
+      background: transparent;
+      text-align: left;
+      color: inherit;
+    }
+    .row .k {
+      flex: 1;
+      font-size: 14.5px;
+      font-weight: 580;
+    }
+    .row .v {
+      font-size: 14.5px;
+      font-weight: 720;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .row .c {
+      color: var(--faint);
+      font-weight: 800;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      color: #0f4f40;
+      background: rgba(5,150,105,.11);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .seg {
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      border-radius: 999px;
+      background: rgba(16,20,18,.06);
+      margin-top: 26px;
+    }
+    .seg button {
+      flex: 1;
+      min-height: 38px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 820;
+    }
+    .seg .on {
+      color: var(--ink);
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(16,20,18,.08);
+    }
+    .tabbar {
+      margin-top: auto;
+      height: 66px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      gap: 4px;
+      padding: 6px 8px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(16,20,18,.08);
+      box-shadow: 0 18px 44px rgba(16,20,18,.1);
+      backdrop-filter: blur(18px);
+    }
+    .tabbar span {
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      color: #8b928c;
+      font-size: 10px;
+      font-weight: 780;
+    }
+    .tabbar .on { color: var(--green); }
+    .tabbar .fab {
+      width: 48px;
+      height: 48px;
+      border-radius: 99px;
+      color: #fff;
+      background: #111412;
+      font-size: 26px;
+      line-height: 1;
+      box-shadow: 0 18px 28px rgba(16,20,18,.2);
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .mini {
+      min-height: 104px;
+      padding: 16px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.66);
+      border: 1px solid rgba(16,20,18,.07);
+    }
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 740;
+    }
+    .mini b {
+      display: block;
+      margin-top: 8px;
+      font-size: 30px;
+      line-height: .95;
+      letter-spacing: -.05em;
+      font-weight: 760;
+    }
+    .provider {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid rgba(16,20,18,.08);
+    }
+    .mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 13%, #fff);
+      font-weight: 850;
+    }
+    .provider b { display: block; font-size: 15px; }
+    .provider small { display: block; margin-top: 3px; color: var(--muted); font-weight: 650; }
+    .provider strong { font-size: 15px; }
+    .meter {
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(16,20,18,.07);
+    }
+    .meter i {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--c);
+      animation: fill .9s ease both;
+    }
+    @keyframes fill { from { width: 0; } to { width: var(--w); } }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">EV Command <small>Minimal Stats redesign</small></div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#mockups">Mockups</a>
+      <a href="#mapping">IA mapping</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <span class="kicker">Minimal Stats proposal</span>
+        <h1>One story first. Detail on tap.</h1>
+        <p class="lede">Stats should stop behaving like a dense analytics console in Minimal mode. The first screen should tell you whether charging is getting better over time, then let you drill into energy, free charging, providers, and records.</p>
+      </div>
+      <div class="strategy">
+        <div><b>Hero answer</b><span>Lead with all-in rate: the clearest signal of charging economics.</span></div>
+        <div><b>One visual</b><span>Use one large trend object instead of five view modes fighting for attention.</span></div>
+        <div><b>Rows as portals</b><span>Energy, free charging, providers, and records become calm drill-ins.</span></div>
+      </div>
+    </div>
+
+    <section id="mockups">
+      <div class="section-head">
+        <h2>Rendered Mobile Mockups</h2>
+        <p>Four screens at 390x844: the new Minimal Stats home plus three drill-ins. These keep the current app data model, but redraw the IA around glanceable hierarchy.</p>
+      </div>
+      <div class="frames">
+        <article class="concept">
+          <div class="label">Stats Overview <span>default tab</span></div>
+          <div class="phone">
+            <div class="status"><span>9:41</span><span>5G <i></i></span></div>
+            <div class="screen">
+              <div class="appbar">
+                <div>
+                  <div class="month">Stats</div>
+                  <div class="headline rate">$0.22</div>
+                  <p class="subcopy">All-in rate per kWh. <em>Down 18%</em> on last year.</p>
+                </div>
+                <button class="iconbtn" aria-label="Home">⌂</button>
+              </div>
+
+              <div class="chart" aria-label="12 month rate trend">
+                <svg viewBox="0 0 346 230" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="greenFade" x1="0" x2="0" y1="0" y2="1">
+                      <stop stop-color="#059669" stop-opacity=".25" />
+                      <stop offset="1" stop-color="#059669" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path class="area" d="M18 78 C54 92 74 126 106 112 C137 99 147 66 181 74 C220 83 224 134 260 126 C294 119 304 76 328 70 L328 230 L18 230 Z" />
+                  <path class="line" d="M18 78 C54 92 74 126 106 112 C137 99 147 66 181 74 C220 83 224 134 260 126 C294 119 304 76 328 70" />
+                  <circle class="dot" cx="328" cy="70" r="9" />
+                </svg>
+              </div>
+
+              <div class="rows">
+                <button class="row"><span class="k">Energy added</span><span class="v">412 kWh</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Free energy</span><span class="v">38%</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Saved on free</span><span class="v">$128</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Best network</span><span class="v">Jolt</span><span class="c">›</span></button>
+              </div>
+
+              <div class="tabbar"><span>⌂<br>Home</span><span class="on">⌁<br>Stats</span><span class="fab">+</span><span>◖<br>Car</span><span>⚙<br>Set</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <div class="label">Energy Drill-In <span>kWh rhythm</span></div>
+          <div class="phone">
+            <div class="status"><span>9:41</span><span>5G <i></i></span></div>
+            <div class="screen">
+              <div class="appbar">
+                <div>
+                  <div class="month">Energy</div>
+                  <div class="headline">412</div>
+                  <p class="subcopy">kWh this year. July is <em>above your usual rhythm</em>.</p>
+                </div>
+                <button class="iconbtn" aria-label="Back">‹</button>
+              </div>
+
+              <div class="bars" aria-label="Monthly kWh bars">
+                <i style="--h:42%;--n:1"></i><i style="--h:56%;--n:2"></i><i style="--h:38%;--n:3"></i><i style="--h:72%;--n:4"></i><i style="--h:47%;--n:5"></i><i style="--h:88%;--n:6"></i><i style="--h:66%;--n:7"></i><i style="--h:78%;--n:8"></i>
+              </div>
+
+              <div class="mini-grid">
+                <div class="mini"><span>Average month</span><b>58 kWh</b></div>
+                <div class="mini"><span>Largest month</span><b>92 kWh</b></div>
+              </div>
+
+              <div class="rows">
+                <button class="row"><span class="k">Statement view</span><span class="v">July</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Compare years</span><span class="v">2026</span><span class="c">›</span></button>
+              </div>
+
+              <div class="tabbar"><span>⌂<br>Home</span><span class="on">⌁<br>Stats</span><span class="fab">+</span><span>◖<br>Car</span><span>⚙<br>Set</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <div class="label">Free Energy Drill-In <span>savings focus</span></div>
+          <div class="phone">
+            <div class="status"><span>9:41</span><span>5G <i></i></span></div>
+            <div class="screen">
+              <div class="appbar">
+                <div>
+                  <div class="month">Free energy</div>
+                  <div class="headline">38%</div>
+                  <p class="subcopy">of charged energy was free. <em>$128 saved</em> this year.</p>
+                </div>
+                <button class="iconbtn" aria-label="Back">‹</button>
+              </div>
+
+              <div class="chart" aria-label="Free energy trend">
+                <svg viewBox="0 0 346 230" preserveAspectRatio="none">
+                  <path class="area" d="M18 164 C46 136 63 88 99 92 C138 96 147 152 181 132 C218 111 218 68 260 72 C292 75 304 116 328 102 L328 230 L18 230 Z" />
+                  <path class="line" d="M18 164 C46 136 63 88 99 92 C138 96 147 152 181 132 C218 111 218 68 260 72 C292 75 304 116 328 102" />
+                  <circle class="dot" cx="328" cy="102" r="9" />
+                </svg>
+              </div>
+
+              <div class="rows">
+                <button class="row"><span class="k">Free kWh captured</span><span class="v">156 kWh</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Paid overflow</span><span class="v">256 kWh</span><span class="c">›</span></button>
+                <button class="row"><span class="k">Free streak</span><span class="v">6 charges</span><span class="c">›</span></button>
+              </div>
+
+              <div class="tabbar"><span>⌂<br>Home</span><span class="on">⌁<br>Stats</span><span class="fab">+</span><span>◖<br>Car</span><span>⚙<br>Set</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <div class="label">Provider Drill-In <span>best network</span></div>
+          <div class="phone">
+            <div class="status"><span>9:41</span><span>5G <i></i></span></div>
+            <div class="screen">
+              <div class="appbar">
+                <div>
+                  <div class="month">Networks</div>
+                  <div class="headline">Jolt</div>
+                  <p class="subcopy">is your best network. Effective rate: <em>$0.07/kWh</em>.</p>
+                </div>
+                <button class="iconbtn" aria-label="Back">‹</button>
+              </div>
+
+              <div class="seg">
+                <button class="on">Cost</button>
+                <button>kWh</button>
+                <button>Free</button>
+              </div>
+
+              <div class="rows" style="margin-top:22px">
+                <div class="provider" style="--c:#059669"><span class="mark">J</span><span><b>Jolt</b><small>7 kWh/day allowance</small><span class="meter"><i style="--w:86%"></i></span></span><strong>$0.07</strong></div>
+                <div class="provider" style="--c:#6366f1"><span class="mark">M</span><span><b>Matty</b><small>home / known charger</small><span class="meter"><i style="--w:54%"></i></span></span><strong>$0.38</strong></div>
+                <div class="provider" style="--c:#8b5cf6"><span class="mark">C</span><span><b>Chargefox</b><small>paid public network</small><span class="meter"><i style="--w:36%"></i></span></span><strong>$0.48</strong></div>
+                <div class="provider" style="--c:#f43f5e"><span class="mark">S</span><span><b>Supercharger</b><small>road-trip top ups</small><span class="meter"><i style="--w:44%"></i></span></span><strong>$0.47</strong></div>
+              </div>
+
+              <button class="row" style="margin-top:10px"><span class="k">Open records</span><span class="v">8 held</span><span class="c">›</span></button>
+
+              <div class="tabbar"><span>⌂<br>Home</span><span class="on">⌁<br>Stats</span><span class="fab">+</span><span>◖<br>Car</span><span>⚙<br>Set</span></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="mapping">
+      <div class="section-head">
+        <h2>How It Fits Minimal</h2>
+        <p>The current Analytics modes do not disappear. They become second-level screens behind the calm overview rows, which keeps Minimal quiet without deleting power-user paths.</p>
+      </div>
+      <div class="strategy" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
+        <div><b>Cluster</b><span>Replaced on first load by the one-number all-in-rate hero.</span></div>
+        <div><b>Trends</b><span>Becomes the large primary rate chart, with axes hidden until interaction.</span></div>
+        <div><b>Split</b><span>Moves behind Free energy, where free vs paid makes contextual sense.</span></div>
+        <div><b>Compare</b><span>Moves behind Energy added or the trend chart tap target.</span></div>
+        <div><b>Records</b><span>Lives as a quiet row or footer action instead of first-screen trophy density.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
