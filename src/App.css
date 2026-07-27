@@ -2866,7 +2866,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   color: var(--fnt);
 }
 .cv-big {
-  font-size: 76px;
+  font-size: 82px;
   font-weight: 670;
   letter-spacing: -0.055em;
   line-height: 0.9;
