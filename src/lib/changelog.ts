@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.2',
+    date: '27 Jul 2026',
+    notes: [
+      'Canvas Home polish — the free-energy donut now scales up to better use the phone screen, with larger center text for easier scanning.',
+    ],
+  },
+  {
     version: '3.7.1',
     date: '27 Jul 2026',
     notes: [
