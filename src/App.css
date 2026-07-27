@@ -2861,12 +2861,12 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 
 .cv-eyebrow {
-  font-size: 24px;
+  font-size: 36px;
   font-weight: 650;
   color: var(--fnt);
 }
 .cv-big {
-  font-size: 92px;
+  font-size: 104px;
   font-weight: 670;
   letter-spacing: -0.055em;
   line-height: 0.9;
