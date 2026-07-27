@@ -499,7 +499,7 @@ export default function Settings() {
       )}
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
-        EV Command v3.7.7 · Cockpit Ledger · what's new ›
+        EV Command v3.7.8 · Cockpit Ledger · what's new ›
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}
