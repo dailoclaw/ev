@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.7',
+    date: '27 Jul 2026',
+    notes: [
+      'Minimal Home fix — the spend amount now keeps its intended large size instead of being overridden by the generic Minimal app bar heading rule.',
+    ],
+  },
+  {
     version: '3.7.6',
     date: '27 Jul 2026',
     notes: [
