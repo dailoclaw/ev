@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.1',
+    date: '27 Jul 2026',
+    notes: [
+      'Canvas Home — the home screen now uses a calmer spend-first layout with an animated free-energy donut and two focused drill-in rows.',
+    ],
+  },
+  {
     version: '3.7.0',
     date: '27 Jul 2026',
     notes: [
