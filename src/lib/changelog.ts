@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.0',
+    date: '27 Jul 2026',
+    notes: [
+      'Minimal Vehicle — the Vehicle tab now has a Minimal-only car cockpit with running cost, efficiency, distance, petrol comparison and assumptions drill-ins.',
+    ],
+  },
+  {
     version: '3.8.0',
     date: '27 Jul 2026',
     notes: [

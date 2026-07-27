@@ -3,6 +3,7 @@ import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
 import CountUpNumber from '../components/CountUpNumber'
+import { useStyle } from '../lib/style'
 
 // Cockpit assumptions — editable, persisted locally.
 const LS_KEY = 'ev.vehicle.v1'
@@ -47,7 +48,311 @@ function compressImage(file: File, maxWidth = 960, quality = 0.82): Promise<stri
   })
 }
 
+type VehicleView = 'overview' | 'efficiency' | 'distance' | 'petrol' | 'assumptions'
+
 export default function Vehicle() {
+  const [style] = useStyle()
+  return style === 'minimal' ? <CanvasVehicle /> : <ClassicVehicle />
+}
+
+function CanvasVehicle() {
+  const ev = useEv()
+  const [a, setA] = useState<Assumptions>(read)
+  const [view, setView] = useState<VehicleView>('overview')
+  const [photo, setPhoto] = useState<string | null>(() => localStorage.getItem(LS_PHOTO))
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  const save = (patch: Partial<Assumptions>) => {
+    const next = { ...a, ...patch }
+    setA(next)
+    localStorage.setItem(LS_KEY, JSON.stringify(next))
+  }
+
+  const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      const compressed = await compressImage(file)
+      localStorage.setItem(LS_PHOTO, compressed)
+      setPhoto(compressed)
+      setPhotoError(null)
+    } catch {
+      setPhotoError('Could not read that photo — try a different one.')
+    }
+  }
+
+  const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
+  const allInRate = ev.lifetime.kwh > 0 ? ev.lifetime.cost / ev.lifetime.kwh : 0
+  const evPer100 = allInRate * a.efficiency
+  const petrolPer100 = a.petrolUse * a.petrolPrice
+  const savedVsPetrol = ((petrolPer100 - evPer100) * distanceKm) / 100
+  const cheaper = evPer100 > 0 ? petrolPer100 / evPer100 : 0
+  const evPct = petrolPer100 > 0 ? Math.max(4, (evPer100 / petrolPer100) * 100) : 0
+
+  const num = (v: number, dp = 1) => v.toFixed(dp)
+  const back = () => setView('overview')
+
+  return (
+    <main className="app-shell cv cv-vehicle">
+      {view === 'overview' ? (
+        <>
+          <header className="appbar">
+            <div>
+              <p className="cv-eyebrow">Vehicle</p>
+              <h1 className="cv-big">{aud(evPer100)}</h1>
+              <span className="cv-unit">per 100 km</span>
+            </div>
+            <button className="icon-btn" type="button" aria-label="Assumptions" onClick={() => setView('assumptions')}>
+              <Icon name="gear" />
+            </button>
+          </header>
+          <p className="cv-ctx">
+            Actual EV running cost.{' '}
+            {cheaper > 0 && (
+              <em>
+                About {cheaper.toFixed(1)}x cheaper than petrol.
+              </em>
+            )}
+          </p>
+          <button
+            className={`cv-car-stage ${photo ? 'has-photo' : ''}`}
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
+          >
+            {photo ? <img src={photo} alt="Your vehicle" /> : <span className="cv-car-line" aria-hidden="true" />}
+            <span className="cv-comp c1">
+              <b>{num(a.efficiency)}</b>
+              <small>kWh/100</small>
+            </span>
+            <span className="cv-comp c2">
+              <b>{kwh(distanceKm, 0)}</b>
+              <small>km</small>
+            </span>
+            <span className="cv-comp c3">
+              <b>{aud(savedVsPetrol, 0)}</b>
+              <small>saved</small>
+            </span>
+          </button>
+          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
+          {photoError && <p className="cv-error">{photoError}</p>}
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => setView('efficiency')}>
+              <span className="k">Efficiency</span>
+              <span className="v">{num(a.efficiency)} kWh/100</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('distance')}>
+              <span className="k">Distance powered</span>
+              <span className="v">{kwh(distanceKm, 0)} km</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('petrol')}>
+              <span className="k">Petrol comparison</span>
+              <span className="v">{cheaper > 0 ? `${cheaper.toFixed(1)}x cheaper` : '—'}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('assumptions')}>
+              <span className="k">Assumptions</span>
+              <span className="v">Tuned</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : view === 'efficiency' ? (
+        <>
+          <CanvasVehicleHeader title="Efficiency" value={num(a.efficiency)} unit="kWh / 100 km" ctx="Assumption used across Vehicle. Lower is better." onBack={back} />
+          <div className="cv-eff-chart" aria-label="Efficiency guide">
+            <i style={{ ['--x' as string]: '20%' }} />
+            <i className="you" style={{ ['--x' as string]: '58%' }} />
+            <i style={{ ['--x' as string]: '80%' }} />
+          </div>
+          <section className="cv-mini-grid">
+            <article>
+              <span>Best target</span>
+              <b>12.8</b>
+            </article>
+            <article>
+              <span>Your model</span>
+              <b>{num(a.efficiency)}</b>
+            </article>
+          </section>
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => setView('assumptions')}>
+              <span className="k">Edit assumption</span>
+              <span className="v">{num(a.efficiency)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : view === 'distance' ? (
+        <>
+          <CanvasVehicleHeader title="Distance" value={kwh(distanceKm, 0)} unit="km powered" ctx="Lifetime kWh translated through your efficiency assumption." onBack={back} />
+          <div className="cv-car-stage compact">
+            <span className="cv-car-line" aria-hidden="true" />
+            <span className="cv-comp c1">
+              <b>{kwh(ev.lifetime.kwh, 0)}</b>
+              <small>kWh</small>
+            </span>
+            <span className="cv-comp c2">
+              <b>{num(a.efficiency)}</b>
+              <small>kWh/100</small>
+            </span>
+          </div>
+          <div className="cv-rows">
+            <button className="cv-row" type="button">
+              <span className="k">Lifetime energy</span>
+              <span className="v">{kwh(ev.lifetime.kwh, 0)} kWh</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={() => setView('assumptions')}>
+              <span className="k">Efficiency basis</span>
+              <span className="v">{num(a.efficiency)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      ) : view === 'petrol' ? (
+        <>
+          <CanvasVehicleHeader title="Comparison" value={cheaper > 0 ? `${cheaper.toFixed(1)}x` : '—'} unit="cheaper than petrol" ctx="Real EV energy costs against a comparable petrol car." onBack={back} />
+          <section className="cv-race">
+            <div>
+              <span>
+                <b>You</b>
+                <small>per 100 km · includes free energy</small>
+              </span>
+              <strong>{aud(evPer100)}</strong>
+              <i style={{ ['--w' as string]: `${evPct}%`, ['--c' as string]: 'var(--money)' }} />
+            </div>
+            <div>
+              <span>
+                <b>Petrol equivalent</b>
+                <small>{num(a.petrolUse)} L/100km @ {aud(a.petrolPrice)}/L</small>
+              </span>
+              <strong>{aud(petrolPer100)}</strong>
+              <i style={{ ['--w' as string]: '92%', ['--c' as string]: 'var(--tx)' }} />
+            </div>
+          </section>
+          <section className="cv-mini-grid">
+            <article>
+              <span>Total saved</span>
+              <b>{aud(savedVsPetrol, 0)}</b>
+            </article>
+            <article>
+              <span>Across</span>
+              <b>{kwh(distanceKm, 0)} km</b>
+            </article>
+          </section>
+        </>
+      ) : (
+        <>
+          <CanvasVehicleHeader title="Assumptions" value="Tuned" ctx="These values drive Vehicle only. They never alter your charge ledger." onBack={back} />
+          <section className="cv-stepper">
+            <CanvasStepper label="Efficiency" sub="kWh / 100 km" value={num(a.efficiency)} onDec={() => save({ efficiency: Math.max(0, +(a.efficiency - 0.1).toFixed(2)) })} onInc={() => save({ efficiency: +(a.efficiency + 0.1).toFixed(2) })} />
+            <CanvasStepper label="Petrol price" sub="Australian dollars / litre" value={aud(a.petrolPrice)} onDec={() => save({ petrolPrice: Math.max(0, +(a.petrolPrice - 0.1).toFixed(2)) })} onInc={() => save({ petrolPrice: +(a.petrolPrice + 0.1).toFixed(2) })} />
+            <CanvasStepper label="Petrol use" sub="litres / 100 km" value={num(a.petrolUse)} onDec={() => save({ petrolUse: Math.max(0, +(a.petrolUse - 1).toFixed(2)) })} onInc={() => save({ petrolUse: +(a.petrolUse + 1).toFixed(2) })} />
+          </section>
+          <div className="cv-rows">
+            <button className="cv-row" type="button" onClick={() => save(DEFAULTS)}>
+              <span className="k">Reset to defaults</span>
+              <span className="v">Safe</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+            <button className="cv-row" type="button" onClick={back}>
+              <span className="k">Recalculate vehicle</span>
+              <span className="v">{aud(evPer100)}</span>
+              <span className="c" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </div>
+        </>
+      )}
+    </main>
+  )
+}
+
+function CanvasVehicleHeader({
+  title,
+  value,
+  unit,
+  ctx,
+  onBack,
+}: {
+  title: string
+  value: string
+  unit?: string
+  ctx: string
+  onBack: () => void
+}) {
+  return (
+    <>
+      <header className="appbar">
+        <div>
+          <p className="cv-eyebrow">{title}</p>
+          <h1 className="cv-big">{value}</h1>
+          {unit && <span className="cv-unit">{unit}</span>}
+        </div>
+        <button className="icon-btn" type="button" aria-label="Back to vehicle overview" onClick={onBack}>
+          <Icon name="back" />
+        </button>
+      </header>
+      <p className="cv-ctx">{ctx}</p>
+    </>
+  )
+}
+
+function CanvasStepper({
+  label,
+  sub,
+  value,
+  onDec,
+  onInc,
+}: {
+  label: string
+  sub: string
+  value: string
+  onDec: () => void
+  onInc: () => void
+}) {
+  return (
+    <div className="cv-step-row">
+      <span>
+        <strong>{label}</strong>
+        <small>{sub}</small>
+      </span>
+      <span className="cv-control">
+        <button type="button" onClick={onDec}>
+          −
+        </button>
+        <b>{value}</b>
+        <button type="button" onClick={onInc}>
+          +
+        </button>
+      </span>
+    </div>
+  )
+}
+
+function ClassicVehicle() {
   const ev = useEv()
   const [a, setA] = useState<Assumptions>(read)
   const [editing, setEditing] = useState(false)
