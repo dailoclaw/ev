@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.4',
+    date: '27 Jul 2026',
+    notes: [
+      'Classic Home restored — the Canvas donut Home now appears only when the Minimal style is selected.',
+    ],
+  },
+  {
     version: '3.7.3',
     date: '27 Jul 2026',
     notes: [
