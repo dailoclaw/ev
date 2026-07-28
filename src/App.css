@@ -3370,55 +3370,151 @@ input[type='range'].capslider::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.cv-distance-photo {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  margin-top: 26px;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--money) 12%, transparent), transparent 56%),
+    color-mix(in srgb, var(--surf) 68%, transparent);
+  color: inherit;
+  text-align: left;
+}
+.cv-distance-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cv-distance-photo.has-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.28)),
+    radial-gradient(circle at 50% 68%, transparent 0%, rgba(0, 0, 0, 0.16) 100%);
+}
+.cv-distance-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+.cv-distance-empty strong {
+  color: var(--tx);
+  font-size: 18px;
+  font-weight: 760;
+}
+.cv-distance-empty small {
+  max-width: 220px;
+  color: var(--mut);
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.35;
+}
+.cv-distance-photo .cv-comp {
+  background: color-mix(in srgb, var(--surf) 86%, transparent);
+}
+.cv-distance-photo.has-photo .cv-comp {
+  background: color-mix(in srgb, var(--surf) 78%, transparent);
+}
+.cv-distance-photo .cv-comp.c1 {
+  left: 18px;
+  top: 22px;
+}
+.cv-distance-photo .cv-comp.c2 {
+  right: 18px;
+  top: 54px;
+}
+
 .cv-eff-chart {
   position: relative;
   height: 230px;
   margin-top: 30px;
+  display: grid;
+  place-items: center;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
   border-radius: 34px;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--money) 18%, transparent), color-mix(in srgb, var(--warn) 16%, transparent)),
+    radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--money) 17%, transparent), transparent 45%),
     color-mix(in srgb, var(--surf) 72%, transparent);
 }
-.cv-eff-chart::before {
-  content: 'Lower is better';
+.cv-eff-dial {
+  position: relative;
+  width: 238px;
+  height: 238px;
+  display: grid;
+  place-items: center;
+  transform: translateY(3px);
+}
+.cv-eff-dial svg {
   position: absolute;
-  left: 18px;
-  bottom: 18px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.cv-eff-dial .track,
+.cv-eff-dial .arc {
+  fill: none;
+  stroke-width: 18;
+  stroke-linecap: round;
+}
+.cv-eff-dial .track {
+  stroke: color-mix(in srgb, var(--bd) 72%, transparent);
+}
+.cv-eff-dial .arc {
+  stroke: url(#cvEffGrad);
+  animation: cv-eff-arc 1.15s cubic-bezier(0.22, 0.85, 0.3, 1) both;
+}
+.cv-eff-mid {
+  position: relative;
+  z-index: 1;
+  margin-top: 3px;
+  text-align: center;
+}
+.cv-eff-mid strong {
+  display: block;
+  color: var(--tx);
+  font-size: 52px;
+  font-weight: 760;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+}
+.cv-eff-mid small {
+  display: block;
+  margin-top: 10px;
   color: var(--mut);
   font-size: 12px;
-  font-weight: 730;
+  font-weight: 760;
 }
-.cv-eff-chart i {
+.cv-eff-scale {
   position: absolute;
-  left: var(--x);
-  top: 50%;
-  width: 2px;
-  height: 132px;
-  transform: translateY(-50%);
-  border-radius: 99px;
-  background: color-mix(in srgb, var(--tx) 22%, transparent);
+  left: 22px;
+  right: 22px;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--mut);
+  font-size: 11px;
+  font-weight: 760;
 }
-.cv-eff-chart i::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 14px;
-  height: 14px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--surf);
-}
-.cv-eff-chart .you {
-  width: 4px;
-  background: var(--money);
-}
-.cv-eff-chart .you::after {
-  width: 22px;
-  height: 22px;
-  border: 5px solid var(--money);
+
+@keyframes cv-eff-arc {
+  from {
+    stroke-dasharray: 0 100;
+  }
 }
 
 .cv-race {

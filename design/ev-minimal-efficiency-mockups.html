@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EV Minimal Efficiency Mockups</title>
+  <style>
+    :root {
+      --canvas: #eef2f5;
+      --surface: rgba(255, 255, 255, 0.74);
+      --surface-strong: #ffffff;
+      --text: #0e1927;
+      --muted: #607181;
+      --faint: #91a0ab;
+      --line: rgba(99, 116, 129, 0.16);
+      --green: #079669;
+      --green-soft: #cfeee1;
+      --mint: #e6f5ee;
+      --amber: #f2c66d;
+      --rose: #f2c8bb;
+      --shadow: 0 22px 60px rgba(17, 32, 46, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    }
+    .page {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 34px 24px 52px;
+    }
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 0 20px;
+      backdrop-filter: blur(16px);
+      background: linear-gradient(180deg, rgba(238, 242, 245, 0.94), rgba(238, 242, 245, 0.74));
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }
+    .top p {
+      max-width: 620px;
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 620;
+    }
+    .jump {
+      display: flex;
+      gap: 8px;
+    }
+    .jump a {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 760;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 390px);
+      gap: 26px;
+      align-items: start;
+      overflow-x: auto;
+      padding: 8px 0 10px;
+    }
+    .option h2 {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 820;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .phone {
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      border: 1px solid rgba(94, 111, 124, 0.18);
+      border-radius: 34px;
+      background:
+        radial-gradient(120% 64% at 50% -12%, rgba(7, 150, 105, 0.14), transparent 62%),
+        var(--canvas);
+      box-shadow: var(--shadow);
+    }
+    .screen {
+      height: 100%;
+      padding: 12px 16px 22px;
+    }
+    .appbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .eyebrow {
+      margin: 0;
+      color: #81919e;
+      font-size: 36px;
+      font-weight: 760;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+    .big {
+      margin: 12px 0 0;
+      font-size: 76px;
+      font-weight: 760;
+      line-height: 0.88;
+      letter-spacing: -0.055em;
+      font-variant-numeric: tabular-nums;
+    }
+    .unit {
+      display: block;
+      margin-top: 11px;
+      color: #526676;
+      font-size: 15px;
+      font-weight: 760;
+    }
+    .back {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 30px rgba(15, 26, 36, 0.08);
+      color: var(--text);
+      font-size: 22px;
+    }
+    .ctx {
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 660;
+    }
+    .ctx b { color: var(--green); }
+    .panel {
+      margin-top: 30px;
+      min-height: 230px;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.68);
+      box-shadow: none;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .mini {
+      min-height: 104px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .mini b {
+      display: block;
+      margin-top: 8px;
+      font-size: 30px;
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+    .rows { margin-top: 30px; }
+    .row {
+      display: flex;
+      align-items: center;
+      min-height: 50px;
+      gap: 12px;
+      border-bottom: 1px solid rgba(99, 116, 129, 0.14);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .row span { flex: 1; }
+    .row b { font-variant-numeric: tabular-nums; }
+    .row i {
+      color: var(--faint);
+      font-style: normal;
+    }
+
+    /* Option 1: Efficiency dial */
+    .dial-panel {
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 72%, rgba(7, 150, 105, 0.17), transparent 45%),
+        rgba(255, 255, 255, 0.72);
+    }
+    .dial {
+      position: relative;
+      width: 224px;
+      height: 224px;
+      display: grid;
+      place-items: center;
+    }
+    .dial svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .dial .track {
+      fill: none;
+      stroke: rgba(96, 113, 129, 0.14);
+      stroke-width: 16;
+      stroke-linecap: round;
+    }
+    .dial .arc {
+      fill: none;
+      stroke: url(#dialGrad);
+      stroke-width: 16;
+      stroke-linecap: round;
+      stroke-dasharray: 232;
+      stroke-dashoffset: 92;
+      animation: dash-in 1.2s cubic-bezier(0.22, 0.85, 0.3, 1) both;
+    }
+    .dial-mid {
+      text-align: center;
+      transform: translateY(3px);
+    }
+    .dial-mid strong {
+      display: block;
+      font-size: 52px;
+      line-height: 0.9;
+      letter-spacing: -0.055em;
+      font-variant-numeric: tabular-nums;
+    }
+    .dial-mid small {
+      display: block;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .scale-labels {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    /* Option 2: Range band */
+    .band-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 28px 20px;
+      background:
+        linear-gradient(90deg, rgba(7, 150, 105, 0.18), rgba(242, 198, 109, 0.14) 58%, rgba(242, 200, 187, 0.24)),
+        rgba(255, 255, 255, 0.70);
+    }
+    .band-road {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      top: 108px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(14, 25, 39, 0.12);
+      overflow: hidden;
+    }
+    .band-road::before {
+      content: '';
+      display: block;
+      width: 58%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), #7ec7a9);
+      animation: fill-road 1.1s ease both;
+    }
+    .car-dot {
+      position: absolute;
+      left: 57%;
+      top: 86px;
+      width: 42px;
+      height: 42px;
+      transform: translateX(-50%);
+      border: 8px solid var(--green);
+      border-radius: 50%;
+      background: var(--surface-strong);
+      box-shadow: 0 14px 28px rgba(7, 150, 105, 0.18);
+    }
+    .band-values {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 128px;
+    }
+    .band-values span {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 760;
+      text-align: center;
+    }
+    .band-values b {
+      color: var(--text);
+      font-size: 22px;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    /* Option 3: Comparison rings */
+    .rings-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 18px;
+    }
+    .ring-card {
+      min-width: 0;
+      text-align: center;
+    }
+    .ring-card svg {
+      width: 98px;
+      height: 98px;
+      display: block;
+      margin: 0 auto;
+      transform: rotate(-90deg);
+    }
+    .ring-card circle {
+      fill: none;
+      stroke-width: 11;
+    }
+    .ring-card .base { stroke: rgba(96, 113, 129, 0.14); }
+    .ring-card .prog {
+      stroke: var(--green);
+      stroke-linecap: round;
+      stroke-dasharray: 226;
+      animation: dash-ring 1.15s cubic-bezier(0.22, 0.85, 0.3, 1) both;
+    }
+    .ring-card.target .prog { stroke-dashoffset: 78; }
+    .ring-card.you .prog { stroke-dashoffset: 101; }
+    .ring-card.poor .prog {
+      stroke: var(--amber);
+      stroke-dashoffset: 34;
+    }
+    .ring-copy {
+      margin-top: 10px;
+    }
+    .ring-copy b {
+      display: block;
+      font-size: 25px;
+      line-height: 0.95;
+      letter-spacing: -0.045em;
+    }
+    .ring-copy span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 780;
+    }
+    .caption {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      text-align: center;
+    }
+
+    @keyframes dash-in {
+      from { stroke-dashoffset: 232; }
+      to { stroke-dashoffset: 92; }
+    }
+    @keyframes fill-road {
+      from { width: 0; }
+      to { width: 58%; }
+    }
+    @keyframes dash-ring {
+      from { stroke-dashoffset: 226; }
+    }
+
+    @media (max-width: 900px) {
+      .top {
+        position: static;
+        display: block;
+      }
+      .jump { margin-top: 16px; }
+      .grid { grid-template-columns: repeat(3, 390px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="top">
+      <div>
+        <h1>Minimal Efficiency Alternatives</h1>
+        <p>Three ways to replace the current abstract scale with something easier to read: a premium gauge, a benchmark band, and comparison rings.</p>
+      </div>
+      <nav class="jump" aria-label="Mockup navigation">
+        <a href="#dial">Dial</a>
+        <a href="#band">Band</a>
+        <a href="#rings">Rings</a>
+      </nav>
+    </header>
+
+    <section class="grid">
+      <article class="option" id="dial">
+        <h2>Option 1: Single Premium Dial</h2>
+        <div class="phone">
+          <div class="screen">
+            <header class="appbar">
+              <div>
+                <p class="eyebrow">Efficiency</p>
+                <p class="big">14.2</p>
+                <span class="unit">kWh / 100 km</span>
+              </div>
+              <button class="back" type="button" aria-label="Back">‹</button>
+            </header>
+            <p class="ctx">Your working assumption. <b>Inside the efficient range.</b></p>
+            <section class="panel dial-panel" aria-label="Efficiency gauge">
+              <div class="dial">
+                <svg viewBox="0 0 224 224" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="dialGrad" x1="0" x2="1" y1="0" y2="1">
+                      <stop offset="0" stop-color="#079669" />
+                      <stop offset="1" stop-color="#f2c66d" />
+                    </linearGradient>
+                  </defs>
+                  <path class="track" d="M42 150 A82 82 0 1 1 182 150" />
+                  <path class="arc" d="M42 150 A82 82 0 1 1 182 150" />
+                </svg>
+                <div class="dial-mid">
+                  <strong>14.2</strong>
+                  <small>good efficiency</small>
+                </div>
+              </div>
+              <div class="scale-labels">
+                <span>12 excellent</span>
+                <span>18 heavy</span>
+              </div>
+            </section>
+            <section class="mini-grid">
+              <article class="mini"><span>Best target</span><b>12.8</b></article>
+              <article class="mini"><span>Your model</span><b>14.2</b></article>
+            </section>
+            <div class="rows">
+              <div class="row"><span>Edit assumption</span><b>14.2</b><i>›</i></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="option" id="band">
+        <h2>Option 2: Benchmark Band</h2>
+        <div class="phone">
+          <div class="screen">
+            <header class="appbar">
+              <div>
+                <p class="eyebrow">Efficiency</p>
+                <p class="big">14.2</p>
+                <span class="unit">kWh / 100 km</span>
+              </div>
+              <button class="back" type="button" aria-label="Back">‹</button>
+            </header>
+            <p class="ctx">Lower means more kilometres per charge. <b>You sit near the efficient side.</b></p>
+            <section class="panel band-panel" aria-label="Efficiency benchmark band">
+              <div class="band-road" aria-hidden="true"></div>
+              <div class="car-dot" aria-hidden="true"></div>
+              <div class="band-values">
+                <span><b>12.8</b>Target</span>
+                <span><b>14.2</b>You</span>
+                <span><b>18.0</b>Heavy</span>
+              </div>
+            </section>
+            <section class="mini-grid">
+              <article class="mini"><span>Range impact</span><b>+13%</b></article>
+              <article class="mini"><span>Cost / 100 km</span><b>$2.06</b></article>
+            </section>
+            <div class="rows">
+              <div class="row"><span>Edit assumption</span><b>14.2</b><i>›</i></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="option" id="rings">
+        <h2>Option 3: Comparison Rings</h2>
+        <div class="phone">
+          <div class="screen">
+            <header class="appbar">
+              <div>
+                <p class="eyebrow">Efficiency</p>
+                <p class="big">14.2</p>
+                <span class="unit">kWh / 100 km</span>
+              </div>
+              <button class="back" type="button" aria-label="Back">‹</button>
+            </header>
+            <p class="ctx">A quick comparison against useful anchors. <b>Your model beats the heavy-use baseline.</b></p>
+            <section class="panel rings-panel" aria-label="Efficiency comparison rings">
+              <div class="ring-card target">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle class="base" cx="50" cy="50" r="36" />
+                  <circle class="prog" cx="50" cy="50" r="36" />
+                </svg>
+                <div class="ring-copy"><b>12.8</b><span>target</span></div>
+              </div>
+              <div class="ring-card you">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle class="base" cx="50" cy="50" r="36" />
+                  <circle class="prog" cx="50" cy="50" r="36" />
+                </svg>
+                <div class="ring-copy"><b>14.2</b><span>you</span></div>
+              </div>
+              <div class="ring-card poor">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle class="base" cx="50" cy="50" r="36" />
+                  <circle class="prog" cx="50" cy="50" r="36" />
+                </svg>
+                <div class="ring-copy"><b>18.0</b><span>heavy</span></div>
+              </div>
+              <p class="caption">Smaller ring value is better. You are 21% below the heavy-use baseline.</p>
+            </section>
+            <section class="mini-grid">
+              <article class="mini"><span>Best target</span><b>12.8</b></article>
+              <article class="mini"><span>Your model</span><b>14.2</b></article>
+            </section>
+            <div class="rows">
+              <div class="row"><span>Edit assumption</span><b>14.2</b><i>›</i></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

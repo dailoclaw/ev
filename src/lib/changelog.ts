@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.3',
+    date: '28 Jul 2026',
+    notes: [
+      'Minimal Vehicle polish — Efficiency now uses a premium dial, and Distance uses the saved vehicle photo with metric badges instead of an abstract placeholder.',
+    ],
+  },
+  {
     version: '3.9.2',
     date: '28 Jul 2026',
     notes: [

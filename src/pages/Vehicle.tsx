@@ -90,6 +90,12 @@ function CanvasVehicle() {
   const savedVsPetrol = ((petrolPer100 - evPer100) * distanceKm) / 100
   const cheaper = evPer100 > 0 ? petrolPer100 / evPer100 : 0
   const evPct = petrolPer100 > 0 ? Math.max(4, (evPer100 / petrolPer100) * 100) : 0
+  const effMin = 10
+  const effMax = 20
+  const targetEfficiency = 12.8
+  const effRatio = Math.min(1, Math.max(0, (a.efficiency - effMin) / (effMax - effMin)))
+  const efficiencyScore = Math.min(92, Math.max(8, (1 - effRatio) * 100))
+  const effStatus = a.efficiency <= 13 ? 'excellent efficiency' : a.efficiency <= 15 ? 'good efficiency' : a.efficiency <= 18 ? 'moderate efficiency' : 'heavy use'
 
   const num = (v: number, dp = 1) => v.toFixed(dp)
   const back = () => setView('overview')
@@ -173,14 +179,36 @@ function CanvasVehicle() {
         <>
           <CanvasVehicleHeader title="Efficiency" value={num(a.efficiency)} unit="kWh / 100 km" ctx="Assumption used across Vehicle. Lower is better." onBack={back} />
           <div className="cv-eff-chart" aria-label="Efficiency guide">
-            <i style={{ ['--x' as string]: '20%' }} />
-            <i className="you" style={{ ['--x' as string]: '58%' }} />
-            <i style={{ ['--x' as string]: '80%' }} />
+            <div className="cv-eff-dial">
+              <svg viewBox="0 0 224 224" aria-hidden="true">
+                <defs>
+                  <linearGradient id="cvEffGrad" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stopColor="var(--money)" />
+                    <stop offset="100%" stopColor="var(--warn)" />
+                  </linearGradient>
+                </defs>
+                <path className="track" d="M42 150 A82 82 0 1 1 182 150" />
+                <path
+                  className="arc"
+                  d="M42 150 A82 82 0 1 1 182 150"
+                  pathLength={100}
+                  strokeDasharray={`${efficiencyScore} 100`}
+                />
+              </svg>
+              <div className="cv-eff-mid">
+                <strong>{num(a.efficiency)}</strong>
+                <small>{effStatus}</small>
+              </div>
+            </div>
+            <div className="cv-eff-scale">
+              <span>{num(targetEfficiency)} target</span>
+              <span>{num(effMax - 2)} heavy</span>
+            </div>
           </div>
           <section className="cv-mini-grid">
             <article>
               <span>Best target</span>
-              <b>12.8</b>
+              <b>{num(targetEfficiency)}</b>
             </article>
             <article>
               <span>Your model</span>
@@ -200,8 +228,20 @@ function CanvasVehicle() {
       ) : view === 'distance' ? (
         <>
           <CanvasVehicleHeader title="Distance" value={kwh(distanceKm, 0)} unit="km powered" ctx="Lifetime kWh translated through your efficiency assumption." onBack={back} />
-          <div className="cv-car-stage compact">
-            <span className="cv-car-line" aria-hidden="true" />
+          <button
+            className={`cv-distance-photo ${photo ? 'has-photo' : ''}`}
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
+          >
+            {photo ? (
+              <img src={photo} alt="Your vehicle" />
+            ) : (
+              <span className="cv-distance-empty">
+                <strong>Add vehicle photo</strong>
+                <small>Distance metrics will sit over your car.</small>
+              </span>
+            )}
             <span className="cv-comp c1">
               <b>{kwh(ev.lifetime.kwh, 0)}</b>
               <small>kWh</small>
@@ -210,7 +250,7 @@ function CanvasVehicle() {
               <b>{num(a.efficiency)}</b>
               <small>kWh/100</small>
             </span>
-          </div>
+          </button>
           <div className="cv-rows">
             <button className="cv-row" type="button">
               <span className="k">Lifetime energy</span>
