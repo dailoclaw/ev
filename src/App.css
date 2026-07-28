@@ -3089,8 +3089,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
   margin-top: 24px;
 }
 .cv-mini-grid article {
-  min-height: 104px;
-  padding: 16px;
+  min-height: 112px;
+  padding: 18px;
   border-radius: 28px;
   background: color-mix(in srgb, var(--surf) 72%, transparent);
   border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
@@ -3098,16 +3098,23 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .cv-mini-grid span {
   display: block;
   color: var(--mut);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 740;
+  line-height: 1.15;
 }
 .cv-mini-grid b {
   display: block;
-  margin-top: 8px;
-  font-size: 30px;
-  line-height: 0.95;
-  letter-spacing: -0.05em;
+  margin-top: 10px;
+  font-size: 38px;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
   font-weight: 760;
+}
+.cv-mini-grid b .countup-value {
+  display: inline;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
 }
 
 .cv-seg {

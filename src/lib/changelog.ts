@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.5',
+    date: '28 Jul 2026',
+    notes: [
+      'Minimal polish — summary cards now use larger value typography so Energy and Vehicle detail cards match the bolder Minimal look.',
+    ],
+  },
+  {
     version: '3.9.4',
     date: '28 Jul 2026',
     notes: [
