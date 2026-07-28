@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, shortDate } from '../lib/format'
@@ -175,7 +175,9 @@ function CanvasStats() {
                 key={m.month}
                 style={{ ['--h' as string]: `${Math.max(10, (m.kwh / maxEnergy) * 100)}%`, ['--i' as string]: i }}
                 aria-label={`${m.label}: ${kwh(m.kwh)}`}
-              />
+              >
+                <span>{kwh(m.kwh, 0)}</span>
+              </i>
             ))}
           </div>
           <section className="cv-mini-grid">
@@ -303,6 +305,10 @@ function CanvasStatsHeader({ title, value, ctx, onBack }: { title: string; value
 }
 
 function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free' }) {
+  const clipId = `cvTrendClip-${useId().replace(/:/g, '')}`
+  const pathRef = useRef<SVGPathElement>(null)
+  const clipRef = useRef<SVGRectElement>(null)
+  const dotRef = useRef<SVGCircleElement>(null)
   const normalized = values.length > 0 ? values : [0]
   const max = Math.max(...normalized, 0.01)
   const min = Math.min(...normalized, max)
@@ -314,14 +320,56 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
   })
   const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
   const area = `${line} L 100 100 L 0 100 Z`
-  const last = pts[pts.length - 1]
+
+  useEffect(() => {
+    const path = pathRef.current
+    const clip = clipRef.current
+    const dot = dotRef.current
+    if (!path || !clip || !dot) return
+
+    const length = path.getTotalLength()
+    const reduceMotion =
+      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const setProgress = (progress: number) => {
+      const point = path.getPointAtLength(length * progress)
+      clip.setAttribute('width', String(Math.min(100, Math.max(0, point.x))))
+      dot.setAttribute('cx', point.x.toFixed(2))
+      dot.setAttribute('cy', point.y.toFixed(2))
+    }
+
+    if (reduceMotion) {
+      setProgress(1)
+      return
+    }
+
+    setProgress(0)
+    const duration = 1350
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3)
+    let id = 0
+    const start = performance.now()
+
+    const tick = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration)
+      setProgress(ease(raw))
+      if (raw < 1) id = requestAnimationFrame(tick)
+    }
+
+    id = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(id)
+  }, [line])
 
   return (
     <div className={`cv-trend ${kind}`}>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label={kind === 'rate' ? 'Rate trend' : 'Free energy trend'}>
+        <defs>
+          <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
+            <rect ref={clipRef} className="line-clip" x="0" y="0" width="0" height="100" />
+          </clipPath>
+        </defs>
         <path className="area" d={area} />
-        <path className="line" d={line} pathLength={1} />
-        <circle className="dot" cx={last.x} cy={last.y} r="2.7" />
+        <path ref={pathRef} className="line" d={line} clipPath={`url(#${clipId})`} />
+        <circle ref={dotRef} className="dot" cx={pts[0].x} cy={pts[0].y} r="2.7" />
       </svg>
     </div>
   )

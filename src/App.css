@@ -3030,17 +3030,18 @@ input[type='range'].capslider::-webkit-slider-thumb {
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: cv-draw 1.35s cubic-bezier(0.22, 0.85, 0.3, 1) forwards;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+.cv-trend .line-clip {
+  transform-origin: 0 50%;
+  transform-box: view-box;
 }
 .cv-trend .dot {
   fill: var(--surf);
   stroke: var(--money);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
-  transform-origin: center;
-  animation: cv-pop 520ms ease 900ms both;
 }
 .cv-trend.free .area {
   fill: color-mix(in srgb, var(--money) 30%, transparent);
@@ -3052,18 +3053,33 @@ input[type='range'].capslider::-webkit-slider-thumb {
   display: flex;
   align-items: flex-end;
   gap: 9px;
-  padding: 18px;
+  padding: 44px 18px 18px;
   border-radius: 34px;
   background: color-mix(in srgb, var(--surf) 72%, transparent);
   border: 1px solid color-mix(in srgb, var(--bd) 72%, transparent);
 }
 .cv-barviz i {
+  position: relative;
   flex: 1;
   height: var(--h);
+  min-width: 0;
   border-radius: 999px 999px 8px 8px;
   background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 18%, var(--surf)));
   animation: cv-grow 820ms ease both;
   animation-delay: calc(var(--i) * 65ms);
+}
+.cv-barviz i span {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  transform: translateX(-50%);
+  color: var(--tx);
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .cv-mini-grid {
@@ -3177,27 +3193,12 @@ input[type='range'].capslider::-webkit-slider-thumb {
   letter-spacing: -0.02em;
 }
 
-@keyframes cv-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 @keyframes cv-fade {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
-  }
-}
-@keyframes cv-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
   }
 }
 @keyframes cv-grow {
@@ -3221,13 +3222,17 @@ input[type='range'].capslider::-webkit-slider-thumb {
 @media (prefers-reduced-motion: reduce) {
   .cv-trend .area,
   .cv-trend .line,
-  .cv-trend .dot,
   .cv-barviz i,
   .cv-provider span i::before {
     animation: none;
   }
   .cv-trend .line {
+    animation: none;
+    stroke-dasharray: none;
     stroke-dashoffset: 0;
+  }
+  .cv-trend .line-clip {
+    animation: none;
   }
 }
 
@@ -3308,8 +3313,12 @@ input[type='range'].capslider::-webkit-slider-thumb {
   z-index: 2;
   width: 92px;
   height: 92px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 8px;
   border: 1px solid color-mix(in srgb, var(--bd) 70%, transparent);
   border-radius: 50%;
   background: color-mix(in srgb, var(--surf) 78%, transparent);
@@ -3335,16 +3344,30 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .cv-comp b {
   display: block;
+  width: 100%;
   font-size: 22px;
   font-weight: 760;
   letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cv-comp.c2 b,
+.cv-comp.c3 b {
+  font-size: 21px;
+  letter-spacing: -0.045em;
 }
 .cv-comp small {
   display: block;
-  margin-top: 2px;
+  width: 100%;
+  margin-top: 0;
   color: var(--mut);
   font-size: 10px;
   font-weight: 720;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .cv-eff-chart {

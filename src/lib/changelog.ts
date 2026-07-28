@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.2',
+    date: '28 Jul 2026',
+    notes: [
+      'Minimal polish — Stats chart line and marker now animate together, Energy bars show values, and Vehicle metric badges are better centered.',
+    ],
+  },
+  {
     version: '3.9.1',
     date: '28 Jul 2026',
     notes: [
