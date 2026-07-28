@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import CountUpNumber from './CountUpNumber'
 
 const R = 69
 const C = 2 * Math.PI * R
@@ -45,7 +46,9 @@ export default function Donut({
         />
       </svg>
       <div className="cv-donut-mid">
-        <b>{label}</b>
+        <b aria-label={label}>
+          <CountUpNumber value={pct} format={value => `${Math.round(value)}%`} durationMs={1100} />
+        </b>
         <small>{sub}</small>
       </div>
     </div>

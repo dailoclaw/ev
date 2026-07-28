@@ -43,7 +43,9 @@ function CanvasHome() {
       <header className="appbar">
         <div>
           <p className="cv-eyebrow">{monthTitle(ym).split(' ')[0]}</p>
-          <h1 className="cv-big">{aud(cur?.cost ?? 0)}</h1>
+          <h1 className="cv-big">
+            <CountUpNumber value={cur?.cost ?? 0} format={aud} durationMs={850} />
+          </h1>
         </div>
         <button className="icon-btn" type="button" aria-label="Settings" onClick={() => navigate('/settings')}>
           <Icon name="gear" />
@@ -51,10 +53,17 @@ function CanvasHome() {
       </header>
 
       <p className="cv-ctx">
-        {totalKwh > 0 ? `${kwh(totalKwh)} kWh added.` : 'No charges yet this month.'}{' '}
+        {totalKwh > 0 ? (
+          <>
+            <CountUpNumber value={totalKwh} format={kwh} durationMs={700} /> kWh added.
+          </>
+        ) : (
+          'No charges yet this month.'
+        )}{' '}
         {deltaPct != null && (
           <em>
-            {deltaPct > 0 ? 'Up' : 'Down'} {Math.abs(deltaPct).toFixed(0)}% on {prevName}.
+            {deltaPct > 0 ? 'Up' : 'Down'}{' '}
+            <CountUpNumber value={Math.abs(deltaPct)} format={value => `${value.toFixed(0)}%`} durationMs={620} /> on {prevName}.
           </em>
         )}
       </p>
@@ -64,11 +73,11 @@ function CanvasHome() {
       <div className="cv-legend">
         <span>
           <i style={{ background: 'var(--money)' }} />
-          {kwh(freeKwh, 1)} kWh free
+          <CountUpNumber value={freeKwh} format={value => `${kwh(value, 1)} kWh free`} durationMs={700} />
         </span>
         <span>
           <i style={{ background: 'var(--bd)' }} />
-          {kwh(paidKwh, 1)} paid
+          <CountUpNumber value={paidKwh} format={value => `${kwh(value, 1)} paid`} durationMs={700} />
         </span>
       </div>
 
@@ -76,7 +85,8 @@ function CanvasHome() {
         <button className="cv-row" type="button" onClick={() => navigate('/statement')}>
           <span className="k">Budget</span>
           <span className="v">
-            {aud(cur?.cost ?? 0, 0)} / {aud(ev.budgetCap, 0)}
+            <CountUpNumber value={cur?.cost ?? 0} format={value => aud(value, 0)} durationMs={720} /> /{' '}
+            <CountUpNumber value={ev.budgetCap} format={value => aud(value, 0)} durationMs={720} />
           </span>
           <span className="c" aria-hidden="true">
             ›
@@ -84,7 +94,9 @@ function CanvasHome() {
         </button>
         <button className="cv-row" type="button" onClick={() => navigate('/savings')}>
           <span className="k">Saved on free</span>
-          <span className="v">{aud(cur?.saved ?? 0)}</span>
+          <span className="v">
+            <CountUpNumber value={cur?.saved ?? 0} format={aud} durationMs={720} />
+          </span>
           <span className="c" aria-hidden="true">
             ›
           </span>

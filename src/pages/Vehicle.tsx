@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
@@ -57,6 +58,7 @@ export default function Vehicle() {
 
 function CanvasVehicle() {
   const ev = useEv()
+  const navigate = useNavigate()
   const [a, setA] = useState<Assumptions>(read)
   const [view, setView] = useState<VehicleView>('overview')
   const [photo, setPhoto] = useState<string | null>(() => localStorage.getItem(LS_PHOTO))
@@ -107,7 +109,9 @@ function CanvasVehicle() {
           <header className="appbar">
             <div>
               <p className="cv-eyebrow">Vehicle</p>
-              <h1 className="cv-big">{aud(evPer100)}</h1>
+              <h1 className="cv-big">
+                <CountUpNumber value={evPer100} format={aud} durationMs={850} />
+              </h1>
               <span className="cv-unit">per 100 km</span>
             </div>
             <button className="icon-btn" type="button" aria-label="Assumptions" onClick={() => setView('assumptions')}>
@@ -118,7 +122,7 @@ function CanvasVehicle() {
             Actual EV running cost.{' '}
             {cheaper > 0 && (
               <em>
-                About {cheaper.toFixed(1)}x cheaper than petrol.
+                About <CountUpNumber value={cheaper} format={value => `${value.toFixed(1)}x`} durationMs={650} /> cheaper than petrol.
               </em>
             )}
           </p>
@@ -130,15 +134,21 @@ function CanvasVehicle() {
           >
             {photo ? <img src={photo} alt="Your vehicle" /> : <span className="cv-car-line" aria-hidden="true" />}
             <span className="cv-comp c1">
-              <b>{num(a.efficiency)}</b>
+              <b>
+                <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={720} />
+              </b>
               <small>kWh/100</small>
             </span>
             <span className="cv-comp c2">
-              <b>{kwh(distanceKm, 0)}</b>
+              <b>
+                <CountUpNumber value={distanceKm} format={value => kwh(value, 0)} durationMs={760} />
+              </b>
               <small>km</small>
             </span>
             <span className="cv-comp c3">
-              <b>{aud(savedVsPetrol, 0)}</b>
+              <b>
+                <CountUpNumber value={savedVsPetrol} format={value => aud(value, 0)} durationMs={760} />
+              </b>
               <small>saved</small>
             </span>
           </button>
@@ -147,21 +157,27 @@ function CanvasVehicle() {
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => setView('efficiency')}>
               <span className="k">Efficiency</span>
-              <span className="v">{num(a.efficiency)} kWh/100</span>
+              <span className="v">
+                <CountUpNumber value={a.efficiency} format={value => `${num(value)} kWh/100`} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => setView('distance')}>
               <span className="k">Distance powered</span>
-              <span className="v">{kwh(distanceKm, 0)} km</span>
+              <span className="v">
+                <CountUpNumber value={distanceKm} format={value => `${kwh(value, 0)} km`} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => setView('petrol')}>
               <span className="k">Petrol comparison</span>
-              <span className="v">{cheaper > 0 ? `${cheaper.toFixed(1)}x cheaper` : '—'}</span>
+              <span className="v">
+                {cheaper > 0 ? <CountUpNumber value={cheaper} format={value => `${value.toFixed(1)}x cheaper`} durationMs={720} /> : '—'}
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -177,7 +193,13 @@ function CanvasVehicle() {
         </>
       ) : view === 'efficiency' ? (
         <>
-          <CanvasVehicleHeader title="Efficiency" value={num(a.efficiency)} unit="kWh / 100 km" ctx="Assumption used across Vehicle. Lower is better." onBack={back} />
+          <CanvasVehicleHeader
+            title="Efficiency"
+            value={<CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={850} />}
+            unit="kWh / 100 km"
+            ctx="Assumption used across Vehicle. Lower is better."
+            onBack={back}
+          />
           <div className="cv-eff-chart" aria-label="Efficiency guide">
             <div className="cv-eff-dial">
               <svg viewBox="0 0 224 224" aria-hidden="true">
@@ -196,7 +218,9 @@ function CanvasVehicle() {
                 />
               </svg>
               <div className="cv-eff-mid">
-                <strong>{num(a.efficiency)}</strong>
+                <strong>
+                  <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={850} />
+                </strong>
                 <small>{effStatus}</small>
               </div>
             </div>
@@ -208,17 +232,23 @@ function CanvasVehicle() {
           <section className="cv-mini-grid">
             <article>
               <span>Best target</span>
-              <b>{num(targetEfficiency)}</b>
+              <b>
+                <CountUpNumber value={targetEfficiency} format={value => num(value)} durationMs={760} />
+              </b>
             </article>
             <article>
               <span>Your model</span>
-              <b>{num(a.efficiency)}</b>
+              <b>
+                <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={760} />
+              </b>
             </article>
           </section>
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => setView('assumptions')}>
               <span className="k">Edit assumption</span>
-              <span className="v">{num(a.efficiency)}</span>
+              <span className="v">
+                <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -227,7 +257,13 @@ function CanvasVehicle() {
         </>
       ) : view === 'distance' ? (
         <>
-          <CanvasVehicleHeader title="Distance" value={kwh(distanceKm, 0)} unit="km powered" ctx="Lifetime kWh translated through your efficiency assumption." onBack={back} />
+          <CanvasVehicleHeader
+            title="Distance"
+            value={<CountUpNumber value={distanceKm} format={value => kwh(value, 0)} durationMs={850} />}
+            unit="km powered"
+            ctx="Lifetime kWh translated through your efficiency assumption."
+            onBack={back}
+          />
           <button
             className={`cv-distance-photo ${photo ? 'has-photo' : ''}`}
             type="button"
@@ -243,25 +279,33 @@ function CanvasVehicle() {
               </span>
             )}
             <span className="cv-comp c1">
-              <b>{kwh(ev.lifetime.kwh, 0)}</b>
+              <b>
+                <CountUpNumber value={ev.lifetime.kwh} format={value => kwh(value, 0)} durationMs={760} />
+              </b>
               <small>kWh</small>
             </span>
             <span className="cv-comp c2">
-              <b>{num(a.efficiency)}</b>
+              <b>
+                <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={760} />
+              </b>
               <small>kWh/100</small>
             </span>
           </button>
           <div className="cv-rows">
-            <button className="cv-row" type="button">
+            <button className="cv-row" type="button" onClick={() => navigate('/statement')}>
               <span className="k">Lifetime energy</span>
-              <span className="v">{kwh(ev.lifetime.kwh, 0)} kWh</span>
+              <span className="v">
+                <CountUpNumber value={ev.lifetime.kwh} format={value => `${kwh(value, 0)} kWh`} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => setView('assumptions')}>
               <span className="k">Efficiency basis</span>
-              <span className="v">{num(a.efficiency)}</span>
+              <span className="v">
+                <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -270,14 +314,22 @@ function CanvasVehicle() {
         </>
       ) : view === 'petrol' ? (
         <>
-          <CanvasVehicleHeader title="Comparison" value={cheaper > 0 ? `${cheaper.toFixed(1)}x` : '—'} unit="cheaper than petrol" ctx="Real EV energy costs against a comparable petrol car." onBack={back} />
+          <CanvasVehicleHeader
+            title="Comparison"
+            value={cheaper > 0 ? <CountUpNumber value={cheaper} format={value => `${value.toFixed(1)}x`} durationMs={850} /> : '—'}
+            unit="cheaper than petrol"
+            ctx="Real EV energy costs against a comparable petrol car."
+            onBack={back}
+          />
           <section className="cv-race">
             <div>
               <span>
                 <b>You</b>
                 <small>per 100 km · includes free energy</small>
               </span>
-              <strong>{aud(evPer100)}</strong>
+              <strong>
+                <CountUpNumber value={evPer100} format={aud} durationMs={760} />
+              </strong>
               <i style={{ ['--w' as string]: `${evPct}%`, ['--c' as string]: 'var(--money)' }} />
             </div>
             <div>
@@ -285,18 +337,24 @@ function CanvasVehicle() {
                 <b>Petrol equivalent</b>
                 <small>{num(a.petrolUse)} L/100km @ {aud(a.petrolPrice)}/L</small>
               </span>
-              <strong>{aud(petrolPer100)}</strong>
+              <strong>
+                <CountUpNumber value={petrolPer100} format={aud} durationMs={760} />
+              </strong>
               <i style={{ ['--w' as string]: '92%', ['--c' as string]: 'var(--tx)' }} />
             </div>
           </section>
           <section className="cv-mini-grid">
             <article>
               <span>Total saved</span>
-              <b>{aud(savedVsPetrol, 0)}</b>
+              <b>
+                <CountUpNumber value={savedVsPetrol} format={value => aud(value, 0)} durationMs={760} />
+              </b>
             </article>
             <article>
               <span>Across</span>
-              <b>{kwh(distanceKm, 0)} km</b>
+              <b>
+                <CountUpNumber value={distanceKm} format={value => `${kwh(value, 0)} km`} durationMs={760} />
+              </b>
             </article>
           </section>
         </>
@@ -318,7 +376,9 @@ function CanvasVehicle() {
             </button>
             <button className="cv-row" type="button" onClick={back}>
               <span className="k">Recalculate vehicle</span>
-              <span className="v">{aud(evPer100)}</span>
+              <span className="v">
+                <CountUpNumber value={evPer100} format={aud} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -338,7 +398,7 @@ function CanvasVehicleHeader({
   onBack,
 }: {
   title: string
-  value: string
+  value: ReactNode
   unit?: string
   ctx: string
   onBack: () => void

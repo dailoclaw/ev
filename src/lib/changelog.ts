@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.4',
+    date: '28 Jul 2026',
+    notes: [
+      'Minimal polish — key numbers now count up across Home, Stats and Vehicle, and Distance lifetime energy opens the Statement view.',
+    ],
+  },
+  {
     version: '3.9.3',
     date: '28 Jul 2026',
     notes: [

@@ -125,7 +125,9 @@ function CanvasStats() {
           <header className="appbar">
             <div>
               <p className="cv-eyebrow">Stats</p>
-              <h1 className="cv-big cv-rate">{model.rateNow > 0 ? `${perKwh(model.cur.cost, model.cur.kwh)}` : '$0.00'}</h1>
+              <h1 className="cv-big cv-rate">
+                <CountUpNumber value={model.rateNow} format={value => `$${value.toFixed(2)}`} durationMs={850} />
+              </h1>
             </div>
             <button className="icon-btn" type="button" aria-label="Back home" onClick={() => navigate('/')}>
               <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--steel)' }}>⌂</span>
@@ -138,21 +140,27 @@ function CanvasStats() {
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => setView('energy')}>
               <span className="k">Energy added</span>
-              <span className="v">{kwh(model.cur.kwh, 0)}</span>
+              <span className="v">
+                <CountUpNumber value={model.cur.kwh} format={value => kwh(value, 0)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => setView('free')}>
               <span className="k">Free energy</span>
-              <span className="v">{model.freePct}%</span>
+              <span className="v">
+                <CountUpNumber value={model.freePct} format={value => `${Math.round(value)}%`} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => navigate('/savings')}>
               <span className="k">Saved on free</span>
-              <span className="v">{aud(model.cur.saved, 0)}</span>
+              <span className="v">
+                <CountUpNumber value={model.cur.saved} format={value => aud(value, 0)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -168,7 +176,12 @@ function CanvasStats() {
         </>
       ) : view === 'energy' ? (
         <>
-          <CanvasStatsHeader title="Energy" value={Math.round(model.cur.kwh).toLocaleString()} ctx={`${model.activeYear} charging rhythm.`} onBack={back} />
+          <CanvasStatsHeader
+            title="Energy"
+            value={<CountUpNumber value={model.cur.kwh} format={value => Math.round(value).toLocaleString('en-AU')} durationMs={850} />}
+            ctx={`${model.activeYear} charging rhythm.`}
+            onBack={back}
+          />
           <div className="cv-barviz" aria-label="Recent monthly energy">
             {energyBars.map((m, i) => (
               <i
@@ -176,18 +189,24 @@ function CanvasStats() {
                 style={{ ['--h' as string]: `${Math.max(10, (m.kwh / maxEnergy) * 100)}%`, ['--i' as string]: i }}
                 aria-label={`${m.label}: ${kwh(m.kwh)}`}
               >
-                <span>{kwh(m.kwh, 0)}</span>
+                <span>
+                  <CountUpNumber value={m.kwh} format={value => kwh(value, 0)} delayMs={i * 55} durationMs={650} />
+                </span>
               </i>
             ))}
           </div>
           <section className="cv-mini-grid">
             <article>
               <span>Average month</span>
-              <b>{kwh(model.avgMonth, 0)}</b>
+              <b>
+                <CountUpNumber value={model.avgMonth} format={value => kwh(value, 0)} durationMs={760} />
+              </b>
             </article>
             <article>
               <span>Largest month</span>
-              <b>{kwh(model.largestMonth, 0)}</b>
+              <b>
+                <CountUpNumber value={model.largestMonth} format={value => kwh(value, 0)} durationMs={760} />
+              </b>
             </article>
           </section>
           <div className="cv-rows">
@@ -200,7 +219,9 @@ function CanvasStats() {
             </button>
             <button className="cv-row" type="button" onClick={() => setView('overview')}>
               <span className="k">Back to rate trend</span>
-              <span className="v">{perKwh(model.cur.cost, model.cur.kwh)}</span>
+              <span className="v">
+                <CountUpNumber value={model.rateNow} format={value => `$${value.toFixed(2)}`} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -209,26 +230,37 @@ function CanvasStats() {
         </>
       ) : view === 'free' ? (
         <>
-          <CanvasStatsHeader title="Free energy" value={`${model.freePct}%`} ctx={`${aud(model.cur.saved, 0)} saved in ${model.activeYear}.`} onBack={back} />
+          <CanvasStatsHeader
+            title="Free energy"
+            value={<CountUpNumber value={model.freePct} format={value => `${Math.round(value)}%`} durationMs={850} />}
+            ctx={`${aud(model.cur.saved, 0)} saved in ${model.activeYear}.`}
+            onBack={back}
+          />
           <CanvasTrend values={freeTrend} kind="free" />
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => navigate('/savings')}>
               <span className="k">Free kWh captured</span>
-              <span className="v">{kwh(model.cur.freeKwh, 0)}</span>
+              <span className="v">
+                <CountUpNumber value={model.cur.freeKwh} format={value => kwh(value, 0)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => navigate('/cost-anatomy')}>
               <span className="k">Paid overflow</span>
-              <span className="v">{kwh(Math.max(0, model.cur.kwh - model.cur.freeKwh), 0)}</span>
+              <span className="v">
+                <CountUpNumber value={Math.max(0, model.cur.kwh - model.cur.freeKwh)} format={value => kwh(value, 0)} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
             </button>
             <button className="cv-row" type="button" onClick={() => setView('overview')}>
               <span className="k">Free streak</span>
-              <span className="v">{r.currentStreak}</span>
+              <span className="v">
+                <CountUpNumber value={r.currentStreak} format={value => Math.round(value).toLocaleString('en-AU')} durationMs={720} />
+              </span>
               <span className="c" aria-hidden="true">
                 ›
               </span>
@@ -271,10 +303,22 @@ function CanvasStats() {
                   <Mark provider={provider} name={p.name} />
                   <span>
                     <strong>{p.name}</strong>
-                    <small>{provider?.freeKwhPerDay ? `${provider.freeKwhPerDay} kWh/day allowance` : `${kwh(p.kwh, 0)} lifetime`}</small>
+                    <small>
+                      {provider?.freeKwhPerDay ? (
+                        <>
+                          <CountUpNumber value={provider.freeKwhPerDay} format={value => kwh(value, 1)} durationMs={650} /> kWh/day allowance
+                        </>
+                      ) : (
+                        <>
+                          <CountUpNumber value={p.kwh} format={value => kwh(value, 0)} durationMs={650} /> lifetime
+                        </>
+                      )}
+                    </small>
                     <i />
                   </span>
-                  <b>{perKwh(p.cost, p.kwh)}</b>
+                  <b>
+                    <CountUpNumber value={p.kwh > 0 ? p.cost / p.kwh : 0} format={value => `$${value.toFixed(2)}`} durationMs={720} />
+                  </b>
                 </button>
               )
             })}
@@ -285,7 +329,7 @@ function CanvasStats() {
   )
 }
 
-function CanvasStatsHeader({ title, value, ctx, onBack }: { title: string; value: string; ctx: string; onBack: () => void }) {
+function CanvasStatsHeader({ title, value, ctx, onBack }: { title: string; value: ReactNode; ctx: string; onBack: () => void }) {
   return (
     <>
       <header className="appbar">
