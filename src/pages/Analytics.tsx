@@ -320,7 +320,7 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
     <div className={`cv-trend ${kind}`}>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label={kind === 'rate' ? 'Rate trend' : 'Free energy trend'}>
         <path className="area" d={area} />
-        <path className="line" d={line} />
+        <path className="line" d={line} pathLength={1} />
         <circle className="dot" cx={last.x} cy={last.y} r="2.7" />
       </svg>
     </div>

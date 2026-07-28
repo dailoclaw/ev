@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.1',
+    date: '28 Jul 2026',
+    notes: [
+      'Minimal Stats fix — the trend line animation now uses normalized SVG path length so it draws all the way across.',
+    ],
+  },
+  {
     version: '3.9.0',
     date: '27 Jul 2026',
     notes: [

@@ -3030,8 +3030,8 @@ input[type='range'].capslider::-webkit-slider-thumb {
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
   animation: cv-draw 1.35s cubic-bezier(0.22, 0.85, 0.3, 1) forwards;
 }
 .cv-trend .dot {
