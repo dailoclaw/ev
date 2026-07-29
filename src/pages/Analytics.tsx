@@ -352,7 +352,7 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
   const clipId = `cvTrendClip-${useId().replace(/:/g, '')}`
   const pathRef = useRef<SVGPathElement>(null)
   const clipRef = useRef<SVGRectElement>(null)
-  const dotRef = useRef<SVGCircleElement>(null)
+  const dotRef = useRef<HTMLSpanElement>(null)
   const normalized = values.length > 0 ? values : [0]
   const max = Math.max(...normalized, 0.01)
   const min = Math.min(...normalized, max)
@@ -378,8 +378,8 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
     const setProgress = (progress: number) => {
       const point = path.getPointAtLength(length * progress)
       clip.setAttribute('width', String(Math.min(100, Math.max(0, point.x))))
-      dot.setAttribute('cx', point.x.toFixed(2))
-      dot.setAttribute('cy', point.y.toFixed(2))
+      dot.style.left = `${point.x.toFixed(2)}%`
+      dot.style.top = `${point.y.toFixed(2)}%`
     }
 
     if (reduceMotion) {
@@ -413,8 +413,8 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
         </defs>
         <path className="area" d={area} />
         <path ref={pathRef} className="line" d={line} clipPath={`url(#${clipId})`} />
-        <circle ref={dotRef} className="dot" cx={pts[0].x} cy={pts[0].y} r="2.7" />
       </svg>
+      <span ref={dotRef} className="dot" style={{ left: `${pts[0].x}%`, top: `${pts[0].y}%` }} />
     </div>
   )
 }
