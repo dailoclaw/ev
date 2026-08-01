@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.17',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — segmented controls now keep the rail outline outside the LiquidGlass layer so no rectangular box appears around the pill.',
+    ],
+  },
+  {
     version: '3.9.16',
     date: '1 Aug 2026',
     notes: [
