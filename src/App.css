@@ -2088,7 +2088,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .ledger .lhead,
 .ledger .lrow {
   display: grid;
-  grid-template-columns: 1.15fr 0.8fr 0.85fr auto;
+  grid-template-columns: minmax(118px, 1fr) 74px minmax(86px, 0.72fr) 54px;
   gap: 8px;
   align-items: center;
   padding: 11px 14px;
@@ -2131,16 +2131,16 @@ input[type='range'].capslider::-webkit-slider-thumb {
   line-height: 1;
 }
 .ledger .lrow > .num:nth-child(2) {
-  justify-self: center;
   text-align: center;
 }
 .ledger .lrow .spk {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 22px;
+  width: 54px;
+  height: 24px;
   justify-content: flex-end;
-  transform: translateY(-2px);
+  transform: translateY(-7px);
 }
 .ledger .lrow .spk i {
   width: 4px;

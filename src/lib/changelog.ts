@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.27',
+    date: '1 Aug 2026',
+    notes: [
+      'Stats fix — locked Monthly breakdown header and row columns to the same grid and raised sparklines for better number baseline alignment.',
+    ],
+  },
+  {
     version: '3.9.26',
     date: '1 Aug 2026',
     notes: [
