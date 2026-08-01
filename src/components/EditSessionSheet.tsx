@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { EnrichedSession } from '../lib/savings'
 import { updateSession } from '../lib/data'
 import { todayIso } from '../lib/format'
-import { Mark } from './ui'
+import { GlassSurface, Mark } from './ui'
 
 export default function EditSessionSheet({ session, onClose }: { session: EnrichedSession; onClose: () => void }) {
   const [date, setDate] = useState(session.date)
@@ -81,9 +81,22 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
 
         {error && <p style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}
 
-        <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave || saving} onClick={handleSave}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </button>
+        <GlassSurface
+          className="liquid-primary-action"
+          width={360}
+          height={52}
+          radius={15}
+          strength={0.09}
+          chromaticAberration={0.2}
+          depth={8}
+          glow={0.16}
+          edgeHighlight={0.32}
+          disabled={!canSave || saving}
+        >
+          <button className="primary-btn" type="button" disabled={!canSave || saving} onClick={handleSave}>
+            {saving ? 'Saving...' : 'Save changes'}
+          </button>
+        </GlassSurface>
       </div>
     </div>
   )

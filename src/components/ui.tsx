@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { LiquidGlass, type LiquidGlassProps } from 'liquid-glass-web-react'
 import { providerInitial, type Provider } from '../lib/providers'
 
 /* ---- icons ---- */
@@ -59,6 +60,68 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
       <path d={PATHS[name] ?? PATHS.bolt} />
       {EXTRAS[name]}
     </svg>
+  )
+}
+
+type GlassSurfaceProps = {
+  children: ReactNode
+  className?: string
+  disabled?: boolean
+} & Pick<
+  LiquidGlassProps,
+  | 'width'
+  | 'height'
+  | 'radius'
+  | 'strength'
+  | 'chromaticAberration'
+  | 'blur'
+  | 'depth'
+  | 'curvature'
+  | 'glow'
+  | 'edgeHighlight'
+  | 'shadow'
+  | 'quality'
+>
+
+export function GlassSurface({
+  children,
+  className,
+  disabled = false,
+  width = 160,
+  height = 48,
+  radius = 'auto',
+  strength = 0.08,
+  chromaticAberration = 0.18,
+  blur = 0,
+  depth = 8,
+  curvature = 0.72,
+  glow = 0.12,
+  edgeHighlight = 0.28,
+  shadow = '0 0 0 1px rgba(255,255,255,0.28), 0 12px 28px rgba(5, 150, 105, 0.2)',
+  quality = 256,
+}: GlassSurfaceProps) {
+  if (disabled) {
+    return <div className={className}>{children}</div>
+  }
+
+  return (
+    <LiquidGlass
+      className={className}
+      width={width}
+      height={height}
+      radius={radius}
+      strength={strength}
+      chromaticAberration={chromaticAberration}
+      blur={blur}
+      depth={depth}
+      curvature={curvature}
+      glow={glow}
+      edgeHighlight={edgeHighlight}
+      shadow={shadow}
+      quality={quality}
+    >
+      {children}
+    </LiquidGlass>
   )
 }
 

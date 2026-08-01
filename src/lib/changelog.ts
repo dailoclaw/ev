@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.7',
+    date: '1 Aug 2026',
+    notes: [
+      'Liquid Glass — the mobile add button and primary sheet actions now use a refractive glass treatment with native button behavior preserved.',
+    ],
+  },
+  {
     version: '3.9.6',
     date: '29 Jul 2026',
     notes: [

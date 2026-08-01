@@ -1057,6 +1057,19 @@
   opacity: 0.5;
   box-shadow: none;
 }
+.liquid-primary-action {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 15px;
+  isolation: isolate;
+}
+.liquid-primary-action > div:first-child {
+  border-radius: 15px;
+}
+.liquid-primary-action .primary-btn {
+  margin-top: 0;
+}
 .ghost-btn {
   width: 100%;
   min-height: 44px;
@@ -1118,6 +1131,18 @@
   display: grid;
   place-items: center;
 }
+.tabbar .liquid-fab {
+  width: 54px;
+  height: 54px;
+  margin-top: -26px;
+  border-radius: 20px;
+  isolation: isolate;
+}
+.tabbar .liquid-fab > div:first-child {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+}
 .tabbar .fabb {
   width: 48px;
   height: 48px;
@@ -1129,6 +1154,11 @@
   background: linear-gradient(140deg, #047857, #0d9488);
   box-shadow: 0 10px 22px rgba(5, 150, 105, 0.42);
   transition: transform 120ms ease;
+}
+.tabbar .liquid-fab .fabb {
+  width: 100%;
+  height: 100%;
+  margin-top: 0;
 }
 .tabbar .fabb:active {
   transform: scale(0.92);
