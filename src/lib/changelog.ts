@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.10',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls — top icon buttons and active segmented controls now use a restrained native CSS glass treatment.',
+    ],
+  },
+  {
     version: '3.9.9',
     date: '1 Aug 2026',
     notes: [

@@ -35,22 +35,40 @@
   font-weight: 600;
 }
 .icon-btn {
+  position: relative;
   display: inline-grid;
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--bd);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--bd) 78%, rgba(255, 255, 255, 0.32));
   border-radius: 13px;
-  background: var(--surf);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 42%, transparent),
+    color-mix(in srgb, var(--surf) 86%, transparent);
   color: var(--steel);
-  box-shadow: var(--cardshadow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    var(--cardshadow);
   transition: transform 150ms ease;
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+}
+.icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 48%);
+  pointer-events: none;
 }
 .icon-btn:active {
   transform: scale(0.94);
 }
 .icon-btn svg {
+  position: relative;
+  z-index: 1;
   width: 20px;
   height: 20px;
 }
@@ -629,6 +647,8 @@
   margin-bottom: 12px;
 }
 .seg button {
+  position: relative;
+  overflow: hidden;
   min-height: 34px;
   border-radius: 9px;
   font-size: 13px;
@@ -636,8 +656,23 @@
   color: var(--mut);
 }
 .seg button.on {
-  background: var(--steel);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04) 42%, transparent),
+    color-mix(in srgb, var(--steel) 92%, var(--money) 8%);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 8px 18px rgba(15, 26, 36, 0.12);
+  backdrop-filter: blur(14px) saturate(1.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.16);
+}
+.seg button.on::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 46%);
+  pointer-events: none;
 }
 .density-seg {
   margin-bottom: 8px;
@@ -3150,7 +3185,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
   margin-top: 26px;
 }
 .cv-seg button {
+  position: relative;
   flex: 1;
+  overflow: hidden;
   min-height: 38px;
   border: 0;
   border-radius: 999px;
@@ -3161,8 +3198,22 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .cv-seg .on {
   color: var(--tx);
-  background: var(--surf);
-  box-shadow: 0 8px 22px rgba(15, 26, 36, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.07) 42%, transparent),
+    color-mix(in srgb, var(--surf) 88%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 8px 22px rgba(15, 26, 36, 0.08);
+  backdrop-filter: blur(14px) saturate(1.14);
+  -webkit-backdrop-filter: blur(14px) saturate(1.14);
+}
+.cv-seg .on::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 46%);
+  pointer-events: none;
 }
 
 .cv-providers {

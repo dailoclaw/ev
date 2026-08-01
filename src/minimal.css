@@ -61,7 +61,7 @@
   width: 42px;
   height: 42px;
   border-radius: 15px;
-  border-color: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* ---- cards ---- */
@@ -243,6 +243,9 @@
   min-height: 38px;
   border-radius: 12px;
   font-size: 13.5px;
+}
+:root[data-style='minimal'] .seg button.on {
+  border-radius: 12px;
 }
 
 /* ---- meters ---- */
