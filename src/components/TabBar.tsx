@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { GlassSurface, Icon } from './ui'
+import { Icon } from './ui'
 
 const TABS = [
   { path: '/', icon: 'home', label: 'Home' },
@@ -18,22 +18,9 @@ export default function TabBar({ onAdd }: { onAdd: () => void }) {
       {TABS.map((tab, i) =>
         'fab' in tab ? (
           <div className="fabwrap" key={i}>
-            <GlassSurface
-              className="liquid-fab"
-              width={54}
-              height={54}
-              radius={20}
-              strength={0.11}
-              chromaticAberration={0.24}
-              depth={9}
-              glow={0.18}
-              edgeHighlight={0.36}
-              shadow="0 0 0 1px rgba(255,255,255,0.3), 0 14px 30px rgba(5, 150, 105, 0.36)"
-            >
-              <button className="fabb" type="button" aria-label="Add charge" onClick={onAdd}>
-                <Icon name="plus" />
-              </button>
-            </GlassSurface>
+            <button className="fabb" type="button" aria-label="Add charge" onClick={onAdd}>
+              <Icon name="plus" />
+            </button>
           </div>
         ) : (
           <button

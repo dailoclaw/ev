@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.8',
+    date: '1 Aug 2026',
+    notes: [
+      'Liquid Glass fix — the tab bar add button now uses a stable native glass style so it stays centered and fully tappable.',
+    ],
+  },
+  {
     version: '3.9.7',
     date: '1 Aug 2026',
     notes: [

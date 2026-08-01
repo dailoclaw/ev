@@ -342,24 +342,9 @@
   height: 23px;
 }
 :root[data-style='minimal'] .tabbar .fabb {
-  width: 52px;
-  height: 52px;
-  margin-top: -22px;
-  border-radius: 19px;
-}
-:root[data-style='minimal'] .tabbar .liquid-fab {
   width: 56px;
   height: 56px;
   margin-top: -22px;
-  border-radius: 21px;
-}
-:root[data-style='minimal'] .tabbar .liquid-fab > div:first-child {
-  border-radius: 21px;
-}
-:root[data-style='minimal'] .tabbar .liquid-fab .fabb {
-  width: 100%;
-  height: 100%;
-  margin-top: 0;
   border-radius: 21px;
 }
 

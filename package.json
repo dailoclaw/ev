@@ -1,7 +1,7 @@
 {
   "name": "ev",
   "private": true,
-  "version": "3.9.7",
+  "version": "3.9.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,9 +14,7 @@
     "@coreui/react": "^5.10.0",
     "@supabase/supabase-js": "^2.110.3",
     "autoprefixer": "^10.4.27",
-    "gsap": "^3.15.0",
     "liquid-glass-web-react": "^0.1.1",
-    "lucide-react": "^1.27.0",
     "postcss": "^8.5.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

@@ -1131,39 +1131,53 @@
   display: grid;
   place-items: center;
 }
-.tabbar .liquid-fab {
+.tabbar .fabb {
+  position: relative;
   width: 54px;
   height: 54px;
   margin-top: -26px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 20px;
-  isolation: isolate;
-}
-.tabbar .liquid-fab > div:first-child {
-  width: 100%;
-  height: 100%;
-  border-radius: 20px;
-}
-.tabbar .fabb {
-  width: 48px;
-  height: 48px;
-  margin-top: -26px;
-  border-radius: 16px;
   display: grid;
   place-items: center;
   color: #fff;
-  background: linear-gradient(140deg, #047857, #0d9488);
-  box-shadow: 0 10px 22px rgba(5, 150, 105, 0.42);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.03) 36%, rgba(13, 148, 136, 0.72)),
+    linear-gradient(140deg, rgba(4, 120, 87, 0.94), rgba(13, 148, 136, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.14),
+    0 16px 34px rgba(5, 150, 105, 0.42);
   transition: transform 120ms ease;
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  overflow: hidden;
 }
-.tabbar .liquid-fab .fabb {
-  width: 100%;
-  height: 100%;
-  margin-top: 0;
+.tabbar .fabb::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 42%);
+  pointer-events: none;
+}
+.tabbar .fabb::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px 0 18px 0;
+  background: rgba(52, 211, 153, 0.42);
+  pointer-events: none;
 }
 .tabbar .fabb:active {
   transform: scale(0.92);
 }
 .tabbar .fabb svg {
+  position: relative;
+  z-index: 1;
   width: 23px;
   height: 23px;
   stroke-width: 2.2;
