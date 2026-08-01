@@ -735,6 +735,10 @@
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
     linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.16),
+    0 10px 26px rgba(0, 0, 0, 0.22);
 }
 :root[data-theme='dark'] .glass-seg__surface span.is-active {
   border-color: color-mix(in srgb, var(--bd) 72%, rgba(255, 255, 255, 0.2));

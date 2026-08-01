@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.20',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — removed the LiquidGlass built-in shadow from segmented controls and replaced it with a pill-only CSS rim.',
+    ],
+  },
+  {
     version: '3.9.19',
     date: '1 Aug 2026',
     notes: [
