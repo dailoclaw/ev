@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.16',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — segmented labels now render above the LiquidGlass lens so text no longer warps or repeats inside the button.',
+    ],
+  },
+  {
     version: '3.9.15',
     date: '1 Aug 2026',
     notes: [

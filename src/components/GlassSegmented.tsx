@@ -61,26 +61,34 @@ export default function GlassSegmented<T extends SegmentValue>({
   }, [activeIndex, options.length])
 
   return (
-    <LiquidGlass
-      className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()}
-      style={style}
-      x={lens.x}
-      y={0.5}
-      width={lens.width}
-      height={lens.height}
-      radius="auto"
-      strength={0.12}
-      chromaticAberration={0.28}
-      curvature={0.82}
-      glow={0.16}
-      edgeHighlight={0.38}
-      depth={10}
-      blur={0}
-      shadow="inset 0 1px 0 rgba(255,255,255,.24), inset 0 -10px 18px rgba(0,0,0,.16), 0 10px 26px rgba(0,0,0,.22)"
-    >
+    <div className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()} style={style}>
+      <LiquidGlass
+        className="glass-seg__lens"
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+        x={lens.x}
+        y={0.5}
+        width={lens.width}
+        height={lens.height}
+        radius="auto"
+        strength={0.12}
+        chromaticAberration={0.28}
+        curvature={0.82}
+        glow={0.16}
+        edgeHighlight={0.38}
+        depth={10}
+        blur={0}
+        shadow="inset 0 1px 0 rgba(255,255,255,.24), inset 0 -10px 18px rgba(0,0,0,.16), 0 10px 26px rgba(0,0,0,.22)"
+        aria-hidden="true"
+      >
+        <div className="glass-seg__surface" style={{ gridTemplateColumns: columns }}>
+          {options.map(option => (
+            <span key={option.value} className={option.value === value ? 'is-active' : ''} />
+          ))}
+        </div>
+      </LiquidGlass>
       <div
         ref={trackRef}
-        className="glass-seg__track"
+        className="glass-seg__controls"
         role="group"
         aria-label={ariaLabel}
         style={{ gridTemplateColumns: columns }}
@@ -101,6 +109,6 @@ export default function GlassSegmented<T extends SegmentValue>({
           </button>
         ))}
       </div>
-    </LiquidGlass>
+    </div>
   )
 }
