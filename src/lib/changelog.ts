@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.21',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — removed the external segmented pill shadow so no bottom tabs appear under the active button.',
+    ],
+  },
+  {
     version: '3.9.20',
     date: '1 Aug 2026',
     notes: [
