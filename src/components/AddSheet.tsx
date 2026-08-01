@@ -5,6 +5,7 @@ import { aud, todayIso } from '../lib/format'
 import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
 import { useEv } from '../lib/useEv'
 import { SyncBadge, TickSvg } from './ui'
+import GlassSegmented from './GlassSegmented'
 
 type Mode = 'charge' | 'fee'
 
@@ -89,14 +90,16 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               <SyncBadge live={synced} label={synced ? 'Syncs live' : 'Local for now'} />
             </div>
 
-            <div className="seg" style={{ marginTop: 12 }} role="tablist" aria-label="Entry type">
-              <button type="button" className={mode === 'charge' ? 'on' : ''} onClick={() => setMode('charge')}>
-                Charge
-              </button>
-              <button type="button" className={mode === 'fee' ? 'on' : ''} onClick={() => setMode('fee')}>
-                Membership fee
-              </button>
-            </div>
+            <GlassSegmented
+              ariaLabel="Entry type"
+              value={mode}
+              onChange={setMode}
+              style={{ marginTop: 12 }}
+              options={[
+                { value: 'charge', label: 'Charge' },
+                { value: 'fee', label: 'Membership fee' },
+              ]}
+            />
 
             <label>Charger</label>
             <div className="provrow">

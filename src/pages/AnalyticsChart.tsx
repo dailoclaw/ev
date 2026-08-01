@@ -4,6 +4,7 @@ import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
 import { useUnitRoll } from '../lib/useUnitRoll'
 import { Icon } from '../components/ui'
+import GlassSegmented from '../components/GlassSegmented'
 
 const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -58,14 +59,15 @@ export default function AnalyticsChart() {
         </button>
       </header>
 
-      <div className="seg" aria-label="Metric">
-        <button type="button" className={metric === 'cost' ? 'on' : ''} onClick={() => setMetric('cost')}>
-          Cost $
-        </button>
-        <button type="button" className={metric === 'kwh' ? 'on' : ''} onClick={() => setMetric('kwh')}>
-          Energy kWh
-        </button>
-      </div>
+      <GlassSegmented
+        ariaLabel="Metric"
+        value={metric}
+        onChange={setMetric}
+        options={[
+          { value: 'cost', label: 'Cost $' },
+          { value: 'kwh', label: 'Energy kWh' },
+        ]}
+      />
 
       <div className="chiprow">
         {provNames.map(name => (

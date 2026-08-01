@@ -691,6 +691,63 @@
 .density-seg {
   margin-bottom: 8px;
 }
+.glass-seg {
+  display: block;
+  margin-bottom: 12px;
+}
+.glass-seg__track {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--bd);
+  border-radius: 13px;
+  background: var(--surf2);
+}
+.glass-seg__track button {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--mut);
+  font-size: 13px;
+  font-weight: 750;
+  overflow: hidden;
+}
+.glass-seg__track button.is-active {
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
+    linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme='dark'] .glass-seg__track button.is-active {
+  border-color: color-mix(in srgb, var(--bd) 72%, rgba(255, 255, 255, 0.2));
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 44%, transparent),
+    color-mix(in srgb, var(--surf2) 88%, #000 12%);
+  color: var(--tx);
+}
+.glass-seg__track button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.glass-seg--compact {
+  margin: 0;
+}
+.glass-seg--compact .glass-seg__track {
+  gap: 3px;
+  padding: 3px;
+}
+.glass-seg--compact .glass-seg__track button {
+  min-height: 26px;
+  padding: 0 12px;
+  font-size: 12px;
+}
 .density-preview {
   border: 1px solid var(--bd);
   border-radius: var(--radius-sm);

@@ -8,10 +8,12 @@ import { records } from '../lib/records'
 import { useUnitRoll } from '../lib/useUnitRoll'
 import CountUpNumber from '../components/CountUpNumber'
 import { useStyle } from '../lib/style'
+import GlassSegmented from '../components/GlassSegmented'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
 type Metric = 'cost' | 'kwh' | 'rate'
 type CanvasStatsView = 'overview' | 'energy' | 'free' | 'providers'
+type ProviderMetric = 'cost' | 'kwh' | 'free'
 
 const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
   {
@@ -67,6 +69,7 @@ function CanvasStats() {
   const ev = useEv()
   const navigate = useNavigate()
   const [view, setView] = useState<CanvasStatsView>('overview')
+  const [providerMetric, setProviderMetric] = useState<ProviderMetric>('cost')
 
   const years = useMemo(() => {
     const set = new Set(ev.months.map(m => m.month.slice(0, 4)))
@@ -110,7 +113,10 @@ function CanvasStats() {
   const maxEnergy = Math.max(...energyBars.map(m => m.kwh), 1)
   const freeTrend = model.months.map(m => (m.kwh > 0 ? (m.freeKwh / m.kwh) * 100 : 0))
   const r = useMemo(() => records(ev), [ev])
-  const providerMaxRate = Math.max(...ev.byProvider.map(p => p.effectiveRate), 0.01)
+  const providerMaxValue = Math.max(
+    ...ev.byProvider.map(p => (providerMetric === 'cost' ? p.cost : providerMetric === 'kwh' ? p.kwh : p.freeKwh)),
+    0.01,
+  )
 
   const back = () => setView('overview')
   const deltaText =
@@ -279,19 +285,23 @@ function CanvasStats() {
             }
             onBack={back}
           />
-          <div className="cv-seg" aria-label="Provider metric">
-            <button className="on" type="button">
-              Cost
-            </button>
-            <button type="button">kWh</button>
-            <button type="button">Free</button>
-          </div>
+          <GlassSegmented
+            ariaLabel="Provider metric"
+            value={providerMetric}
+            onChange={setProviderMetric}
+            style={{ marginTop: 26 }}
+            options={[
+              { value: 'cost', label: 'Cost' },
+              { value: 'kwh', label: 'kWh' },
+              { value: 'free', label: 'Free' },
+            ]}
+          />
           <div className="cv-providers">
             {ev.byProvider.slice(0, 4).map(p => {
               const provider = ev.providers.find(x => x.name === p.name)
               const color = provider?.color ?? 'var(--steel)'
-              const rateValue = p.kwh > 0 ? p.cost / p.kwh : 0
-              const width = Math.max(7, ((providerMaxRate - rateValue) / providerMaxRate) * 100)
+              const providerValue = providerMetric === 'cost' ? p.cost : providerMetric === 'kwh' ? p.kwh : p.freeKwh
+              const width = Math.max(7, (providerValue / providerMaxValue) * 100)
               return (
                 <button
                   className="cv-provider"
@@ -304,20 +314,32 @@ function CanvasStats() {
                   <span>
                     <strong>{p.name}</strong>
                     <small>
-                      {provider?.freeKwhPerDay ? (
+                      {providerMetric === 'cost' ? (
+                        <>
+                          <CountUpNumber value={p.kwh > 0 ? p.cost / p.kwh : 0} format={value => `$${value.toFixed(2)}`} durationMs={650} /> effective
+                        </>
+                      ) : providerMetric === 'kwh' ? (
+                        <>
+                          <CountUpNumber value={p.cost} format={aud} durationMs={650} /> lifetime spend
+                        </>
+                      ) : provider?.freeKwhPerDay ? (
                         <>
                           <CountUpNumber value={provider.freeKwhPerDay} format={value => kwh(value, 1)} durationMs={650} /> kWh/day allowance
                         </>
                       ) : (
                         <>
-                          <CountUpNumber value={p.kwh} format={value => kwh(value, 0)} durationMs={650} /> lifetime
+                          no allowance set
                         </>
                       )}
                     </small>
                     <i />
                   </span>
                   <b>
-                    <CountUpNumber value={p.kwh > 0 ? p.cost / p.kwh : 0} format={value => `$${value.toFixed(2)}`} durationMs={720} />
+                    <CountUpNumber
+                      value={providerValue}
+                      format={value => (providerMetric === 'cost' ? aud(value) : `${kwh(value, 0)} kWh`)}
+                      durationMs={720}
+                    />
                   </b>
                 </button>
               )
@@ -647,13 +669,12 @@ function StatementView({
 
   return (
     <>
-      <div className="seg" aria-label="Select year">
-        {years.map(y => (
-          <button key={y} type="button" className={y === activeYear ? 'on' : ''} onClick={() => setYear(y)}>
-            {y}
-          </button>
-        ))}
-      </div>
+      <GlassSegmented
+        ariaLabel="Select year"
+        value={activeYear}
+        onChange={setYear}
+        options={years.map(y => ({ value: y, label: y }))}
+      />
 
       <section className="hero-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
@@ -805,13 +826,12 @@ function ClusterView({
 
   return (
     <>
-      <div className="seg" aria-label="Granularity">
-        {(['year', 'quarter', 'month'] as Gran[]).map(g => (
-          <button key={g} type="button" className={gran === g ? 'on' : ''} onClick={() => setGran(g)}>
-            {g[0].toUpperCase() + g.slice(1)}
-          </button>
-        ))}
-      </div>
+      <GlassSegmented
+        ariaLabel="Granularity"
+        value={gran}
+        onChange={setGran}
+        options={(['year', 'quarter', 'month'] as Gran[]).map(g => ({ value: g, label: g[0].toUpperCase() + g.slice(1) }))}
+      />
 
       <div className="metric-grid" key={gran}>
         <div className="metric-card">
@@ -1042,13 +1062,15 @@ function TrendsView({
 
   return (
     <>
-      <div className="seg" aria-label="Metric">
-        {(['cost', 'kwh', 'rate'] as Metric[]).map(mt => (
-          <button key={mt} type="button" className={metric === mt ? 'on' : ''} onClick={() => setMetric(mt)}>
-            {mt === 'cost' ? 'Cost' : mt === 'kwh' ? 'kWh' : '$/kWh'}
-          </button>
-        ))}
-      </div>
+      <GlassSegmented
+        ariaLabel="Metric"
+        value={metric}
+        onChange={setMetric}
+        options={(['cost', 'kwh', 'rate'] as Metric[]).map(mt => ({
+          value: mt,
+          label: mt === 'cost' ? 'Cost' : mt === 'kwh' ? 'kWh' : '$/kWh',
+        }))}
+      />
 
       <div className="chiprow">
         {provNames.map(name => (

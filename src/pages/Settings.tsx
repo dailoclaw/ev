@@ -25,6 +25,7 @@ import { useStyle } from '../lib/style'
 import { APP_VERSION } from '../lib/changelog'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
+import GlassSegmented from '../components/GlassSegmented'
 
 type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
 
@@ -136,14 +137,15 @@ export default function Settings() {
       <p className="sec-sub">
         Style changes how every screen is drawn — same numbers, same navigation. Switch back any time.
       </p>
-      <div className="seg" role="group" aria-label="Visual style">
-        <button type="button" className={style === 'classic' ? 'on' : ''} onClick={() => setStyle('classic')}>
-          Classic
-        </button>
-        <button type="button" className={style === 'minimal' ? 'on' : ''} onClick={() => setStyle('minimal')}>
-          Minimal
-        </button>
-      </div>
+      <GlassSegmented
+        ariaLabel="Visual style"
+        value={style}
+        onChange={setStyle}
+        options={[
+          { value: 'classic', label: 'Classic' },
+          { value: 'minimal', label: 'Minimal' },
+        ]}
+      />
       <div className="style-preview" aria-label="Visual style preview">
         <span className="style-preview-cap">
           {style === 'minimal' ? 'Minimal' : 'Classic'} · live preview
@@ -164,26 +166,27 @@ export default function Settings() {
         </div>
       </div>
       <p className="sec-sub">Carbon OLED dark theme — easy on the eyes and the battery.</p>
-      <div className="seg" role="group" aria-label="Theme">
-        <button type="button" className={theme === 'light' ? 'on' : ''} onClick={() => setTheme('light')}>
-          ☀ Light
-        </button>
-        <button type="button" className={theme === 'dark' ? 'on' : ''} onClick={() => setTheme('dark')}>
-          ☾ Dark
-        </button>
-      </div>
+      <GlassSegmented
+        ariaLabel="Theme"
+        value={theme}
+        onChange={setTheme}
+        options={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+      />
       <p className="sec-sub">Row density for ledger-heavy screens.</p>
-      <div className="seg density-seg" role="group" aria-label="Display density">
-        <button type="button" className={density === 'comfortable' ? 'on' : ''} onClick={() => setDensity('comfortable')}>
-          Comfortable
-        </button>
-        <button type="button" className={density === 'compact' ? 'on' : ''} onClick={() => setDensity('compact')}>
-          Compact
-        </button>
-        <button type="button" className={density === 'presentation' ? 'on' : ''} onClick={() => setDensity('presentation')}>
-          Present
-        </button>
-      </div>
+      <GlassSegmented
+        ariaLabel="Display density"
+        className="density-seg"
+        value={density}
+        onChange={setDensity}
+        options={[
+          { value: 'comfortable', label: 'Comfortable' },
+          { value: 'compact', label: 'Compact' },
+          { value: 'presentation', label: 'Present' },
+        ]}
+      />
       <div className="density-preview" aria-label="Display density preview">
         <div className="density-preview-row">
           <span className="mark" style={{ ['--pc' as string]: '#059669' }}>

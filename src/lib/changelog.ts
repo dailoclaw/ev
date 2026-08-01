@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.15',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls — segmented controls now use the real LiquidGlass lens component instead of CSS-only active button styling.',
+    ],
+  },
+  {
     version: '3.9.14',
     date: '1 Aug 2026',
     notes: [

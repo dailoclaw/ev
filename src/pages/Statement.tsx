@@ -10,6 +10,7 @@ import ReceiptSheet from '../components/ReceiptSheet'
 import EditSessionSheet from '../components/EditSessionSheet'
 import MonthNarrative from '../components/MonthNarrative'
 import CountUpNumber from '../components/CountUpNumber'
+import GlassSegmented from '../components/GlassSegmented'
 import { narrateMonth } from '../lib/narrate'
 import { deleteSession, undoDeleteSession } from '../lib/data'
 
@@ -209,17 +210,16 @@ export default function Statement() {
         </button>
       </header>
 
-      <div className="seg" aria-label="Change month">
-        <button type="button" disabled={!older} style={{ opacity: older ? 1 : 0.35 }} onClick={() => older && setYm(older.month)}>
-          ‹ {older ? older.label.split(' ')[0] : '—'}
-        </button>
-        <button type="button" className="on">
-          {cur ? cur.label.split(' ')[0] : monthTitle(ym).split(' ')[0]}
-        </button>
-        <button type="button" disabled={!newer} style={{ opacity: newer ? 1 : 0.35 }} onClick={() => newer && setYm(newer.month)}>
-          {newer ? newer.label.split(' ')[0] : '—'} ›
-        </button>
-      </div>
+      <GlassSegmented
+        ariaLabel="Change month"
+        value={ym}
+        onChange={setYm}
+        options={[
+          { value: older?.month ?? 'older', label: `‹ ${older ? older.label.split(' ')[0] : '—'}`, disabled: !older },
+          { value: ym, label: cur ? cur.label.split(' ')[0] : monthTitle(ym).split(' ')[0] },
+          { value: newer?.month ?? 'newer', label: `${newer ? newer.label.split(' ')[0] : '—'} ›`, disabled: !newer },
+        ]}
+      />
 
       {cur && (
         <section className="hero-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
