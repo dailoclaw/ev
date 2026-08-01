@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.18',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — the LiquidGlass segmented lens is now only the selected pill, removing full-row rectangular outlines.',
+    ],
+  },
+  {
     version: '3.9.17',
     date: '1 Aug 2026',
     notes: [

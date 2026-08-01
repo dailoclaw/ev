@@ -694,17 +694,11 @@
 .glass-seg {
   position: relative;
   display: block;
-  border: 1px solid var(--bd);
-  border-radius: 13px;
-  background: var(--surf2);
   margin-bottom: 12px;
-  overflow: hidden;
 }
 .glass-seg__lens {
   z-index: 0;
-  overflow: visible;
 }
-.glass-seg__surface,
 .glass-seg__controls {
   position: relative;
   display: grid;
@@ -712,21 +706,20 @@
   padding: 4px;
 }
 .glass-seg__surface {
-  background: transparent;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: inherit;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
+    linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
 }
-.glass-seg__surface span,
 .glass-seg__controls button {
   min-width: 0;
   min-height: 34px;
   border-radius: 9px;
 }
-.glass-seg__surface span.is-active {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
-    linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
-}
-:root[data-theme='dark'] .glass-seg__surface span.is-active {
+:root[data-theme='dark'] .glass-seg__surface {
   border-color: color-mix(in srgb, var(--bd) 72%, rgba(255, 255, 255, 0.2));
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 44%, transparent),
@@ -766,7 +759,6 @@
   gap: 3px;
   padding: 3px;
 }
-.glass-seg--compact .glass-seg__surface span,
 .glass-seg--compact .glass-seg__controls button {
   min-height: 26px;
 }
