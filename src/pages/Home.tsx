@@ -9,6 +9,7 @@ import { deriveMonthSpend } from '../lib/derive'
 import CountUpNumber from '../components/CountUpNumber'
 import Donut from '../components/Donut'
 import { useStyle } from '../lib/style'
+import { APP_VERSION } from '../lib/changelog'
 
 export default function Home() {
   const [style] = useStyle()
@@ -271,7 +272,7 @@ function ClassicHome() {
         )
       })}
 
-      <footer className="app-footer">EV Command v3.7.3 · Cockpit Ledger</footer>
+      <footer className="app-footer">EV Command v{APP_VERSION} · Cockpit Ledger</footer>
     </main>
   )
 }

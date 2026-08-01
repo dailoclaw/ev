@@ -273,3 +273,5 @@ export const CHANGELOG: ChangelogEntry[] = [
     notes: ['Added the Cost Anatomy page.'],
   },
 ]
+
+export const APP_VERSION = CHANGELOG[0]?.version ?? '0.0.0'

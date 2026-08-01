@@ -22,6 +22,7 @@ import { aud, stamp, todayIso } from '../lib/format'
 import { useDensity } from '../lib/density'
 import { useTheme } from '../lib/theme'
 import { useStyle } from '../lib/style'
+import { APP_VERSION } from '../lib/changelog'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
 
@@ -499,7 +500,7 @@ export default function Settings() {
       )}
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
-        EV Command v3.9.8 · Cockpit Ledger · what's new ›
+        EV Command v{APP_VERSION} · Cockpit Ledger · what's new ›
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}
