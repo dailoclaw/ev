@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.12',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — active segmented controls now use green glass in light mode instead of falling back to charcoal.',
+    ],
+  },
+  {
     version: '3.9.11',
     date: '1 Aug 2026',
     notes: [
