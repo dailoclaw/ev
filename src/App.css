@@ -1161,17 +1161,6 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 42%);
   pointer-events: none;
 }
-.tabbar .fabb::after {
-  content: '';
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  right: 0;
-  bottom: 0;
-  border-radius: 16px 0 18px 0;
-  background: rgba(52, 211, 153, 0.42);
-  pointer-events: none;
-}
 .tabbar .fabb:active {
   transform: scale(0.92);
 }
