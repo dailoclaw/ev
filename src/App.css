@@ -2102,6 +2102,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
   background: var(--surf2);
   border-bottom: 1px solid var(--bd);
 }
+.ledger .lhead span:nth-child(2) {
+  text-align: center;
+}
 .ledger .lrow {
   border-top: 1px solid var(--bd2);
   width: 100%;
@@ -2125,6 +2128,11 @@ input[type='range'].capslider::-webkit-slider-thumb {
   font-weight: 750;
   color: var(--steel);
   text-align: right;
+  line-height: 1;
+}
+.ledger .lrow > .num:nth-child(2) {
+  justify-self: center;
+  text-align: center;
 }
 .ledger .lrow .spk {
   display: flex;
@@ -2132,6 +2140,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   gap: 2px;
   height: 22px;
   justify-content: flex-end;
+  transform: translateY(-2px);
 }
 .ledger .lrow .spk i {
   width: 4px;

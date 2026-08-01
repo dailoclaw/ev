@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.26',
+    date: '1 Aug 2026',
+    notes: [
+      'Stats fix — aligned Monthly breakdown kWh values with their heading and raised row sparklines to sit with the number baseline.',
+    ],
+  },
+  {
     version: '3.9.25',
     date: '1 Aug 2026',
     notes: [
