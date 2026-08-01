@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.22',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — segmented controls now use a single CSS glass pill indicator, removing the iOS LiquidGlass outline artifacts permanently.',
+    ],
+  },
+  {
     version: '3.9.21',
     date: '1 Aug 2026',
     notes: [
