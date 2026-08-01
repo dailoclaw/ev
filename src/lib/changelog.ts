@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.9',
+    date: '1 Aug 2026',
+    notes: [
+      'Charge popup fix — save buttons now keep their native primary styling when enabled, avoiding the broken glass wrapper render.',
+    ],
+  },
+  {
     version: '3.9.8',
     date: '1 Aug 2026',
     notes: [

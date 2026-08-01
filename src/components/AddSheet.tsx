@@ -4,7 +4,7 @@ import { previewFreeAllocation } from '../lib/savings'
 import { aud, todayIso } from '../lib/format'
 import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
 import { useEv } from '../lib/useEv'
-import { GlassSurface, SyncBadge, TickSvg } from './ui'
+import { SyncBadge, TickSvg } from './ui'
 
 type Mode = 'charge' | 'fee'
 
@@ -230,22 +230,9 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <GlassSurface
-              className="liquid-primary-action"
-              width={360}
-              height={52}
-              radius={15}
-              strength={0.09}
-              chromaticAberration={0.2}
-              depth={8}
-              glow={0.16}
-              edgeHighlight={0.32}
-              disabled={!canSave}
-            >
-              <button className="primary-btn" type="button" disabled={!canSave} onClick={handleSave}>
-                {showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
-              </button>
-            </GlassSurface>
+            <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave} onClick={handleSave}>
+              {showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
+            </button>
           </>
         )}
       </div>
