@@ -656,22 +656,28 @@
   color: var(--mut);
 }
 .seg button.on {
+  border: 1px solid color-mix(in srgb, var(--money) 42%, rgba(255, 255, 255, 0.34));
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04) 42%, transparent),
-    color-mix(in srgb, var(--steel) 92%, var(--money) 8%);
+    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.36), transparent 24px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08) 34%, rgba(5, 150, 105, 0.28)),
+    color-mix(in srgb, var(--steel) 76%, var(--money) 24%);
   color: #fff;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 8px 18px rgba(15, 26, 36, 0.12);
-  backdrop-filter: blur(14px) saturate(1.16);
-  -webkit-backdrop-filter: blur(14px) saturate(1.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--money) 24%, transparent),
+    0 10px 24px color-mix(in srgb, var(--money) 22%, transparent);
+  backdrop-filter: blur(18px) saturate(1.28);
+  -webkit-backdrop-filter: blur(18px) saturate(1.28);
 }
 .seg button.on::before {
   content: '';
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 46%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 52%);
   pointer-events: none;
 }
 .density-seg {
@@ -3197,22 +3203,28 @@ input[type='range'].capslider::-webkit-slider-thumb {
   font-weight: 820;
 }
 .cv-seg .on {
+  border: 1px solid color-mix(in srgb, var(--money) 38%, rgba(255, 255, 255, 0.32));
   color: var(--tx);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.07) 42%, transparent),
-    color-mix(in srgb, var(--surf) 88%, transparent);
+    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.5), transparent 24px),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.12) 38%, rgba(5, 150, 105, 0.2)),
+    color-mix(in srgb, var(--surf) 78%, var(--money) 22%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    0 8px 22px rgba(15, 26, 36, 0.08);
-  backdrop-filter: blur(14px) saturate(1.14);
-  -webkit-backdrop-filter: blur(14px) saturate(1.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--money) 20%, transparent),
+    0 10px 24px color-mix(in srgb, var(--money) 16%, transparent);
+  backdrop-filter: blur(18px) saturate(1.24);
+  -webkit-backdrop-filter: blur(18px) saturate(1.24);
 }
 .cv-seg .on::before {
   content: '';
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 46%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.36), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 52%);
   pointer-events: none;
 }
 

@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.11',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls polish — selected segmented controls now have a clearer rim, green tint and glass highlight so the effect is visible.',
+    ],
+  },
+  {
     version: '3.9.10',
     date: '1 Aug 2026',
     notes: [
