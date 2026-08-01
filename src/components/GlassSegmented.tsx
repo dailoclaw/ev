@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { LiquidGlass, type LiquidGlassHandle } from 'liquid-glass-web-react'
 
 type SegmentValue = string | number
 
@@ -27,10 +28,11 @@ export default function GlassSegmented<T extends SegmentValue>({
   style,
   compact = false,
 }: GlassSegmentedProps<T>) {
+  const glassRef = useRef<LiquidGlassHandle>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = Math.max(0, options.findIndex(option => option.value === value))
-  const [lens, setLens] = useState({ left: 4, top: 4, width: 96, height: compact ? 30 : 38 })
+  const [lens, setLens] = useState({ x: (activeIndex + 0.5) / Math.max(options.length, 1), width: 104 })
 
   const columns = useMemo(() => `repeat(${Math.max(options.length, 1)}, minmax(0, 1fr))`, [options.length])
 
@@ -43,12 +45,12 @@ export default function GlassSegmented<T extends SegmentValue>({
       const rect = track.getBoundingClientRect()
       const activeRect = active?.getBoundingClientRect()
       if (!rect.width || !activeRect?.width) return
-      setLens({
-        left: activeRect.left - rect.left,
-        top: activeRect.top - rect.top,
-        width: activeRect.width,
-        height: activeRect.height,
-      })
+      const next = {
+        x: (activeRect.left + activeRect.width / 2 - rect.left) / rect.width,
+        width: Math.round(activeRect.width) + 8,
+      }
+      setLens(next)
+      glassRef.current?.setPosition(next.x, 0.5)
     }
 
     measure()
@@ -61,16 +63,23 @@ export default function GlassSegmented<T extends SegmentValue>({
   }, [activeIndex, options.length])
 
   return (
-    <div className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()} style={style}>
-      <span
-        className="glass-seg__indicator"
-        style={{
-          transform: `translate(${lens.left}px, ${lens.top}px)`,
-          width: lens.width,
-          height: lens.height,
-        }}
-        aria-hidden="true"
-      />
+    <LiquidGlass
+      ref={glassRef}
+      className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()}
+      style={{ touchAction: 'none', ...style }}
+      x={lens.x}
+      y={0.5}
+      width={lens.width}
+      height={compact ? 34 : 46}
+      radius="auto"
+      strength={0.02}
+      chromaticAberration={0.25}
+      curvature={0.85}
+      depth={8}
+      glow={0.15}
+      edgeHighlight={0.35}
+      shadow="0 0 0 1px rgba(255,255,255,0.14), 0 4px 14px rgba(0,0,0,0.45)"
+    >
       <div
         ref={trackRef}
         className="glass-seg__controls"
@@ -94,6 +103,6 @@ export default function GlassSegmented<T extends SegmentValue>({
           </button>
         ))}
       </div>
-    </div>
+    </LiquidGlass>
   )
 }
