@@ -698,7 +698,23 @@
 }
 .glass-seg__lens {
   z-index: 0;
+  overflow: hidden;
+  -webkit-clip-path: inset(
+    var(--glass-lens-top)
+    calc(100% - var(--glass-lens-left) - var(--glass-lens-width))
+    calc(100% - var(--glass-lens-top) - var(--glass-lens-height))
+    var(--glass-lens-left)
+    round 9px
+  );
+  clip-path: inset(
+    var(--glass-lens-top)
+    calc(100% - var(--glass-lens-left) - var(--glass-lens-width))
+    calc(100% - var(--glass-lens-top) - var(--glass-lens-height))
+    var(--glass-lens-left)
+    round 9px
+  );
 }
+.glass-seg__surface,
 .glass-seg__controls {
   position: relative;
   display: grid;
@@ -706,20 +722,21 @@
   padding: 4px;
 }
 .glass-seg__surface {
-  width: 100%;
-  height: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: inherit;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
-    linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
+  background: transparent;
 }
+.glass-seg__surface span,
 .glass-seg__controls button {
   min-width: 0;
   min-height: 34px;
   border-radius: 9px;
 }
-:root[data-theme='dark'] .glass-seg__surface {
+.glass-seg__surface span.is-active {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 38%, rgba(13, 148, 136, 0.5)),
+    linear-gradient(140deg, rgba(4, 120, 87, 0.96), rgba(6, 95, 70, 0.94));
+}
+:root[data-theme='dark'] .glass-seg__surface span.is-active {
   border-color: color-mix(in srgb, var(--bd) 72%, rgba(255, 255, 255, 0.2));
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 44%, transparent),
@@ -759,6 +776,7 @@
   gap: 3px;
   padding: 3px;
 }
+.glass-seg--compact .glass-seg__surface span,
 .glass-seg--compact .glass-seg__controls button {
   min-height: 26px;
 }

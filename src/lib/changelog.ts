@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.19',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — restored the full LiquidGlass refraction surface and clipped it to the active pill, including the iOS Safari mask.',
+    ],
+  },
+  {
     version: '3.9.18',
     date: '1 Aug 2026',
     notes: [

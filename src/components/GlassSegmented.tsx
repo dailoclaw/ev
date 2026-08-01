@@ -31,7 +31,13 @@ export default function GlassSegmented<T extends SegmentValue>({
   const trackRef = useRef<HTMLDivElement>(null)
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = Math.max(0, options.findIndex(option => option.value === value))
-  const [lens, setLens] = useState({ left: 4, top: 4, width: 96, height: compact ? 30 : 38 })
+  const [lens, setLens] = useState({
+    x: (activeIndex + 0.5) / Math.max(options.length, 1),
+    left: 4,
+    top: 4,
+    width: 96,
+    height: compact ? 30 : 38,
+  })
 
   const columns = useMemo(() => `repeat(${Math.max(options.length, 1)}, minmax(0, 1fr))`, [options.length])
 
@@ -45,6 +51,7 @@ export default function GlassSegmented<T extends SegmentValue>({
       const activeRect = active?.getBoundingClientRect()
       if (!rect.width || !activeRect?.width) return
       setLens({
+        x: (activeRect.left - rect.left + activeRect.width / 2) / rect.width,
         left: activeRect.left - rect.left,
         top: activeRect.top - rect.top,
         width: activeRect.width,
@@ -67,13 +74,14 @@ export default function GlassSegmented<T extends SegmentValue>({
         className="glass-seg__lens"
         style={{
           position: 'absolute',
-          left: lens.left,
-          top: lens.top,
-          width: lens.width,
-          height: lens.height,
+          inset: 0,
+          ['--glass-lens-left' as string]: `${lens.left}px`,
+          ['--glass-lens-top' as string]: `${lens.top}px`,
+          ['--glass-lens-width' as string]: `${lens.width}px`,
+          ['--glass-lens-height' as string]: `${lens.height}px`,
           pointerEvents: 'none',
         }}
-        x={0.5}
+        x={lens.x}
         y={0.5}
         width={lens.width}
         height={lens.height}
@@ -88,7 +96,11 @@ export default function GlassSegmented<T extends SegmentValue>({
         shadow="inset 0 1px 0 rgba(255,255,255,.24), inset 0 -10px 18px rgba(0,0,0,.16), 0 10px 26px rgba(0,0,0,.22)"
         aria-hidden="true"
       >
-        <div className="glass-seg__surface" />
+        <div className="glass-seg__surface" style={{ gridTemplateColumns: columns }}>
+          {options.map(option => (
+            <span key={option.value} className={option.value === value ? 'is-active' : ''} />
+          ))}
+        </div>
       </LiquidGlass>
       <div
         ref={trackRef}
