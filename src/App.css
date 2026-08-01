@@ -724,11 +724,12 @@
   overflow: hidden;
 }
 .glass-seg__controls button.is-active {
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
+  color: var(--tx);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.42);
 }
 :root[data-theme='dark'] .glass-seg__controls button.is-active {
-  color: var(--tx);
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
 }
 :root[data-theme='dark'] .glass-seg__controls {
   background: linear-gradient(120deg, #17191d, #101215);

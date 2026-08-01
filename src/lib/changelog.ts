@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.24',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — restored dark active labels for light mode segmented controls while preserving the LiquidGlass lens.',
+    ],
+  },
+  {
     version: '3.9.23',
     date: '1 Aug 2026',
     notes: [
