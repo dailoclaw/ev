@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.25',
+    date: '1 Aug 2026',
+    notes: [
+      'Glass controls fix — segmented LiquidGlass lenses now glide between options with the same spring-style motion as the live demo.',
+    ],
+  },
+  {
     version: '3.9.24',
     date: '1 Aug 2026',
     notes: [

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { LiquidGlass, type LiquidGlassHandle } from 'liquid-glass-web-react'
 
 type SegmentValue = string | number
@@ -32,9 +32,47 @@ export default function GlassSegmented<T extends SegmentValue>({
   const trackRef = useRef<HTMLDivElement>(null)
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = Math.max(0, options.findIndex(option => option.value === value))
-  const [lens, setLens] = useState({ x: (activeIndex + 0.5) / Math.max(options.length, 1), width: 104 })
+  const [initialX] = useState(() => (activeIndex + 0.5) / Math.max(options.length, 1))
+  const [lensWidth, setLensWidth] = useState(104)
+  const motionRef = useRef({ x: initialX, v: 0, target: initialX, raf: 0, settled: false })
 
   const columns = useMemo(() => `repeat(${Math.max(options.length, 1)}, minmax(0, 1fr))`, [options.length])
+
+  const moveTo = useCallback((target: number, animate: boolean) => {
+    const motion = motionRef.current
+    motion.target = target
+    cancelAnimationFrame(motion.raf)
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!animate || reduceMotion) {
+      motion.x = target
+      motion.v = 0
+      glassRef.current?.setPosition(target, 0.5)
+      return
+    }
+
+    let previous = performance.now()
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - previous) / 1000)
+      previous = now
+      const spring = 170
+      const damping = 20
+      motion.v += (spring * (motion.target - motion.x) - damping * motion.v) * dt
+      motion.x += motion.v * dt
+      glassRef.current?.setPosition(motion.x, 0.5)
+
+      if (Math.abs(motion.target - motion.x) > 0.0005 || Math.abs(motion.v) > 0.001) {
+        motion.raf = requestAnimationFrame(tick)
+        return
+      }
+
+      motion.x = motion.target
+      motion.v = 0
+      glassRef.current?.setPosition(motion.target, 0.5)
+    }
+
+    motion.raf = requestAnimationFrame(tick)
+  }, [])
 
   useLayoutEffect(() => {
     const track = trackRef.current
@@ -49,8 +87,9 @@ export default function GlassSegmented<T extends SegmentValue>({
         x: (activeRect.left + activeRect.width / 2 - rect.left) / rect.width,
         width: Math.round(activeRect.width) + 8,
       }
-      setLens(next)
-      glassRef.current?.setPosition(next.x, 0.5)
+      setLensWidth(next.width)
+      moveTo(next.x, motionRef.current.settled)
+      motionRef.current.settled = true
     }
 
     measure()
@@ -60,16 +99,21 @@ export default function GlassSegmented<T extends SegmentValue>({
       if (button) observer.observe(button)
     }
     return () => observer.disconnect()
-  }, [activeIndex, options.length])
+  }, [activeIndex, moveTo, options.length])
+
+  useEffect(() => {
+    const motion = motionRef.current
+    return () => cancelAnimationFrame(motion.raf)
+  }, [])
 
   return (
     <LiquidGlass
       ref={glassRef}
       className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()}
       style={{ touchAction: 'none', ...style }}
-      x={lens.x}
+      x={initialX}
       y={0.5}
-      width={lens.width}
+      width={lensWidth}
       height={compact ? 34 : 46}
       radius="auto"
       strength={0.02}
