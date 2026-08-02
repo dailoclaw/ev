@@ -19,6 +19,7 @@ function VehicleGlassStat({ className, children }: { className: string; children
   return (
     <LiquidGlass
       className={`cv-comp ${className}`}
+      style={{ position: 'absolute' }}
       x={0.5}
       y={0.5}
       width={92}
