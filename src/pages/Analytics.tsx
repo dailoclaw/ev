@@ -1041,6 +1041,10 @@ function TrendsView({
   const [prov, setProv] = useState('All')
   const [selIdx, setSelIdx] = useState<number | null>(null)
   const provNames = ['All', ...ev.byProvider.map(p => p.name)]
+  const reduceMotion = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  )
 
   const data = series(prov, metric).slice(-6)
   const n = data.length
@@ -1053,6 +1057,10 @@ function TrendsView({
   const fmt = (v: number) => (metric === 'cost' ? aud(v) : metric === 'kwh' ? `${kwh(v)} kWh` : '$' + v.toFixed(3))
   const activeIdx = selIdx == null ? n - 1 : selIdx
   const sp = data[activeIdx]
+  const activeD = data
+    .slice(0, activeIdx + 1)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)} ${yAt(p.value).toFixed(1)}`)
+    .join(' ')
   const flagLeft = Math.min(90, Math.max(10, (n > 1 ? activeIdx / (n - 1) : 0.5) * 100))
 
   const top = ev.byProvider[0]
@@ -1110,7 +1118,14 @@ function TrendsView({
                 onClick={() => setSelIdx(i)}
               />
             ))}
-            {sp && <circle className="dot" cx={xAt(activeIdx)} cy={yAt(sp.value)} r="5" />}
+            {sp &&
+              (activeIdx > 0 && !reduceMotion ? (
+                <circle key={`${chartKey}-${activeIdx}`} className="dot travel-dot" r="5">
+                  <animateMotion dur="900ms" fill="freeze" path={activeD} />
+                </circle>
+              ) : (
+                <circle className="dot" cx={xAt(activeIdx)} cy={yAt(sp.value)} r="5" />
+              ))}
           </svg>
         </div>
         <div className="yaxis">

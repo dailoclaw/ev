@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.33',
+    date: '2 Aug 2026',
+    notes: [
+      'Trends fix — filled the classic trend chart marker and animated it along the line as the stroke draws left to right.',
+    ],
+  },
+  {
     version: '3.9.32',
     date: '2 Aug 2026',
     notes: [

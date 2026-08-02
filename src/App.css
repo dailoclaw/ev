@@ -1929,11 +1929,16 @@ input[type='range'].capslider::-webkit-slider-thumb {
   animation: trend-area 520ms ease 420ms forwards;
 }
 .scrub .dot {
-  fill: var(--surf);
-  stroke: var(--money);
+  fill: var(--money);
+  stroke: var(--surf);
   stroke-width: 2.5;
   opacity: 0;
   animation: trend-dot 360ms ease 720ms forwards;
+}
+.scrub .travel-dot {
+  opacity: 1;
+  animation: none;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--money) 38%, transparent));
 }
 .scrub .flag {
   position: absolute;
