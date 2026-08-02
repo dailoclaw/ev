@@ -2842,6 +2842,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
 :root[data-density='compact'] .swiperow {
   margin-bottom: 6px;
 }
+:root[data-density='compact'] .swiperow .swipe-content {
+  margin-bottom: 0;
+}
 :root[data-density='compact'] .ledger .lrow,
 :root[data-density='compact'] .yoyrow,
 :root[data-density='compact'] .exp-row {
@@ -2908,6 +2911,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
 :root[data-density='presentation'] .row {
   padding: 14px;
   margin-bottom: 10px;
+}
+:root[data-density='presentation'] .swiperow .swipe-content {
+  margin-bottom: 0;
 }
 :root[data-density='presentation'] .row strong {
   font-size: 15px;

@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.32',
+    date: '2 Aug 2026',
+    notes: [
+      'Statement fix — kept swipe row content marginless under Compact and Present density so edit/delete actions stay hidden behind each row.',
+    ],
+  },
+  {
     version: '3.9.31',
     date: '2 Aug 2026',
     notes: [
