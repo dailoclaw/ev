@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.31',
+    date: '2 Aug 2026',
+    notes: [
+      'Stats fix — moved Monthly breakdown sparklines inward so they no longer sit against the card edge.',
+    ],
+  },
+  {
     version: '3.9.30',
     date: '2 Aug 2026',
     notes: [

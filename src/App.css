@@ -2146,7 +2146,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   width: 54px;
   height: 24px;
   justify-content: flex-end;
-  transform: translateY(-7px);
+  transform: translate(-34px, -7px);
 }
 .ledger .lrow .spk i {
   width: 4px;
