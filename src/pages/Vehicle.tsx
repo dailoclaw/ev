@@ -5,6 +5,7 @@ import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
 import CountUpNumber from '../components/CountUpNumber'
 import { useStyle } from '../lib/style'
+import { LiquidGlass } from 'liquid-glass-web-react'
 
 // Cockpit assumptions — editable, persisted locally.
 const LS_KEY = 'ev.vehicle.v1'
@@ -12,6 +13,28 @@ interface Assumptions {
   efficiency: number // kWh / 100 km
   petrolPrice: number // $/L
   petrolUse: number // L / 100 km
+}
+
+function VehicleGlassStat({ className, children }: { className: string; children: ReactNode }) {
+  return (
+    <LiquidGlass
+      className={`cv-comp ${className}`}
+      x={0.5}
+      y={0.5}
+      width={92}
+      height={92}
+      radius="auto"
+      strength={0.035}
+      chromaticAberration={0.35}
+      curvature={0.82}
+      depth={10}
+      glow={0.18}
+      edgeHighlight={0.38}
+      shadow="0 0 0 1px rgba(255,255,255,0.16), 0 16px 36px rgba(0,0,0,0.24)"
+    >
+      <span className="cv-comp__content">{children}</span>
+    </LiquidGlass>
+  )
 }
 const DEFAULTS: Assumptions = { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7.0 }
 const read = (): Assumptions => {
@@ -133,24 +156,24 @@ function CanvasVehicle() {
             aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
           >
             {photo ? <img src={photo} alt="Your vehicle" /> : <span className="cv-car-line" aria-hidden="true" />}
-            <span className="cv-comp c1">
+            <VehicleGlassStat className="c1">
               <b>
                 <CountUpNumber value={a.efficiency} format={value => num(value)} durationMs={720} />
               </b>
               <small>kWh/100</small>
-            </span>
-            <span className="cv-comp c2">
+            </VehicleGlassStat>
+            <VehicleGlassStat className="c2">
               <b>
                 <CountUpNumber value={distanceKm} format={value => kwh(value, 0)} durationMs={760} />
               </b>
               <small>km</small>
-            </span>
-            <span className="cv-comp c3">
+            </VehicleGlassStat>
+            <VehicleGlassStat className="c3">
               <b>
                 <CountUpNumber value={savedVsPetrol} format={value => aud(value, 0)} durationMs={760} />
               </b>
               <small>saved</small>
-            </span>
+            </VehicleGlassStat>
           </button>
           <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
           {photoError && <p className="cv-error">{photoError}</p>}

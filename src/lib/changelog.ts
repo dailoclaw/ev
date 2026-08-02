@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.36',
+    date: '2 Aug 2026',
+    notes: [
+      'Minimal Vehicle fix — converted the overview photo stat circles into LiquidGlass-style glass bubbles.',
+    ],
+  },
+  {
     version: '3.9.35',
     date: '2 Aug 2026',
     notes: [
