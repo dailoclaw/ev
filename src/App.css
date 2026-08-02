@@ -3231,7 +3231,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .cv-barviz i span {
   position: absolute;
   left: 50%;
-  top: -26px;
+  top: -15px;
   transform: translateX(-50%);
   color: var(--tx);
   font-size: 11px;

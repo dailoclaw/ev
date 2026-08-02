@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.35',
+    date: '2 Aug 2026',
+    notes: [
+      'Minimal Energy fix — moved animated bar chart values closer to the top of each bar.',
+    ],
+  },
+  {
     version: '3.9.34',
     date: '2 Aug 2026',
     notes: [
