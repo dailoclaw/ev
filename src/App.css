@@ -2091,7 +2091,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   grid-template-columns: minmax(112px, 1fr) 54px minmax(112px, 0.9fr) 54px;
   gap: 10px;
   align-items: center;
-  padding: 11px 18px;
+  padding: 11px 40px 11px 18px;
 }
 .ledger .lhead {
   font-size: 9.5px;

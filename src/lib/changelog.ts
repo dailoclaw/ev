@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.29',
+    date: '2 Aug 2026',
+    notes: [
+      'Stats fix — moved the Monthly breakdown cost column inward with extra right-side ledger padding.',
+    ],
+  },
+  {
     version: '3.9.28',
     date: '2 Aug 2026',
     notes: [
