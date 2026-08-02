@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.30',
+    date: '2 Aug 2026',
+    notes: [
+      'Stats fix — moved the Monthly breakdown Cost heading and values left with an explicit text inset.',
+    ],
+  },
+  {
     version: '3.9.29',
     date: '2 Aug 2026',
     notes: [

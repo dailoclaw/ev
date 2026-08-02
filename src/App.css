@@ -2105,6 +2105,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .ledger .lhead span:nth-child(2) {
   text-align: center;
 }
+.ledger .lhead span:nth-child(3) {
+  padding-right: 34px;
+}
 .ledger .lrow {
   border-top: 1px solid var(--bd2);
   width: 100%;
@@ -2132,6 +2135,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
 }
 .ledger .lrow > .num:nth-child(2) {
   text-align: center;
+}
+.ledger .lrow > .num:nth-child(3) {
+  padding-right: 34px;
 }
 .ledger .lrow .spk {
   display: flex;
