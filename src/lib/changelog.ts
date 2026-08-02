@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.28',
+    date: '2 Aug 2026',
+    notes: [
+      'Stats fix — narrowed the Monthly breakdown kWh column and gave the cost area more room away from the screen edge.',
+    ],
+  },
+  {
     version: '3.9.27',
     date: '1 Aug 2026',
     notes: [

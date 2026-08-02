@@ -2088,10 +2088,10 @@ input[type='range'].capslider::-webkit-slider-thumb {
 .ledger .lhead,
 .ledger .lrow {
   display: grid;
-  grid-template-columns: minmax(118px, 1fr) 74px minmax(86px, 0.72fr) 54px;
-  gap: 8px;
+  grid-template-columns: minmax(112px, 1fr) 54px minmax(112px, 0.9fr) 54px;
+  gap: 10px;
   align-items: center;
-  padding: 11px 14px;
+  padding: 11px 18px;
 }
 .ledger .lhead {
   font-size: 9.5px;
