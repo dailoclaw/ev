@@ -1121,7 +1121,14 @@ function TrendsView({
             {sp &&
               (activeIdx > 0 && !reduceMotion ? (
                 <circle key={`${chartKey}-${activeIdx}`} className="dot travel-dot" r="5">
-                  <animateMotion dur="900ms" fill="freeze" path={activeD} />
+                  <animateMotion
+                    dur="900ms"
+                    fill="freeze"
+                    path={activeD}
+                    calcMode="spline"
+                    keyTimes="0;1"
+                    keySplines="0.35 0.8 0.25 1"
+                  />
                 </circle>
               ) : (
                 <circle className="dot" cx={xAt(activeIdx)} cy={yAt(sp.value)} r="5" />

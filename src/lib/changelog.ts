@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.9.34',
+    date: '2 Aug 2026',
+    notes: [
+      'Trends fix — matched the classic chart marker motion curve to the line draw so the marker stays at the leading edge.',
+    ],
+  },
+  {
     version: '3.9.33',
     date: '2 Aug 2026',
     notes: [
