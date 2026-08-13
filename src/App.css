@@ -3535,6 +3535,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   background:
     radial-gradient(circle at 35% 20%, rgba(255, 255, 255, 0.16), transparent 38%),
     color-mix(in srgb, #05080c 62%, transparent);
+  color: #fff;
 }
 .cv-comp.c1 {
   left: 18px;
@@ -3575,6 +3576,9 @@ input[type='range'].capslider::-webkit-slider-thumb {
   line-height: 1;
   text-align: center;
   white-space: nowrap;
+}
+.cv-car-stage.has-photo .cv-comp__content small {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .cv-distance-photo {
