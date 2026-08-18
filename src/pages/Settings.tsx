@@ -26,6 +26,7 @@ import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
 import GlassSegmented from '../components/GlassSegmented'
 import { supa } from '../lib/supa'
+import { MIN_OWNER_PASSWORD_LENGTH, validateOwnerPassword } from '../lib/auth'
 
 type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
 
@@ -37,6 +38,10 @@ export default function Settings() {
   const [theme, setTheme] = useTheme()
   const [style, setStyle] = useStyle()
   const [showWhatsNew, setShowWhatsNew] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordResult, setPasswordResult] = useState<{ kind: 'error' | 'success'; message: string } | null>(null)
 
   const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
   const [restoreError, setRestoreError] = useState<string | null>(null)
@@ -105,6 +110,29 @@ export default function Settings() {
   const signOut = () => {
     if (ev.pendingCount > 0 && !window.confirm('Some changes are still waiting to sync. Sign out on this device anyway?')) return
     void supa?.auth.signOut({ scope: 'local' })
+  }
+  const savePassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const validationError = validateOwnerPassword(newPassword, confirmPassword)
+    if (validationError) {
+      setPasswordResult({ kind: 'error', message: validationError })
+      return
+    }
+    if (!supa) {
+      setPasswordResult({ kind: 'error', message: 'Supabase is not configured.' })
+      return
+    }
+    setPasswordSaving(true)
+    setPasswordResult(null)
+    const { error } = await supa.auth.updateUser({ password: newPassword })
+    setPasswordSaving(false)
+    if (error) {
+      setPasswordResult({ kind: 'error', message: error.message })
+      return
+    }
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordResult({ kind: 'success', message: 'Password saved. Password sign-in is ready.' })
   }
   const syncDescription =
     ev.syncStatus === 'synced'
@@ -457,6 +485,44 @@ export default function Settings() {
           </button>
         </div>
       )}
+
+      <h2 className="sec-h2">Security</h2>
+      <p className="sec-sub">Set or change the owner password. Magic-link sign-in remains available as a recovery option.</p>
+      <section className="hero-card">
+        <form className="security-form" onSubmit={savePassword}>
+          <label htmlFor="new-owner-password">New password</label>
+          <input
+            id="new-owner-password"
+            name="new-password"
+            type="password"
+            autoComplete="new-password"
+            minLength={MIN_OWNER_PASSWORD_LENGTH}
+            required
+            value={newPassword}
+            onChange={event => setNewPassword(event.target.value)}
+          />
+          <small>At least {MIN_OWNER_PASSWORD_LENGTH} characters. Save it in your password manager.</small>
+          <label htmlFor="confirm-owner-password">Confirm password</label>
+          <input
+            id="confirm-owner-password"
+            name="confirm-password"
+            type="password"
+            autoComplete="new-password"
+            minLength={MIN_OWNER_PASSWORD_LENGTH}
+            required
+            value={confirmPassword}
+            onChange={event => setConfirmPassword(event.target.value)}
+          />
+          <button className="primary-btn" type="submit" disabled={passwordSaving}>
+            {passwordSaving ? 'Saving password…' : 'Save owner password'}
+          </button>
+          {passwordResult && (
+            <p className={passwordResult.kind === 'error' ? 'security-error' : 'security-success'} role="status">
+              {passwordResult.message}
+            </p>
+          )}
+        </form>
+      </section>
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
         EV Command v{APP_VERSION} · Cockpit Ledger · what's new ›

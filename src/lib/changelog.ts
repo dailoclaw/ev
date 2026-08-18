@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.1',
+    date: '18 Aug 2026',
+    notes: [
+      'Added password-manager-friendly owner sign-in while retaining magic links as a recovery option.',
+      'Added an in-app security control for setting or changing the permanent owner password.',
+    ],
+  },
+  {
     version: '4.0.0',
     date: '18 Aug 2026',
     notes: [

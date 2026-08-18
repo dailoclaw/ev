@@ -337,6 +337,40 @@
   color: var(--money);
 }
 
+.security-form {
+  display: grid;
+  gap: 9px;
+}
+.security-form label {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.security-form input {
+  width: 100%;
+  border: 1px solid var(--bd);
+  border-radius: 11px;
+  padding: 11px 13px;
+  background: var(--surf2);
+  color: var(--tx);
+  font: inherit;
+}
+.security-form small {
+  color: var(--mut);
+  line-height: 1.4;
+}
+.security-form .primary-btn {
+  margin-top: 7px;
+}
+.security-error,
+.security-success {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+.security-error { color: var(--neg); }
+.security-success { color: var(--money-deep); }
+
 /* ---- records / trophy cabinet ---- */
 .trophy-grid {
   display: grid;

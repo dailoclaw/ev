@@ -49,8 +49,10 @@ values (1, 'OWNER_AUTH_USER_UUID')
 on conflict (id) do update set owner_id = excluded.owner_id;
 ```
 
-4. In Auth URL Configuration, set the deployed site URL and add the exact local/deployed redirect URLs used by magic-link sign-in.
+4. In Auth URL Configuration, set the deployed site URL and add the exact local/deployed redirect URLs used by recovery magic-link sign-in.
 5. Deploy the new frontend immediately after the RLS migration; the previous anonymous client will correctly lose access.
+
+The owner can set or change a password in Settings. Password sign-in is the normal path and works with browser password managers; magic-link sign-in remains available for first-time setup and recovery. Public signup stays disabled, so password support does not create a public registration path. Passwords and session tokens are intentionally excluded from app backups.
 
 `vercel.json` provides SPA route fallback, immutable hashed-asset caching, and baseline browser security headers for the existing Vercel deployment path.
 
@@ -101,6 +103,6 @@ AuthGate
 
 ## Security model
 
-The app is intentionally single-owner. Anonymous table access is revoked; authenticated policies call `is_app_owner()`, and vehicle photos are private objects restricted to the owner UUID path. Database constraints also reject malformed dates, negative/outlandish numeric values, blank provider names, invalid colors, oversized notes, and empty ledger rows.
+The app is intentionally single-owner. Anonymous table access is revoked; authenticated policies call `is_app_owner()`, and vehicle photos are private objects restricted to the owner UUID path. The confirmed owner can use a stored password or a recovery magic link; password setup requires an existing signed-in session and does not enable signup. Database constraints also reject malformed dates, negative/outlandish numeric values, blank provider names, invalid colors, oversized notes, and empty ledger rows.
 
 This is a personal EV ledger, not a high-sensitivity system. The security work is aimed at preventing casual public access and future unsafe writes without adding enterprise administration or multi-tenant complexity.

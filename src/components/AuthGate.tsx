@@ -19,7 +19,8 @@ function GateCard({ children }: { children: ReactNode }) {
 export default function AuthGate({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>({ loading: true, user: null })
   const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState<'password' | 'magic' | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const data = useEvState()
 
@@ -62,35 +63,58 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   }
 
   if (!auth.user) {
-    const sendLink = async (event: React.FormEvent) => {
+    const signInWithPassword = async (event: React.FormEvent) => {
       event.preventDefault()
+      if (!supa || !email.trim() || !password) return
+      setBusy('password')
+      setMessage(null)
+      const { error } = await supa.auth.signInWithPassword({ email: email.trim(), password })
+      setBusy(null)
+      if (error) setMessage(error.message)
+    }
+
+    const sendLink = async () => {
       if (!supa || !email.trim()) return
-      setSending(true)
+      setBusy('magic')
       setMessage(null)
       const { error } = await supa.auth.signInWithOtp({
         email: email.trim(),
         options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
       })
-      setSending(false)
+      setBusy(null)
       setMessage(error ? error.message : 'Check your email for the secure sign-in link.')
     }
     return (
       <GateCard>
         <h1>Sign in</h1>
         <p>Your charging ledger is available only to the configured owner account.</p>
-        <form onSubmit={sendLink}>
+        <form onSubmit={signInWithPassword}>
           <label htmlFor="owner-email">Owner email</label>
           <input
             id="owner-email"
+            name="email"
             type="email"
-            autoComplete="email"
+            autoComplete="username"
             required
             value={email}
             onChange={event => setEmail(event.target.value)}
             placeholder="you@example.com"
           />
-          <button className="primary-btn" type="submit" disabled={sending}>
-            {sending ? 'Sending…' : 'Email me a sign-in link'}
+          <label htmlFor="owner-password">Owner password</label>
+          <input
+            id="owner-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={event => setPassword(event.target.value)}
+          />
+          <button className="primary-btn" type="submit" disabled={busy !== null || !email.trim() || !password}>
+            {busy === 'password' ? 'Signing in…' : 'Sign in'}
+          </button>
+          <button className="text-btn" type="button" disabled={busy !== null || !email.trim()} onClick={() => void sendLink()}>
+            {busy === 'magic' ? 'Sending link…' : 'Use a magic link instead'}
           </button>
         </form>
         {message && <p role="status">{message}</p>}
