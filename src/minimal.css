@@ -352,61 +352,21 @@
 }
 
 /* ---- the Settings style preview ---- */
-.style-preview {
-  border-radius: var(--radius);
-  background: var(--surf);
-  border: 1px solid var(--bd);
-  box-shadow: var(--cardshadow);
-  padding: 14px 16px;
-  margin-bottom: 14px;
-}
 :root[data-style='minimal'] .style-preview {
   border-color: transparent;
   border-radius: 22px;
   padding: 18px;
 }
-.style-preview-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 11px;
-  align-items: center;
-}
-.style-preview-row span strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 800;
-}
 :root[data-style='minimal'] .style-preview-row span strong {
   font-size: 15.5px;
   letter-spacing: -0.01em;
 }
-.style-preview-row span small {
-  display: block;
-  font-size: 11.5px;
-  color: var(--mut);
-  font-weight: 600;
-  margin-top: 3px;
-}
 :root[data-style='minimal'] .style-preview-row span small {
   font-size: 12.5px;
-}
-.style-preview-row b {
-  font-size: 14px;
-  font-weight: 800;
-  white-space: nowrap;
 }
 :root[data-style='minimal'] .style-preview-row b {
   font-size: 16px;
   letter-spacing: -0.02em;
-}
-.style-preview-cap {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--fnt);
-  margin-bottom: 9px;
 }
 :root[data-style='minimal'] .style-preview-cap {
   font-size: 12px;

@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.2',
+    date: '18 Aug 2026',
+    notes: [
+      'Restored the appearance preview card after a fresh Classic-style load.',
+    ],
+  },
+  {
     version: '4.0.1',
     date: '18 Aug 2026',
     notes: [

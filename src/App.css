@@ -337,6 +337,48 @@
   color: var(--money);
 }
 
+/* ---- Settings style preview ---- */
+.style-preview {
+  border-radius: var(--radius);
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  box-shadow: var(--cardshadow);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.style-preview-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+}
+.style-preview-row span strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+}
+.style-preview-row span small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--mut);
+  font-weight: 600;
+  margin-top: 3px;
+}
+.style-preview-row b {
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.style-preview-cap {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fnt);
+  margin-bottom: 9px;
+}
+
 .security-form {
   display: grid;
   gap: 9px;
