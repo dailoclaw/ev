@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+.auth-gate {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--canvas, #f3f5f7);
+  color: var(--tx, #17212b);
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  padding: 28px;
+  border: 1px solid var(--bd, #d8dee5);
+  border-radius: 20px;
+  background: var(--surf, #fff);
+  box-shadow: 0 18px 50px rgb(15 23 42 / 10%);
+}
+
+.auth-card h1 { margin: 6px 0 10px; font-size: 28px; }
+.auth-card p { color: var(--mut, #64748b); line-height: 1.5; }
+.auth-card form { display: grid; gap: 10px; margin-top: 22px; }
+.auth-card label { font-size: 12px; font-weight: 800; }
+.auth-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--bd, #d8dee5);
+  border-radius: 12px;
+  background: var(--surf2, #f8fafc);
+  color: inherit;
+  font: inherit;
+}
+
+.route-loading {
+  min-height: 100dvh;
+  background: var(--canvas);
+}
+
 /* ============ Cockpit Ledger — design tokens ============ */
 :root {
   color-scheme: light;

@@ -8,12 +8,11 @@ import Explainable from '../components/Explainable'
 import { deriveMonthSpend } from '../lib/derive'
 import CountUpNumber from '../components/CountUpNumber'
 import Donut from '../components/Donut'
-import { useStyle } from '../lib/style'
 import { APP_VERSION } from '../lib/changelog'
+import StyleVariant from '../components/StyleVariant'
 
 export default function Home() {
-  const [style] = useStyle()
-  return style === 'minimal' ? <CanvasHome /> : <ClassicHome />
+  return <StyleVariant classic={ClassicHome} minimal={CanvasHome} />
 }
 
 function CanvasHome() {

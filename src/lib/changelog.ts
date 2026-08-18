@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.0',
+    date: '18 Aug 2026',
+    notes: [
+      'Made authenticated Supabase the canonical ledger with a durable IndexedDB offline queue.',
+      'Synced appearance, vehicle assumptions and a private vehicle photo across devices.',
+      'Added complete v2 backups, merge-only restore, validation, CI, coverage, PWA caching and route-level loading.',
+    ],
+  },
+  {
     version: '3.9.37',
     date: '2 Aug 2026',
     notes: [

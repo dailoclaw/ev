@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f3f5f7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="EV Dashboard" />
+    <meta name="apple-mobile-web-app-title" content="EV Command" />
     
     <!-- iOS App Icon -->
     <link rel="apple-touch-icon" href="/icon.jpg" />
@@ -18,25 +18,9 @@
     <!-- iOS Splash Screen -->
     <link rel="apple-touch-startup-image" href="/splash.jpg" />
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <title>EV Charging Dashboard</title>
-    <meta name="description" content="Track your electric vehicle charging costs and usage patterns" />
+    <title>EV Command</title>
+    <meta name="description" content="Private EV charging ledger, savings analysis, and vehicle running costs" />
 
-    <!-- Apply saved theme and style before first paint to avoid a flash of the wrong look -->
-    <script>
-      try {
-        if (localStorage.getItem('ev.theme') === 'dark') {
-          document.documentElement.dataset.theme = 'dark'
-          var m = document.querySelector('meta[name="theme-color"]')
-          if (m) m.setAttribute('content', '#000000')
-        }
-        if (localStorage.getItem('ev.style') === 'minimal') {
-          document.documentElement.dataset.style = 'minimal'
-        }
-      } catch (e) {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -3,30 +3,34 @@
 // the same markup (bigger radii, no card borders, sentence-case labels, more
 // air). Token values live in minimal.css; this just flips the attribute.
 // Composes with the light/dark theme — both attributes apply independently.
-import { useState } from 'react'
+import { updateAppSettings, useEvState } from './data'
 
 export type Style = 'classic' | 'minimal'
 const KEY = 'ev.style'
+let requestedStyle: Style = 'classic'
 
 export const getStoredStyle = (): Style => (localStorage.getItem(KEY) === 'minimal' ? 'minimal' : 'classic')
 
 export function applyStyle(style: Style) {
   const root = document.documentElement
-  if (style === 'minimal') root.dataset.style = 'minimal'
-  else delete root.dataset.style
+  requestedStyle = style
+  if (style === 'minimal') {
+    void import('../minimal.css').then(() => {
+      if (requestedStyle === 'minimal') root.dataset.style = 'minimal'
+    })
+  } else delete root.dataset.style
 }
 
 export function setStyle(style: Style) {
-  localStorage.setItem(KEY, style)
+  updateAppSettings({ style })
   applyStyle(style)
 }
 
 /** Settings toggle state — reads the stored value, writes through on change. */
 export function useStyle() {
-  const [style, set] = useState<Style>(getStoredStyle)
+  const style = useEvState().settings.style
   const update = (s: Style) => {
     setStyle(s)
-    set(s)
   }
   return [style, update] as const
 }

@@ -1,6 +1,6 @@
 // Light / dark (Carbon OLED) theme — persisted, applied to <html data-theme>.
 // The actual token values live in index.css; this just flips the attribute.
-import { useState } from 'react'
+import { updateAppSettings, useEvState } from './data'
 
 export type Theme = 'light' | 'dark'
 const KEY = 'ev.theme'
@@ -17,16 +17,15 @@ export function applyTheme(theme: Theme) {
 }
 
 export function setTheme(theme: Theme) {
-  localStorage.setItem(KEY, theme)
+  updateAppSettings({ theme })
   applyTheme(theme)
 }
 
 /** Settings toggle state — reads the stored value, writes through on change. */
 export function useTheme() {
-  const [theme, set] = useState<Theme>(getStoredTheme)
+  const theme = useEvState().settings.theme
   const update = (t: Theme) => {
     setTheme(t)
-    set(t)
   }
   return [theme, update] as const
 }

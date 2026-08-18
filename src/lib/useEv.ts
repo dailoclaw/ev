@@ -14,6 +14,7 @@ import {
   type RateBasis,
 } from './savings'
 import type { Provider } from './providers'
+import type { AppSettings, SyncStatus } from './appModel'
 
 export interface EvData {
   providers: Provider[]
@@ -27,10 +28,15 @@ export interface EvData {
   budgetCap: number
   synced: boolean
   loading: boolean
+  settings: AppSettings
+  vehiclePhoto: string | null
+  syncStatus: SyncStatus
+  pendingCount: number
+  lastSyncError: string | null
 }
 
 export function useEv(): EvData {
-  const { sessions, providers, budgetCap, synced, loading } = useEvState()
+  const { sessions, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError } = useEvState()
 
   return useMemo(() => {
     const ordered = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
@@ -49,6 +55,11 @@ export function useEv(): EvData {
       budgetCap,
       synced,
       loading,
+      settings,
+      vehiclePhoto,
+      syncStatus,
+      pendingCount,
+      lastSyncError,
     }
-  }, [sessions, providers, budgetCap, synced, loading])
+  }, [sessions, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError])
 }

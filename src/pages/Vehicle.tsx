@@ -4,16 +4,10 @@ import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
 import CountUpNumber from '../components/CountUpNumber'
-import { useStyle } from '../lib/style'
 import { LiquidGlass } from 'liquid-glass-web-react'
-
-// Cockpit assumptions — editable, persisted locally.
-const LS_KEY = 'ev.vehicle.v1'
-interface Assumptions {
-  efficiency: number // kWh / 100 km
-  petrolPrice: number // $/L
-  petrolUse: number // L / 100 km
-}
+import { removeVehiclePhoto, setVehicleAssumptions, uploadVehiclePhoto } from '../lib/data'
+import { DEFAULT_SETTINGS, type VehicleAssumptions as Assumptions } from '../lib/appModel'
+import StyleVariant from '../components/StyleVariant'
 
 function VehicleGlassStat({ className, children }: { className: string; children: ReactNode }) {
   return (
@@ -37,19 +31,6 @@ function VehicleGlassStat({ className, children }: { className: string; children
     </LiquidGlass>
   )
 }
-const DEFAULTS: Assumptions = { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7.0 }
-const read = (): Assumptions => {
-  try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) ?? '{}') }
-  } catch {
-    return DEFAULTS
-  }
-}
-
-// The vehicle photo lives on this device only — a compressed data URL in
-// localStorage, never synced. It's personalisation, not data worth backing up.
-const LS_PHOTO = 'ev.vehiclePhoto.v1'
-
 function compressImage(file: File, maxWidth = 960, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -76,23 +57,20 @@ function compressImage(file: File, maxWidth = 960, quality = 0.82): Promise<stri
 type VehicleView = 'overview' | 'efficiency' | 'distance' | 'petrol' | 'assumptions'
 
 export default function Vehicle() {
-  const [style] = useStyle()
-  return style === 'minimal' ? <CanvasVehicle /> : <ClassicVehicle />
+  return <StyleVariant classic={ClassicVehicle} minimal={CanvasVehicle} />
 }
 
 function CanvasVehicle() {
   const ev = useEv()
   const navigate = useNavigate()
-  const [a, setA] = useState<Assumptions>(read)
+  const a = ev.settings.vehicle
   const [view, setView] = useState<VehicleView>('overview')
-  const [photo, setPhoto] = useState<string | null>(() => localStorage.getItem(LS_PHOTO))
+  const photo = ev.vehiclePhoto
   const [photoError, setPhotoError] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   const save = (patch: Partial<Assumptions>) => {
-    const next = { ...a, ...patch }
-    setA(next)
-    localStorage.setItem(LS_KEY, JSON.stringify(next))
+    setVehicleAssumptions(patch)
   }
 
   const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,8 +79,7 @@ function CanvasVehicle() {
     if (!file) return
     try {
       const compressed = await compressImage(file)
-      localStorage.setItem(LS_PHOTO, compressed)
-      setPhoto(compressed)
+      uploadVehiclePhoto(compressed)
       setPhotoError(null)
     } catch {
       setPhotoError('Could not read that photo — try a different one.')
@@ -391,7 +368,7 @@ function CanvasVehicle() {
             <CanvasStepper label="Petrol use" sub="litres / 100 km" value={num(a.petrolUse)} onDec={() => save({ petrolUse: Math.max(0, +(a.petrolUse - 1).toFixed(2)) })} onInc={() => save({ petrolUse: +(a.petrolUse + 1).toFixed(2) })} />
           </section>
           <div className="cv-rows">
-            <button className="cv-row" type="button" onClick={() => save(DEFAULTS)}>
+            <button className="cv-row" type="button" onClick={() => save(DEFAULT_SETTINGS.vehicle)}>
               <span className="k">Reset to defaults</span>
               <span className="v">Safe</span>
               <span className="c" aria-hidden="true">
@@ -478,16 +455,14 @@ function CanvasStepper({
 
 function ClassicVehicle() {
   const ev = useEv()
-  const [a, setA] = useState<Assumptions>(read)
+  const a = ev.settings.vehicle
   const [editing, setEditing] = useState(false)
-  const [photo, setPhoto] = useState<string | null>(() => localStorage.getItem(LS_PHOTO))
+  const photo = ev.vehiclePhoto
   const [photoError, setPhotoError] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   const save = (patch: Partial<Assumptions>) => {
-    const next = { ...a, ...patch }
-    setA(next)
-    localStorage.setItem(LS_KEY, JSON.stringify(next))
+    setVehicleAssumptions(patch)
   }
 
   const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -496,8 +471,7 @@ function ClassicVehicle() {
     if (!file) return
     try {
       const compressed = await compressImage(file)
-      localStorage.setItem(LS_PHOTO, compressed)
-      setPhoto(compressed)
+      uploadVehiclePhoto(compressed)
       setPhotoError(null)
     } catch {
       setPhotoError('Could not read that photo — try a different one.')
@@ -505,8 +479,7 @@ function ClassicVehicle() {
   }
 
   const removePhoto = () => {
-    localStorage.removeItem(LS_PHOTO)
-    setPhoto(null)
+    removeVehiclePhoto()
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -550,7 +523,7 @@ function ClassicVehicle() {
       <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <p className="sec-sub" style={{ margin: 0 }}>
-          Kept on this device only — not synced or backed up.
+          Synced privately to Supabase and included in JSON backups.
         </p>
         {photo && (
           <button type="button" className="text-btn" onClick={removePhoto}>

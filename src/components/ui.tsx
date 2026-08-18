@@ -96,28 +96,30 @@ export function Ring({
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     [],
   )
-  const [displayPct, setDisplayPct] = useState(reduceMotion ? pct : 0)
+  const [animatedPct, setAnimatedPct] = useState(0)
 
   useEffect(() => {
-    if (reduceMotion) {
-      setDisplayPct(pct)
-      return
-    }
+    if (reduceMotion) return
 
     let raf = 0
-    const start = performance.now()
-    const duration = 850
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / duration)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setDisplayPct(pct * eased)
-      if (progress < 1) raf = requestAnimationFrame(tick)
+    const kickoff = requestAnimationFrame(start => {
+      setAnimatedPct(0)
+      const duration = 850
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - start) / duration)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        setAnimatedPct(pct * eased)
+        if (progress < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    })
+    return () => {
+      cancelAnimationFrame(kickoff)
+      cancelAnimationFrame(raf)
     }
-
-    setDisplayPct(0)
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
   }, [pct, reduceMotion])
+
+  const displayPct = reduceMotion ? pct : animatedPct
 
   return (
     <div
@@ -144,23 +146,28 @@ export function Thermo({ spent, projected, cap }: { spent: number; projected: nu
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     [],
   )
-  const [armed, setArmed] = useState(reduceMotion)
+  const [armed, setArmed] = useState(false)
   const pct = (n: number) => Math.min(100, Math.max(0, (n / cap) * 100))
 
   useEffect(() => {
-    if (reduceMotion) {
-      setArmed(true)
-      return
-    }
+    if (reduceMotion) return
 
-    setArmed(false)
-    const id = requestAnimationFrame(() => setArmed(true))
-    return () => cancelAnimationFrame(id)
+    let armRaf = 0
+    const resetRaf = requestAnimationFrame(() => {
+      setArmed(false)
+      armRaf = requestAnimationFrame(() => setArmed(true))
+    })
+    return () => {
+      cancelAnimationFrame(resetRaf)
+      cancelAnimationFrame(armRaf)
+    }
   }, [cap, projected, reduceMotion, spent])
 
+  const displayArmed = reduceMotion || armed
+
   return (
-    <div className={`thermo ${armed ? 'armed' : ''}`} role="img" aria-label={`Spent ${spent.toFixed(2)} of ${cap} budget`}>
-      <span className="fill" style={{ width: armed ? `${pct(spent)}%` : '0%' }} />
+    <div className={`thermo ${displayArmed ? 'armed' : ''}`} role="img" aria-label={`Spent ${spent.toFixed(2)} of ${cap} budget`}>
+      <span className="fill" style={{ width: displayArmed ? `${pct(spent)}%` : '0%' }} />
       {projected > spent && <span className="proj" style={{ left: `${pct(projected)}%` }} />}
       <span className="cap100" />
     </div>
@@ -174,23 +181,28 @@ export function SplitBar({ segments }: { segments: Array<{ pct: number; color?: 
     [],
   )
   const segmentKey = segments.map(s => `${s.pct}:${s.color ?? ''}:${s.cls ?? ''}`).join('|')
-  const [armed, setArmed] = useState(reduceMotion)
+  const [armed, setArmed] = useState(false)
 
   useEffect(() => {
-    if (reduceMotion) {
-      setArmed(true)
-      return
-    }
+    if (reduceMotion) return
 
-    setArmed(false)
-    const id = requestAnimationFrame(() => setArmed(true))
-    return () => cancelAnimationFrame(id)
+    let armRaf = 0
+    const resetRaf = requestAnimationFrame(() => {
+      setArmed(false)
+      armRaf = requestAnimationFrame(() => setArmed(true))
+    })
+    return () => {
+      cancelAnimationFrame(resetRaf)
+      cancelAnimationFrame(armRaf)
+    }
   }, [reduceMotion, segmentKey])
 
+  const displayArmed = reduceMotion || armed
+
   return (
-    <div className={`splitb ${armed ? 'armed' : ''}`}>
+    <div className={`splitb ${displayArmed ? 'armed' : ''}`}>
       {segments.map((s, i) => (
-        <i key={i} className={s.cls} style={{ width: armed ? `${s.pct}%` : '0%', ...(s.color ? { background: s.color } : {}) }} />
+        <i key={i} className={s.cls} style={{ width: displayArmed ? `${s.pct}%` : '0%', ...(s.color ? { background: s.color } : {}) }} />
       ))}
     </div>
   )

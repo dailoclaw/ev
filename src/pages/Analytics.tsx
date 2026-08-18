@@ -7,7 +7,7 @@ import { yearOnYear } from '../lib/yearOnYear'
 import { records } from '../lib/records'
 import { useUnitRoll } from '../lib/useUnitRoll'
 import CountUpNumber from '../components/CountUpNumber'
-import { useStyle } from '../lib/style'
+import StyleVariant from '../components/StyleVariant'
 import GlassSegmented from '../components/GlassSegmented'
 
 type View = 'statement' | 'cluster' | 'trends' | 'split' | 'compare'
@@ -58,11 +58,14 @@ const VIEWS: { id: View; label: string; eye: string; icon: ReactNode }[] = [
 const perKwh = (cost: number, k: number) => (k > 0 ? '$' + (cost / k).toFixed(2) : '—')
 const pct = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 100 : null)
 // short chip label so all provider filters fit one row
-const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
+const shortProv = (name: string) => {
+  if (name.length <= 11) return name
+  const initials = name.split(/\s+/).map(part => part[0]).join('').toUpperCase()
+  return initials.length >= 2 ? initials.slice(0, 4) : name.slice(0, 4)
+}
 
 export default function Analytics() {
-  const [style] = useStyle()
-  return style === 'minimal' ? <CanvasStats /> : <ClassicAnalytics />
+  return <StyleVariant classic={ClassicAnalytics} minimal={CanvasStats} />
 }
 
 function CanvasStats() {
@@ -106,7 +109,7 @@ function CanvasStats() {
         .slice()
         .sort((a, b) => a.effectiveRate - b.effectiveRate)[0] ?? ev.byProvider[0]
     return { activeYear, months, cur, prev, rateNow, rateDelta, freePct, avgMonth, largestMonth, bestProvider }
-  }, [ev.months, ev.byProvider, years])
+  }, [ev, years])
 
   const rates = model.months.map(m => (m.kwh > 0 ? m.cost / m.kwh : 0))
   const energyBars = model.months.slice(-8)

@@ -6,8 +6,10 @@ export interface Provider {
   name: string
   color: string
   freeKwhPerDay: number
-  /** Hidden from pickers, but every session it ever contributed still counts everywhere. Local-only flag. */
+  /** Hidden from pickers, but every session it ever contributed still counts everywhere. */
   archived?: boolean
+  /** Stable picker order, synced with the provider. */
+  sortOrder?: number
 }
 
 // Palette used when a new provider is added without picking a colour.
@@ -16,19 +18,9 @@ export const PROVIDER_PALETTE = [
   '#f97316', '#14b8a6', '#a855f7', '#ef4444', '#22c55e',
 ]
 
-export const DEFAULT_PROVIDERS: Provider[] = [
-  { id: 'jolt', name: 'Jolt', color: '#0d9488', freeKwhPerDay: 7 },
-  { id: 'matty', name: 'Matty', color: '#6366f1', freeKwhPerDay: 0 },
-  { id: 'chargefox', name: 'Chargefox', color: '#8b5cf6', freeKwhPerDay: 0 },
-  { id: 'supercharger', name: 'Supercharger', color: '#f43f5e', freeKwhPerDay: 0 },
-]
-
 export const providerInitial = (name: string) => name.charAt(0).toUpperCase()
 
 export const nextPaletteColor = (existing: Provider[]) => {
   const used = new Set(existing.map(p => p.color.toLowerCase()))
   return PROVIDER_PALETTE.find(c => !used.has(c.toLowerCase())) ?? PROVIDER_PALETTE[0]
 }
-
-export const slugify = (name: string) =>
-  name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'provider'

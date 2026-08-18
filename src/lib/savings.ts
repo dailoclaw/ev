@@ -6,6 +6,8 @@ import type { Provider } from './providers'
 
 export interface Session {
   id: string
+  /** Stable provider key used by persistence; calculations continue to display `type`. */
+  providerId?: string
   date: string // yyyy-mm-dd
   type: string // provider name
   amount: number // kWh

@@ -21,16 +21,15 @@ export default function Donut({
     [],
   )
   // Start filled when motion is off, so the ring is never drawn empty.
-  const [shown, setShown] = useState(reduceMotion ? pct : 0)
+  const [shown, setShown] = useState(0)
 
   useEffect(() => {
-    if (reduceMotion) {
-      setShown(pct)
-      return
-    }
+    if (reduceMotion) return
     const id = requestAnimationFrame(() => setShown(pct))
     return () => cancelAnimationFrame(id)
   }, [pct, reduceMotion])
+
+  const displayPct = reduceMotion ? pct : shown
 
   return (
     <div className="cv-donut">
@@ -42,7 +41,7 @@ export default function Donut({
           cy="95"
           r={R}
           strokeDasharray={C}
-          strokeDashoffset={C * (1 - shown / 100)}
+          strokeDashoffset={C * (1 - displayPct / 100)}
         />
       </svg>
       <div className="cv-donut-mid">

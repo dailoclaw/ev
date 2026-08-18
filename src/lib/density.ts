@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { updateAppSettings, useEvState } from './data'
 
 export type Density = 'comfortable' | 'compact' | 'presentation'
 const KEY = 'ev.density'
@@ -18,15 +18,14 @@ export function applyDensity(density: Density) {
 }
 
 export function setDensity(density: Density) {
-  localStorage.setItem(KEY, density)
+  updateAppSettings({ density })
   applyDensity(density)
 }
 
 export function useDensity() {
-  const [density, set] = useState<Density>(getStoredDensity)
+  const density = useEvState().settings.density
   const update = (value: Density) => {
     setDensity(value)
-    set(value)
   }
   return [density, update] as const
 }

@@ -4,17 +4,26 @@ import TabBar from './components/TabBar'
 import AddSheet from './components/AddSheet'
 import { applyDensity, getStoredDensity } from './lib/density'
 import { applyStyle, getStoredStyle } from './lib/style'
+import { applyTheme, getStoredTheme } from './lib/theme'
+import { useEvState } from './lib/data'
 import './App.css'
-import './minimal.css'
 
 export default function App() {
   const [adding, setAdding] = useState(false)
   const { pathname } = useLocation()
+  const { settings } = useEvState()
 
   useEffect(() => {
     applyDensity(getStoredDensity())
     applyStyle(getStoredStyle())
+    applyTheme(getStoredTheme())
   }, [])
+
+  useEffect(() => {
+    applyDensity(settings.density)
+    applyStyle(settings.style)
+    applyTheme(settings.theme)
+  }, [settings.density, settings.style, settings.theme])
 
   useEffect(() => {
     window.scrollTo(0, 0)

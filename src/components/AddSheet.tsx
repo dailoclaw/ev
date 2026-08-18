@@ -10,24 +10,12 @@ import GlassSegmented from './GlassSegmented'
 type Mode = 'charge' | 'fee'
 
 export default function AddSheet({ onClose }: { onClose: () => void }) {
-  const { providers: allProviders, sessions, refRate, synced } = useEv()
+  const { providers: allProviders, sessions, refRate, synced, syncStatus, pendingCount } = useEv()
   const providers = useMemo(
-    () =>
-      allProviders
-        .filter(p => !p.archived)
-        .map((provider, index) => ({ provider, index }))
-        .sort((a, b) => {
-          const rank = (name: string) => {
-            if (name === 'Jolt') return 0
-            if (name === 'Chargefox') return 2
-            return 1
-          }
-          return rank(a.provider.name) - rank(b.provider.name) || a.index - b.index
-        })
-        .map(({ provider }) => provider),
+    () => allProviders.filter(provider => !provider.archived),
     [allProviders],
   )
-  const defaultProviderName = providers.find(p => p.name === 'Jolt')?.name ?? providers[0]?.name ?? ''
+  const defaultProviderName = providers[0]?.name ?? ''
   const [mode, setMode] = useState<Mode>('charge')
   const [providerName, setProviderName] = useState(defaultProviderName)
   const [showNew, setShowNew] = useState(false)
@@ -80,14 +68,14 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             <TickSvg />
             <b style={{ fontSize: 15, fontWeight: 800 }}>{isFee ? 'Fee saved' : 'Charge saved'}</b>
             <p style={{ fontSize: 12, color: 'var(--mut)', fontWeight: 600, marginTop: 4 }}>
-              {synced ? 'Synced to Supabase' : 'Stored on this device — will sync once Supabase is connected'}
+              {synced ? 'Synced to Supabase' : `Saved safely · ${pendingCount || 1} change${(pendingCount || 1) === 1 ? '' : 's'} waiting to sync`}
             </p>
           </div>
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <b style={{ fontSize: 17, fontWeight: 800 }}>{isFee ? 'New membership fee' : 'New charge'}</b>
-              <SyncBadge live={synced} label={synced ? 'Syncs live' : 'Local for now'} />
+              <SyncBadge live={synced} label={synced ? 'Syncs live' : syncStatus === 'offline' ? 'Offline queue' : 'Will sync'} />
             </div>
 
             <GlassSegmented

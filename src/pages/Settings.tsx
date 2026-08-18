@@ -10,8 +10,7 @@ import {
   parseBackup,
   previewRestore,
   restoreMerge,
-  restoreReplaceLocal,
-  restoreReplaceRemote,
+  retrySync,
   setBudgetCap,
   setProviderArchived,
   setProviderOrder,
@@ -26,6 +25,7 @@ import { APP_VERSION } from '../lib/changelog'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
 import GlassSegmented from '../components/GlassSegmented'
+import { supa } from '../lib/supa'
 
 type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
 
@@ -42,8 +42,6 @@ export default function Settings() {
   const [restoreError, setRestoreError] = useState<string | null>(null)
   const [restoreDone, setRestoreDone] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
-  const [confirmText, setConfirmText] = useState('')
-  const [replacing, setReplacing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const activeProviders = ev.providers.filter(p => !p.archived)
@@ -63,10 +61,14 @@ export default function Settings() {
     setTimeout(() => setExported(false), 2000)
   }
 
-  const downloadBackup = () => {
-    downloadJson(buildBackup(), `ev-command-backup-${todayIso()}.json`)
-    markBackedUp()
-    setLastBackup(lastBackupAt())
+  const downloadBackup = async () => {
+    try {
+      downloadJson(await buildBackup(), `ev-command-backup-${todayIso()}.json`)
+      markBackedUp()
+      setLastBackup(lastBackupAt())
+    } catch (error) {
+      setRestoreError(error instanceof Error ? error.message : 'Could not build the backup.')
+    }
   }
 
   const onFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +77,6 @@ export default function Settings() {
     if (!file) return
     setRestoreError(null)
     setRestoreDone(null)
-    setConfirmText('')
     const text = await file.text()
     const backup = parseBackup(text)
     if (!backup) {
@@ -85,41 +86,34 @@ export default function Settings() {
     setPending({ backup, ...previewRestore(backup) })
   }
 
-  const confirmMerge = () => {
+  const confirmMerge = async () => {
     if (!pending) return
-    const { providersAdded, sessionsAdded } = restoreMerge(pending.backup)
-    setRestoreDone(
-      `Added ${sessionsAdded} charge${sessionsAdded === 1 ? '' : 's'}` +
-        (providersAdded ? ` and ${providersAdded} provider${providersAdded === 1 ? '' : 's'}` : '') +
-        (ev.synced ? ' — synced to Supabase.' : '.'),
-    )
-    setPending(null)
-  }
-
-  const confirmReplace = async () => {
-    if (!pending) return
-    setReplacing(true)
     try {
-      if (ev.synced) {
-        const { sessionsAdded } = await restoreReplaceRemote(pending.backup)
-        setRestoreDone(`Replaced Supabase with the backup — ${sessionsAdded} charges restored.`)
-      } else {
-        restoreReplaceLocal(pending.backup)
-        setRestoreDone(`Replaced your ledger with the backup — ${pending.totalSessions} charges restored.`)
-      }
-      setPending(null)
-      setConfirmText('')
-    } catch (err) {
-      setRestoreError(
-        (err instanceof Error ? err.message : 'Replace failed.') +
-          (ev.synced ? ' Check Supabase directly — the wipe may have completed before this error.' : ''),
+      const { providersAdded, sessionsAdded } = await restoreMerge(pending.backup)
+      setRestoreDone(
+        `Added ${sessionsAdded} charge${sessionsAdded === 1 ? '' : 's'}` +
+          (providersAdded ? ` and ${providersAdded} provider${providersAdded === 1 ? '' : 's'}` : '') +
+          '. Settings and vehicle photo were restored too.',
       )
-    } finally {
-      setReplacing(false)
+      setPending(null)
+    } catch (err) {
+      setRestoreError(err instanceof Error ? err.message : 'Restore failed.')
     }
   }
 
   const capPct = ((ev.budgetCap - 20) / (150 - 20)) * 100
+  const signOut = () => {
+    if (ev.pendingCount > 0 && !window.confirm('Some changes are still waiting to sync. Sign out on this device anyway?')) return
+    void supa?.auth.signOut({ scope: 'local' })
+  }
+  const syncDescription =
+    ev.syncStatus === 'synced'
+      ? `${ev.sessions.length} sessions synced`
+      : ev.syncStatus === 'offline'
+        ? `Offline · ${ev.pendingCount} change${ev.pendingCount === 1 ? '' : 's'} queued safely`
+        : ev.syncStatus === 'error'
+          ? ev.lastSyncError ?? 'Sync needs attention'
+          : `Syncing · ${ev.pendingCount} pending`
 
   return (
     <main className="app-shell">
@@ -355,12 +349,16 @@ export default function Settings() {
         </span>
         <span>
           <strong>Supabase sync</strong>
-          <small>
-            {ev.synced ? `${ev.sessions.length} sessions synced` : `${ev.sessions.length} sessions on device · not connected yet`}
-          </small>
+          <small>{syncDescription}</small>
         </span>
-        <SyncBadge live={ev.synced} label={ev.synced ? 'Live' : 'Local'} />
+        <SyncBadge live={ev.synced} label={ev.synced ? 'Live' : ev.syncStatus === 'offline' ? 'Offline' : 'Pending'} />
       </div>
+      {(ev.syncStatus === 'error' || ev.syncStatus === 'offline') && (
+        <button className="row" type="button" onClick={() => void retrySync()}>
+          <span className="mark" style={{ ['--pc' as string]: '#334155' }}>↻</span>
+          <span><strong>Retry sync</strong><small>Queued changes stay on this device until Supabase accepts them</small></span>
+        </button>
+      )}
       <button className="row" type="button" onClick={exportAll}>
         <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
           <Icon name="dl" size={17} />
@@ -376,7 +374,7 @@ export default function Settings() {
 
       <h2 className="sec-h2">Backup &amp; Restore</h2>
       <p className="sec-sub">
-        A complete, portable copy of your ledger — separate from the CSV export and separate from cloud sync.
+        A complete, portable copy of your ledger, providers, preferences, vehicle assumptions, and vehicle photo.
       </p>
       <button className="row" type="button" onClick={downloadBackup}>
         <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
@@ -450,49 +448,7 @@ export default function Settings() {
             </span>
             <span>
               <strong>Merge safely</strong>
-              <small>{ev.synced ? 'Adds the new rows and syncs them to Supabase' : 'Adds the new rows to this device'}</small>
-            </span>
-          </button>
-
-          <p style={{ fontSize: 11.5, color: 'var(--fnt)', fontWeight: 700, marginTop: 4, marginBottom: 6 }}>
-            REPLACE EVERYTHING INSTEAD
-          </p>
-          <p style={{ fontSize: 12.5, color: 'var(--mut)', marginBottom: 8 }}>
-            {ev.synced
-              ? 'Deletes every charge and charger currently in Supabase, then reinserts the backup. Permanent — this cannot be undone from within the app.'
-              : 'Overwrites everything on this device with the backup. You can undo this by restoring your previous backup file.'}
-          </p>
-          {ev.synced && (
-            <input
-              type="text"
-              placeholder='Type REPLACE to confirm'
-              value={confirmText}
-              onChange={e => setConfirmText(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: 10,
-                border: '1px solid var(--bd)',
-                background: 'var(--surf)',
-                color: 'var(--tx)',
-                fontSize: 13,
-                marginBottom: 8,
-              }}
-            />
-          )}
-          <button
-            className="row"
-            type="button"
-            disabled={replacing || (ev.synced && confirmText.trim() !== 'REPLACE')}
-            onClick={confirmReplace}
-            style={{ opacity: replacing || (ev.synced && confirmText.trim() !== 'REPLACE') ? 0.45 : 1, marginBottom: 8 }}
-          >
-            <span className="mark" style={{ ['--pc' as string]: 'var(--neg)' }}>
-              <Icon name="rcalcheck" size={17} />
-            </span>
-            <span>
-              <strong>{replacing ? 'Replacing…' : 'Replace everything'}</strong>
-              <small>{ev.synced ? 'Wipes and restores Supabase' : 'Wipes and restores this device'}</small>
+              <small>Adds missing rows, restores settings and photo, then syncs to Supabase</small>
             </span>
           </button>
 
@@ -504,6 +460,9 @@ export default function Settings() {
 
       <button type="button" className="app-footer" style={{ width: '100%', border: 0, background: 'none' }} onClick={() => setShowWhatsNew(true)}>
         EV Command v{APP_VERSION} · Cockpit Ledger · what's new ›
+      </button>
+      <button type="button" className="text-btn" style={{ width: '100%', marginBottom: 18 }} onClick={signOut}>
+        Sign out
       </button>
 
       {showWhatsNew && <WhatsNewSheet onClose={() => setShowWhatsNew(false)} />}

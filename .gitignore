@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+playwright-report/
+test-results/
+coverage/
 
 # supabase CLI local state
 supabase/.temp/
