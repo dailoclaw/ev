@@ -1369,7 +1369,7 @@ function CompareView({
         <button type="button" style={{ minHeight: 34, color: 'var(--fnt)' }} disabled>
           vs
         </button>
-        <button type="button" className="on" style={{ background: 'var(--money)' }}>
+        <button type="button" className="on compare-year-accent" style={{ background: 'var(--money)' }}>
           {B}
         </button>
       </div>
