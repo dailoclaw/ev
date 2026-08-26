@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.4',
+    date: '26 Aug 2026',
+    notes: [
+      'Expanded Records to 15 always-visible progress targets on the Vehicle page.',
+      'Added one-time animated achievement celebrations with queuing, import summaries, and a View Records action.',
+    ],
+  },
+  {
     version: '4.0.3',
     date: '26 Aug 2026',
     notes: [

@@ -1,7 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
+import './App.css'
 import AuthGate from './components/AuthGate.tsx'
+import AchievementCelebration from './components/AchievementCelebration.tsx'
 import AppRoutes from './AppRoutes.tsx'
 
 // Apply the locally mirrored theme before React paints. Keeping this in the
@@ -16,10 +19,20 @@ try {
   // Storage can be disabled in private browsing; defaults remain usable.
 }
 
+const achievementPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('previewAchievement')
+if (achievementPreview) document.documentElement.dataset.previewMotion = 'true'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthGate>
-      <AppRoutes />
-    </AuthGate>
+    {achievementPreview ? (
+      <BrowserRouter>
+        <main className="achievement-preview-stage" aria-label="Achievement animation preview" />
+        <AchievementCelebration preview />
+      </BrowserRouter>
+    ) : (
+      <AuthGate>
+        <AppRoutes />
+      </AuthGate>
+    )}
   </StrictMode>,
 )

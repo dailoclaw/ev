@@ -1376,6 +1376,206 @@
 @keyframes sheetup {
   from { transform: translateY(40px); opacity: 0.6; }
 }
+
+/* ---- record achievement celebration ---- */
+.achievement-preview-stage {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--money-soft) 72%, transparent), transparent 38%),
+    linear-gradient(150deg, var(--surf2), var(--canvas));
+}
+.achievement-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 18, 25, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: achievement-fade 220ms ease both;
+}
+.achievement-card {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 390px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--money-line) 72%, white);
+  border-radius: 28px;
+  padding: 32px 24px 22px;
+  background:
+    radial-gradient(circle at 50% 4%, color-mix(in srgb, var(--money-soft) 88%, transparent), transparent 46%),
+    var(--surf);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  text-align: center;
+  animation: achievement-card-in 640ms cubic-bezier(0.2, 1.22, 0.32, 1) both;
+}
+.achievement-rays {
+  position: absolute;
+  z-index: -2;
+  top: -114px;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--money) 13%, transparent) 0deg 8deg,
+    transparent 8deg 23deg
+  );
+  transform: translateX(-50%);
+  animation: achievement-rays 14s linear infinite;
+}
+.achievement-burst {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  z-index: -1;
+  width: 1px;
+  height: 1px;
+}
+.achievement-burst i {
+  --angle: 0deg;
+  position: absolute;
+  width: 6px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--money);
+  opacity: 0;
+  animation: achievement-spark 920ms cubic-bezier(0.1, 0.7, 0.3, 1) 220ms both;
+}
+.achievement-burst i:nth-child(2n) { background: var(--steel); width: 4px; height: 7px; }
+.achievement-burst i:nth-child(3n) { background: #f59e0b; }
+.achievement-burst i:nth-child(1) { --angle: 0deg; }
+.achievement-burst i:nth-child(2) { --angle: 30deg; }
+.achievement-burst i:nth-child(3) { --angle: 60deg; }
+.achievement-burst i:nth-child(4) { --angle: 90deg; }
+.achievement-burst i:nth-child(5) { --angle: 120deg; }
+.achievement-burst i:nth-child(6) { --angle: 150deg; }
+.achievement-burst i:nth-child(7) { --angle: 180deg; }
+.achievement-burst i:nth-child(8) { --angle: 210deg; }
+.achievement-burst i:nth-child(9) { --angle: 240deg; }
+.achievement-burst i:nth-child(10) { --angle: 270deg; }
+.achievement-burst i:nth-child(11) { --angle: 300deg; }
+.achievement-burst i:nth-child(12) { --angle: 330deg; }
+.achievement-mark {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 25px;
+  color: #fff;
+  background: linear-gradient(145deg, #10b981, #047857);
+  box-shadow: 0 18px 34px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  animation: achievement-mark-in 720ms cubic-bezier(0.2, 1.35, 0.32, 1) 120ms both;
+}
+.achievement-mark::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 1px solid color-mix(in srgb, var(--money) 34%, transparent);
+  border-radius: 31px;
+  animation: achievement-ring 1.25s ease-out 260ms both;
+}
+.achievement-mark .svgi { stroke-width: 2.1; }
+.achievement-mark strong { font-size: 27px; font-weight: 850; letter-spacing: -0.04em; }
+.achievement-eyebrow {
+  margin: 0 0 5px;
+  color: var(--money-deep);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.achievement-card h2 {
+  margin: 0;
+  color: var(--tx);
+  font-size: clamp(25px, 8vw, 34px);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+.achievement-detail {
+  max-width: 290px;
+  margin: 10px auto 17px;
+  color: var(--mut);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+.achievement-progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--bd2);
+}
+.achievement-progress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #047857, #10b981);
+  transform-origin: left;
+  animation: achievement-fill 980ms cubic-bezier(0.2, 0.9, 0.24, 1) 360ms both;
+}
+.achievement-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr);
+  gap: 9px;
+  margin-top: 20px;
+}
+.achievement-actions .text-btn {
+  min-height: 46px;
+  border: 1px solid var(--bd);
+  border-radius: 13px;
+  background: var(--surf2);
+}
+@keyframes achievement-fade {
+  from { opacity: 0; }
+}
+@keyframes achievement-card-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.91); }
+}
+@keyframes achievement-mark-in {
+  from { opacity: 0; transform: scale(0.42) rotate(-12deg); }
+}
+@keyframes achievement-ring {
+  from { opacity: 0.9; transform: scale(0.72); }
+  to { opacity: 0; transform: scale(1.42); }
+}
+@keyframes achievement-rays {
+  to { transform: translateX(-50%) rotate(360deg); }
+}
+@keyframes achievement-spark {
+  0% { opacity: 0; transform: rotate(var(--angle)) translateY(-22px) scale(0.25); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--angle)) translateY(-104px) scale(1); }
+}
+@keyframes achievement-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .achievement-backdrop,
+  .achievement-card,
+  .achievement-mark,
+  .achievement-mark::after,
+  .achievement-rays,
+  .achievement-progress i {
+    animation: none;
+  }
+  .achievement-burst { display: none; }
+}
+:root[data-preview-motion='true'] .achievement-backdrop { animation: achievement-fade 220ms ease both; }
+:root[data-preview-motion='true'] .achievement-card { animation: achievement-card-in 640ms cubic-bezier(0.2, 1.22, 0.32, 1) both; }
+:root[data-preview-motion='true'] .achievement-mark { animation: achievement-mark-in 720ms cubic-bezier(0.2, 1.35, 0.32, 1) 120ms both; }
+:root[data-preview-motion='true'] .achievement-mark::after { animation: achievement-ring 1.25s ease-out 260ms both; }
+:root[data-preview-motion='true'] .achievement-rays { animation: achievement-rays 14s linear infinite; }
+:root[data-preview-motion='true'] .achievement-burst { display: block; }
+:root[data-preview-motion='true'] .achievement-progress i { animation: achievement-fill 980ms cubic-bezier(0.2, 0.9, 0.24, 1) 360ms both; }
 .sheet .handle {
   width: 40px;
   height: 5px;

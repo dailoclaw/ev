@@ -72,7 +72,28 @@ describe('records', () => {
     expect(result).toMatchObject({ currentStreak: 0, bestStreak: 0, freezesHeld: 0, freezeSavedDate: null })
     expect(result.trophies).toHaveLength(6)
     expect(result.trophies.every(t => !t.unlocked)).toBe(true)
-    expect(result.targets.map(t => t.name)).toEqual(['Century streak', 'Perfect week', '$250 net saved'])
+    expect(result.achievements).toEqual([])
+    expect(result.targets.map(t => t.name)).toEqual([
+      'Century streak',
+      'Perfect week',
+      'Sub-10¢ month',
+      '$250 net saved',
+      '1,000 free kWh',
+      'Budget hat-trick',
+      'Allowance maximiser',
+      'Network explorer',
+      'Low-cost quarter',
+      'Fee-free year',
+      'Free five',
+      '100 free kWh',
+      'Budget debut',
+      'Weekend allowance',
+      'Network sampler',
+    ])
+    expect(result.targets.find(t => t.name === 'Sub-10¢ month')).toMatchObject({
+      detail: 'needs a completed paid month',
+      progress: 0,
+    })
   })
 
   it('derives milestones, perfect-week progress, rates, and the current streak', () => {
@@ -97,7 +118,24 @@ describe('records', () => {
     expect(result.trophies.some(t => t.name === '$0 month')).toBe(true)
     expect(result.trophies.some(t => t.name === 'Perfect week')).toBe(true)
     expect(result.trophies.some(t => t.name === 'Sub-10¢ month')).toBe(true)
-    expect(result.targets.some(t => t.name === 'Perfect month')).toBe(true)
+    expect(result.targets.map(t => t.name)).toEqual([
+      'Century streak',
+      'Perfect month',
+      'Sub-10¢ month',
+      '$500 net saved',
+      '1,000 free kWh',
+      'Budget hat-trick',
+      'Allowance maximiser',
+      'Network explorer',
+      'Low-cost quarter',
+      'Fee-free year',
+      'Free five',
+      '100 free kWh',
+      'Budget debut',
+      'Weekend allowance',
+      'Network sampler',
+    ])
+    expect(result.targets.find(t => t.name === 'Sub-10¢ month')?.progress).toBe(1)
   })
 
   it('earns and spends one century freeze without breaking the streak', () => {
@@ -113,5 +151,80 @@ describe('records', () => {
     expect(result.freezesHeld).toBe(0)
     expect(result.freezeSavedDate).toBe('2023-05-01')
     expect(result.trophies.some(t => t.name === 'Century streak')).toBe(true)
+    expect(result.targets.find(t => t.name === 'Century streak')).toMatchObject({ progress: 1 })
+  })
+
+  it('keeps every target track visible after the top savings tier is achieved', () => {
+    const result = records(evData([], [], total({ netSaved: 3_000 })))
+
+    expect(result.targets.map(t => t.name)).toEqual([
+      'Century streak',
+      'Perfect week',
+      'Sub-10¢ month',
+      '$2,500 net saved',
+      '1,000 free kWh',
+      'Budget hat-trick',
+      'Allowance maximiser',
+      'Network explorer',
+      'Low-cost quarter',
+      'Fee-free year',
+      'Free five',
+      '100 free kWh',
+      'Budget debut',
+      'Weekend allowance',
+      'Network sampler',
+    ])
+    expect(result.targets.find(t => t.name === '$2,500 net saved')).toMatchObject({ progress: 1 })
+  })
+
+  it('derives the additional target tracks from existing ledger data', () => {
+    const sessions = Array.from({ length: 7 }, (_, index) =>
+      session(`provider-${index}`, `2024-01-${String(index + 1).padStart(2, '0')}`, {
+        type: `Network ${index + 1}`,
+      }),
+    )
+    const months = Array.from({ length: 12 }, (_, index) =>
+      month(`2024-${String(index + 1).padStart(2, '0')}`, 5, 100, 80),
+    )
+    const result = records(
+      evData(sessions, months, total({ freeKwh: 1_100, daysMaxed: 35 })),
+    )
+
+    for (const name of [
+      '1,000 free kWh',
+      'Budget hat-trick',
+      'Allowance maximiser',
+      'Network explorer',
+      'Low-cost quarter',
+      'Fee-free year',
+    ]) {
+      expect(result.targets.find(target => target.name === name)).toMatchObject({ progress: 1 })
+    }
+
+    for (const name of [
+      'Free five',
+      '100 free kWh',
+      'Budget debut',
+      'Weekend allowance',
+      'Network sampler',
+    ]) {
+      expect(result.targets.find(target => target.name === name)).toMatchObject({ progress: 1 })
+    }
+
+    expect(result.achievements.map(achievement => achievement.id)).toEqual([
+      'perfect-week',
+      'sub-10-month',
+      'free-kwh-1000',
+      'budget-hat-trick',
+      'allowance-maximiser',
+      'network-explorer',
+      'low-cost-quarter',
+      'fee-free-year',
+      'free-five',
+      'free-kwh-100',
+      'budget-debut',
+      'weekend-allowance',
+      'network-sampler',
+    ])
   })
 })

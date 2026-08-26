@@ -1,5 +1,5 @@
-import { useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
@@ -64,6 +64,7 @@ export default function Vehicle() {
 function CanvasVehicle() {
   const ev = useEv()
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const a = ev.settings.vehicle
   const [view, setView] = useState<VehicleView>('overview')
   const photo = ev.vehiclePhoto
@@ -103,6 +104,13 @@ function CanvasVehicle() {
 
   const num = (v: number, dp = 1) => v.toFixed(dp)
   const back = () => setView('overview')
+
+  useEffect(() => {
+    const showRecords = () => setView('overview')
+    if (hash === '#records') showRecords()
+    window.addEventListener('ev:view-records', showRecords)
+    return () => window.removeEventListener('ev:view-records', showRecords)
+  }, [hash])
 
   return (
     <main className="app-shell cv cv-vehicle">

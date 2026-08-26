@@ -9,10 +9,8 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
   const held = r.trophies.filter(t => t.unlocked).length
   const open = r.trophies.length - held + r.targets.length
 
-  if (ev.months.length === 0) return null
-
   return (
-    <>
+    <section id="records" className="records-section">
       <div className="sec-head">
         <h2 className="sec-h2">Records</h2>
       </div>
@@ -82,6 +80,6 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
           </div>
         </>
       )}
-    </>
+    </section>
   )
 }
