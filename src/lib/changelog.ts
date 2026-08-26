@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.3',
+    date: '26 Aug 2026',
+    notes: [
+      'Moved Records from the Stats views to the bottom of the Vehicle overview.',
+    ],
+  },
+  {
     version: '4.0.2',
     date: '18 Aug 2026',
     notes: [

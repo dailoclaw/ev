@@ -4,6 +4,7 @@ import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
 import { Icon } from '../components/ui'
 import CountUpNumber from '../components/CountUpNumber'
+import RecordsSection from '../components/RecordsSection'
 import { LiquidGlass } from 'liquid-glass-web-react'
 import { removeVehiclePhoto, setVehicleAssumptions, uploadVehiclePhoto } from '../lib/data'
 import { DEFAULT_SETTINGS, type VehicleAssumptions as Assumptions } from '../lib/appModel'
@@ -191,6 +192,7 @@ function CanvasVehicle() {
               </span>
             </button>
           </div>
+          <RecordsSection ev={ev} />
         </>
       ) : view === 'efficiency' ? (
         <>
@@ -627,6 +629,8 @@ function ClassicVehicle() {
         </div>
         <p className="note">≈ {aud(savedVsPetrol, 0)} saved vs petrol across {kwh(distanceKm)} km</p>
       </section>
+
+      <RecordsSection ev={ev} />
 
       <footer className="app-footer">Assumption-based — tap the gear to tune</footer>
     </main>
