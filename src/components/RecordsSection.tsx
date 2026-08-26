@@ -56,8 +56,11 @@ function RecordDetailPopup({ record, onClose }: { record: RecordDetail; onClose:
 export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
   const r = useMemo(() => records(ev), [ev])
   const [selected, setSelected] = useState<RecordDetail | null>(null)
-  const held = r.trophies.filter(t => t.unlocked).length
-  const open = r.trophies.length - held + r.targets.length
+  const trophyNames = new Set(r.trophies.map(t => t.name))
+  const completedTargets = r.targets.filter(t => t.progress >= 1 && !trophyNames.has(t.name))
+  const openTargets = r.targets.filter(t => t.progress < 1)
+  const held = r.trophies.filter(t => t.unlocked).length + completedTargets.length
+  const open = r.trophies.filter(t => !t.unlocked).length + openTargets.length
 
   return (
     <section id="records" className="records-section">
@@ -119,15 +122,37 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
             <small>{t.detail}</small>
           </div>
         ))}
+        {completedTargets.map(t => (
+          <div key={t.name} className="trophy">
+            <button
+              className="tico record-icon-button"
+              type="button"
+              aria-label={`View ${t.name} record status`}
+              aria-haspopup="dialog"
+              onClick={() => setSelected({
+                icon: t.icon,
+                name: t.name,
+                detail: t.detail,
+                status: 'Target achieved',
+                progress: 1,
+                achieved: true,
+              })}
+            >
+              <Icon name={t.icon} size={19} />
+            </button>
+            <b>{t.name}</b>
+            <small>{t.detail}</small>
+          </div>
+        ))}
       </div>
 
-      {r.targets.length > 0 && (
+      {openTargets.length > 0 && (
         <>
           <p className="sec-sub" style={{ margin: '12px 0 8px' }}>
             Open targets
           </p>
           <div className="trophy-grid">
-            {r.targets.map(t => (
+            {openTargets.map(t => (
               <div key={t.name} className="trophy target">
                 <button
                   className="tico record-icon-button"

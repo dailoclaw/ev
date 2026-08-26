@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.6',
+    date: '26 Aug 2026',
+    notes: [
+      'Moved fully completed record targets out of Open targets and into the completed records area.',
+    ],
+  },
+  {
     version: '4.0.5',
     date: '26 Aug 2026',
     notes: [
