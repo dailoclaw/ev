@@ -316,6 +316,18 @@
 :root[data-style='minimal'] .trophy .tico {
   border-radius: 13px;
 }
+:root[data-style='minimal'] .trophy .record-icon-button {
+  width: 44px;
+  height: 44px;
+}
+:root[data-style='minimal'] .record-detail-card {
+  border-color: transparent;
+  border-radius: 34px;
+  padding: 38px 26px 24px;
+}
+:root[data-style='minimal'] .record-detail-icon { border-radius: 37px; }
+:root[data-style='minimal'] .record-detail-progress { border-color: transparent; border-radius: 20px; }
+:root[data-style='minimal'] .record-detail-close { border-radius: 17px; }
 
 /* ---- receipt ---- */
 :root[data-style='minimal'] .rcpt {

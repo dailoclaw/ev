@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.5',
+    date: '26 Aug 2026',
+    notes: [
+      'Made every record icon open a large, mobile-friendly popup with its status, detail, and target progress.',
+    ],
+  },
+  {
     version: '4.0.4',
     date: '26 Aug 2026',
     notes: [

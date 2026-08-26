@@ -1,11 +1,61 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { records } from '../lib/records'
 import { shortDate } from '../lib/format'
 import { useEv } from '../lib/useEv'
 import { Icon } from './ui'
 
+type RecordDetail = {
+  icon: string
+  name: string
+  detail: string
+  status: string
+  progress?: number
+  achieved: boolean
+}
+
+function RecordDetailPopup({ record, onClose }: { record: RecordDetail; onClose: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
+  const progress = record.progress == null ? null : Math.round(Math.min(1, record.progress) * 100)
+
+  return (
+    <div className="record-detail-backdrop" role="presentation" onClick={onClose}>
+      <section
+        className={`record-detail-card ${record.achieved ? 'achieved' : 'open'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="record-detail-title"
+        aria-describedby="record-detail-description"
+        onClick={event => event.stopPropagation()}
+      >
+        <button className="record-detail-close" type="button" aria-label="Close record details" onClick={onClose}>×</button>
+        <div className="record-detail-icon" aria-hidden="true">
+          <Icon name={record.icon} size={52} />
+        </div>
+        <p className="record-detail-status">{record.status}</p>
+        <h2 id="record-detail-title">{record.name}</h2>
+        <p id="record-detail-description" className="record-detail-description">{record.detail}</p>
+        {progress != null && (
+          <div className="record-detail-progress">
+            <span><b>Progress</b><strong>{progress}%</strong></span>
+            <div aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
+          </div>
+        )}
+        <button className="primary-btn" type="button" onClick={onClose} autoFocus>Done</button>
+      </section>
+    </div>
+  )
+}
+
 export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
   const r = useMemo(() => records(ev), [ev])
+  const [selected, setSelected] = useState<RecordDetail | null>(null)
   const held = r.trophies.filter(t => t.unlocked).length
   const open = r.trophies.length - held + r.targets.length
 
@@ -50,9 +100,21 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
       <div className="trophy-grid">
         {r.trophies.map(t => (
           <div key={t.name} className={`trophy ${t.unlocked ? '' : 'locked'}`}>
-            <span className="tico" aria-hidden="true">
+            <button
+              className="tico record-icon-button"
+              type="button"
+              aria-label={`View ${t.name} record status`}
+              aria-haspopup="dialog"
+              onClick={() => setSelected({
+                icon: t.icon,
+                name: t.name,
+                detail: t.detail,
+                status: t.unlocked ? 'Record held' : 'Not yet held',
+                achieved: t.unlocked,
+              })}
+            >
               <Icon name={t.icon} size={19} />
-            </span>
+            </button>
             <b>{t.name}</b>
             <small>{t.detail}</small>
           </div>
@@ -67,9 +129,25 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
           <div className="trophy-grid">
             {r.targets.map(t => (
               <div key={t.name} className="trophy target">
-                <span className="tico" aria-hidden="true">
+                <button
+                  className="tico record-icon-button"
+                  type="button"
+                  aria-label={`View ${t.name} target status`}
+                  aria-haspopup="dialog"
+                  onClick={() => {
+                    const progress = Math.min(1, t.progress)
+                    setSelected({
+                      icon: t.icon,
+                      name: t.name,
+                      detail: t.detail,
+                      status: progress >= 1 ? 'Target achieved' : progress > 0 ? 'In progress' : 'Not started',
+                      progress,
+                      achieved: progress >= 1,
+                    })
+                  }}
+                >
                   <Icon name={t.icon} size={19} />
-                </span>
+                </button>
                 <b>{t.name}</b>
                 <span className="tbar">
                   <i style={{ width: `${Math.round(Math.min(1, t.progress) * 100)}%` }} />
@@ -80,6 +158,7 @@ export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> })
           </div>
         </>
       )}
+      {selected && <RecordDetailPopup record={selected} onClose={() => setSelected(null)} />}
     </section>
   )
 }
