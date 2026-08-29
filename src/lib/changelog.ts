@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.0.7',
+    date: '29 Aug 2026',
+    notes: [
+      'Renamed the Supercharger provider to Tesla everywhere while preserving its complete charging history.',
+    ],
+  },
+  {
     version: '4.0.6',
     date: '26 Aug 2026',
     notes: [

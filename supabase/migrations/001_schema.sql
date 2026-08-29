@@ -38,5 +38,5 @@ insert into providers (name, color, free_kwh_per_day) values
   ('Jolt', '#0d9488', 7),
   ('Matty', '#6366f1', 0),
   ('Chargefox', '#8b5cf6', 0),
-  ('Supercharger', '#f43f5e', 0)
+  ('Tesla', '#f43f5e', 0)
 on conflict (name) do nothing;

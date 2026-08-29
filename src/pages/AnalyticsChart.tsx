@@ -6,7 +6,6 @@ import { useUnitRoll } from '../lib/useUnitRoll'
 import { Icon } from '../components/ui'
 import GlassSegmented from '../components/GlassSegmented'
 
-const shortProv = (name: string) => (name === 'Supercharger' ? 'SC' : name)
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 // One monthly chart per calendar year (newest first), with a $ / kWh metric
@@ -79,7 +78,7 @@ export default function AnalyticsChart() {
             onClick={() => setProv(name)}
           >
             <span className="dt" />
-            {shortProv(name)}
+            {name}
           </button>
         ))}
       </div>
