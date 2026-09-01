@@ -1005,60 +1005,6 @@
   font-weight: 800;
 }
 
-/* ---- save feedback tones ---- */
-.tone-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.tone-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  padding: 11px 13px;
-  border: 1px solid var(--bd);
-  border-left: 3px solid var(--bd);
-  border-radius: var(--radius-sm);
-  background: var(--surf);
-  box-shadow: var(--cardshadow);
-  cursor: pointer;
-}
-.tone-row strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 800;
-}
-.tone-row small {
-  display: block;
-  margin-top: 2px;
-  color: var(--mut);
-  font-size: 11px;
-  font-weight: 600;
-}
-.tone-row.tone-free {
-  border-left-color: var(--money);
-}
-.tone-row.tone-paid {
-  border-left-color: var(--steel);
-}
-.tone-row.tone-overflow {
-  border-left-color: var(--warn);
-}
-.tone-play {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--money-deep);
-}
-.tone-row:active {
-  transform: scale(0.99);
-}
-
 /* ---- charts ---- */
 .chart-card h4 {
   display: flex;

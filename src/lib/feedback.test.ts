@@ -8,8 +8,8 @@ import {
 } from './feedback'
 
 // Tests run in node, so the browser globals the module guards against are absent.
-// Stub the two it touches; the module already survives their absence, which the
-// last case here checks explicitly.
+// Stub localStorage; there is deliberately no AudioContext here, which the last case
+// relies on to prove a save still lands on a device that cannot make a sound.
 const store = new Map<string, string>()
 vi.stubGlobal('localStorage', {
   getItem: (k: string) => store.get(k) ?? null,
@@ -18,12 +18,8 @@ vi.stubGlobal('localStorage', {
   clear: () => store.clear(),
 })
 
-const vibrations: number[][] = []
-vi.stubGlobal('navigator', { vibrate: (pattern: number[]) => void vibrations.push(pattern) })
-
 beforeEach(() => {
   store.clear()
-  vibrations.length = 0
 })
 
 describe('classifySave', () => {
@@ -58,16 +54,26 @@ describe('classifySave', () => {
 })
 
 describe('feedback preference', () => {
-  it('defaults to haptics only, so nothing makes noise unasked', () => {
-    expect(DEFAULT_FEEDBACK).toBe('haptic')
-    expect(getStoredFeedback()).toBe('haptic')
+  it('offers sound or nothing — vibration is gone, iOS Safari never supported it', () => {
+    expect(DEFAULT_FEEDBACK).toBe('sound')
+    expect(getStoredFeedback()).toBe('sound')
   })
 
   it('round-trips a stored choice', () => {
-    setFeedback('both')
-    expect(getStoredFeedback()).toBe('both')
     setFeedback('off')
     expect(getStoredFeedback()).toBe('off')
+    setFeedback('sound')
+    expect(getStoredFeedback()).toBe('sound')
+  })
+
+  it('reads a retired "haptic" choice as off, since it meant stay silent', () => {
+    store.set('ev.feedback', 'haptic')
+    expect(getStoredFeedback()).toBe('off')
+  })
+
+  it('reads a retired "both" choice as sound', () => {
+    store.set('ev.feedback', 'both')
+    expect(getStoredFeedback()).toBe('sound')
   })
 
   it('falls back to the default when the stored value is junk', () => {
@@ -77,33 +83,16 @@ describe('feedback preference', () => {
 })
 
 describe('playSaveFeedback', () => {
-  it('stays silent and still when switched off', () => {
-    playSaveFeedback('free', 'off')
-    expect(vibrations).toHaveLength(0)
-  })
-
-  it('gives each tone a pattern a hand can tell apart', () => {
-    playSaveFeedback('free', 'haptic')
-    playSaveFeedback('paid', 'haptic')
-    playSaveFeedback('overflow', 'haptic')
-    expect(vibrations).toHaveLength(3)
-    expect(new Set(vibrations.map(pattern => pattern.join(',')))).toHaveLength(3)
-    // Overflow is the doubled one — the only pattern with a gap in it.
-    expect(vibrations[2].length).toBeGreaterThan(1)
+  it('never throws when the device has no audio support', () => {
+    // No AudioContext exists in this environment at all.
+    expect(() => playSaveFeedback('overflow', 'sound')).not.toThrow()
+    expect(() => playSaveFeedback('free', 'off')).not.toThrow()
   })
 
   it('reads the stored preference when no mode is passed', () => {
     setFeedback('off')
-    playSaveFeedback('free')
-    expect(vibrations).toHaveLength(0)
-    setFeedback('haptic')
-    playSaveFeedback('free')
-    expect(vibrations).toHaveLength(1)
-  })
-
-  it('never throws when the device cannot vibrate or make sound', () => {
-    vi.stubGlobal('navigator', {})
-    expect(() => playSaveFeedback('overflow', 'both')).not.toThrow()
-    vi.stubGlobal('navigator', { vibrate: (pattern: number[]) => void vibrations.push(pattern) })
+    expect(() => playSaveFeedback('free')).not.toThrow()
+    setFeedback('sound')
+    expect(() => playSaveFeedback('free')).not.toThrow()
   })
 })

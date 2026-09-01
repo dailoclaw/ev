@@ -26,6 +26,10 @@ const PATHS: Record<string, string> = {
   rfreeze: 'M12 3v18 M5.5 6.5l13 11 M18.5 6.5l-13 11 M12 3l-2 2.4 M12 3l2 2.4 M12 21l-2-2.4 M12 21l2-2.4',
   edit: 'M4 20l3.5-1 10-10-2.5-2.5-10 10-1 3.5z M14 8.5l1.5 1.5',
   trash: 'M5 7h14 M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2 M7 7l1 13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-13 M10 11v6 M14 11v6',
+  // save-feedback tones — the shape of the signature, in the same 24-grid language
+  tonerise: 'M4 15h6 M14 9h6',
+  toneflat: 'M4 12h16',
+  tonefall: 'M4 9h6 M14 15h6',
 }
 const EXTRAS: Record<string, ReactNode> = {
   gear: (

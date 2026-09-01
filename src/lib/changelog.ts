@@ -8,11 +8,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.1',
+    date: '1 Sep 2026',
+    notes: [
+      'Save feedback is now sound or nothing — the vibrate options are gone, because Safari on iPhone has never supported vibration and the setting did nothing there.',
+      'Reworked the save feedback rows to use the same row style as the rest of the app, with a tone icon in place of the coloured bars.',
+    ],
+  },
+  {
     version: '4.2.0',
     date: '1 Sep 2026',
     notes: [
       'Saving a charge now plays a short signature — rising for a free charge, flat for a paid one, falling when the day’s allowance ran out mid-charge.',
-      'Added Settings › Save feedback to choose vibrate, vibrate and sound, or off, with each tone playable as a preview.',
+      'Added Settings › Save feedback, with each tone playable as a preview.',
     ],
   },
   {

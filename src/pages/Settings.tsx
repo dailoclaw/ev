@@ -21,7 +21,7 @@ import { aud, stamp, todayIso } from '../lib/format'
 import { useDensity } from '../lib/density'
 import { useTheme } from '../lib/theme'
 import { useStyle } from '../lib/style'
-import { TONE_COPY, hapticsSupported, previewSaveFeedback, useFeedback, type SaveTone } from '../lib/feedback'
+import { TONE_COPY, previewSaveFeedback, useFeedback, type SaveTone } from '../lib/feedback'
 import { APP_VERSION } from '../lib/changelog'
 import { Icon, Mark, SyncBadge } from '../components/ui'
 import WhatsNewSheet from '../components/WhatsNewSheet'
@@ -233,42 +233,29 @@ export default function Settings() {
       <h2 className="sec-h2">Save feedback</h2>
       <p className="sec-sub">
         Saving a charge plays a short signature, so you know what it cost without looking at the
-        screen. Sound stays off unless you turn it on here.
+        screen. Your phone's silent switch still wins.
       </p>
       <GlassSegmented
         ariaLabel="Save feedback"
         value={feedback}
         onChange={setFeedbackMode}
         options={[
+          { value: 'sound', label: 'Sound' },
           { value: 'off', label: 'Off' },
-          { value: 'haptic', label: 'Vibrate' },
-          { value: 'both', label: 'Vibrate + sound' },
         ]}
       />
-      {!hapticsSupported() && feedback !== 'off' && (
-        <p className="sec-sub">
-          This browser can't vibrate — iPhone Safari never has.{' '}
-          {feedback === 'haptic' ? 'Choose Vibrate + sound to hear it instead.' : 'Sound still works.'}
-        </p>
-      )}
-      <div className="tone-list">
-        {(['free', 'overflow', 'paid'] as SaveTone[]).map(tone => (
-          <button
-            key={tone}
-            type="button"
-            className={`tone-row tone-${tone}`}
-            onClick={() => previewSaveFeedback(tone)}
-          >
-            <span>
-              <strong>{TONE_COPY[tone].title}</strong>
-              <small>{TONE_COPY[tone].detail}</small>
-            </span>
-            <span className="tone-play" aria-hidden="true">
-              Play
-            </span>
-          </button>
-        ))}
-      </div>
+      {(['free', 'overflow', 'paid'] as SaveTone[]).map(tone => (
+        <button key={tone} className="row" type="button" onClick={() => previewSaveFeedback(tone)}>
+          <span className="mark" style={{ ['--pc' as string]: TONE_COPY[tone].color }}>
+            <Icon name={TONE_COPY[tone].icon} size={18} />
+          </span>
+          <span>
+            <strong>{TONE_COPY[tone].title}</strong>
+            <small>{TONE_COPY[tone].detail}</small>
+          </span>
+          <b className="amt">Play</b>
+        </button>
+      ))}
       <p className="sec-sub">Previews always play sound, whatever the setting above.</p>
 
       <h2 className="sec-h2">Charger types</h2>

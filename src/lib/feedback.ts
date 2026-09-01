@@ -1,35 +1,42 @@
-// The Sound of Money — a three-word sensory vocabulary for saving a charge.
+// The Sound of Money — a three-word vocabulary for saving a charge.
 //
-// The app has one output channel: pixels. That is a poor fit for the moment it is
-// actually used — one hand on a cable, phone half in a pocket, wanting to know one
+// The app has one visual output channel: pixels. That is a poor fit for the moment it
+// is actually used — one hand on a cable, phone half in a pocket, wanting to know one
 // thing: did that charge cost me anything?
 //
 // So a save carries a signature. Three of them, no more, each mapping to a state the
 // ledger already computes:
 //
-//   free     two notes rising    one light tap    nothing was paid
-//   paid     one flat note       one firm tap     money left your account
-//   overflow two notes falling   a double tap     the allowance ran out mid-charge
+//   free     two notes rising    nothing was paid
+//   paid     one flat note       money left your account
+//   overflow two notes falling   the allowance ran out mid-charge
+//
+// Sound is the only channel. Vibration was tried and removed: navigator.vibrate has
+// never been supported in Safari on iOS, so on this app's actual device it was a
+// setting that did nothing at all.
 //
 // Tones are synthesised, so there are no audio files to ship and nothing to license.
-// Sound is opt-in: the web cannot read the ringer switch, so haptics alone is the only
-// honest default. The preference is device-local — sound and touch are properties of
+// The preference is device-local — whether a phone should make noise is a property of
 // the phone in your hand, not of the account.
 import { useSyncExternalStore } from 'react'
 
-export type FeedbackMode = 'off' | 'haptic' | 'both'
+export type FeedbackMode = 'off' | 'sound'
 export type SaveTone = 'free' | 'paid' | 'overflow'
 
 const KEY = 'ev.feedback'
-export const DEFAULT_FEEDBACK: FeedbackMode = 'haptic'
+export const DEFAULT_FEEDBACK: FeedbackMode = 'sound'
 
-const isMode = (value: string | null): value is FeedbackMode =>
-  value === 'off' || value === 'haptic' || value === 'both'
+const isMode = (value: string | null): value is FeedbackMode => value === 'off' || value === 'sound'
 
 export function getStoredFeedback(): FeedbackMode {
   try {
     const stored = localStorage.getItem(KEY)
-    return isMode(stored) ? stored : DEFAULT_FEEDBACK
+    if (isMode(stored)) return stored
+    // Migrate the two retired modes. 'haptic' meant "buzz, but stay silent", so the
+    // faithful reading of that choice is silence rather than surprise noise.
+    if (stored === 'haptic') return 'off'
+    if (stored === 'both') return 'sound'
+    return DEFAULT_FEEDBACK
   } catch {
     return DEFAULT_FEEDBACK
   }
@@ -69,17 +76,17 @@ export function classifySave(input: { isFee: boolean; kwh: number; cost: number;
   return 'paid'
 }
 
-/** Note pairs in Hz, and the vibration pattern that rides with each. */
-const SIGNATURES: Record<SaveTone, { notes: number[]; vibrate: number[] }> = {
-  free: { notes: [587.33, 880], vibrate: [12] }, // D5 → A5, rising
-  paid: { notes: [440], vibrate: [24] }, // A4, flat
-  overflow: { notes: [587.33, 415.3], vibrate: [12, 70, 12] }, // D5 → G#4, falling
+/** The notes each signature plays, in Hz. */
+const SIGNATURES: Record<SaveTone, number[]> = {
+  free: [587.33, 880], // D5 → A5, rising
+  paid: [440], // A4, flat
+  overflow: [587.33, 415.3], // D5 → G#4, falling
 }
 
-export const TONE_COPY: Record<SaveTone, { title: string; detail: string }> = {
-  free: { title: 'Entirely free', detail: 'two notes rising · one light tap' },
-  paid: { title: 'Paid', detail: 'one flat note · one firm tap' },
-  overflow: { title: 'Past the allowance', detail: 'two notes falling · a double tap' },
+export const TONE_COPY: Record<SaveTone, { title: string; detail: string; icon: string; color: string }> = {
+  free: { title: 'Entirely free', detail: 'two notes rising', icon: 'tonerise', color: 'var(--money)' },
+  paid: { title: 'Paid', detail: 'one flat note', icon: 'toneflat', color: 'var(--steel)' },
+  overflow: { title: 'Past the allowance', detail: 'two notes falling', icon: 'tonefall', color: 'var(--warn)' },
 }
 
 let ctx: AudioContext | null = null
@@ -122,28 +129,18 @@ function playNotes(notes: number[]) {
   })
 }
 
-function vibrate(pattern: number[]) {
-  try {
-    navigator.vibrate?.(pattern)
-  } catch {
-    // Unsupported, or blocked without engagement. Silent by design.
-  }
-}
-
 /**
  * Play one signature. Never throws and never blocks the caller — a save must land
  * whether or not the phone can make a noise.
  */
 export function playSaveFeedback(tone: SaveTone, mode: FeedbackMode = getStoredFeedback()) {
   if (mode === 'off') return
-  const signature = SIGNATURES[tone]
-  vibrate(signature.vibrate)
-  if (mode === 'both') playNotes(signature.notes)
+  playNotes(SIGNATURES[tone])
 }
 
 /** Play a signature regardless of the stored mode — for the Settings preview. */
 export function previewSaveFeedback(tone: SaveTone) {
-  playSaveFeedback(tone, 'both')
+  playSaveFeedback(tone, 'sound')
 }
 
 /** The current mode, re-rendering every subscriber on change. */
@@ -151,7 +148,3 @@ export function useFeedback() {
   const mode = useSyncExternalStore(subscribe, getStoredFeedback, () => DEFAULT_FEEDBACK)
   return [mode, setFeedback] as const
 }
-
-/** Whether this browser can vibrate at all — iPhone Safari never has. */
-export const hapticsSupported = () =>
-  typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
