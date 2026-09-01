@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh } from '../lib/format'
 import { Icon, Mark } from '../components/ui'
@@ -447,7 +447,9 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
 function ClassicAnalytics() {
   const ev = useEv()
   const navigate = useNavigate()
-  const [view, setView] = useState<View>('cluster')
+  const location = useLocation()
+  const requestedView = (location.state as { view?: View } | null)?.view
+  const [view, setView] = useState<View>(requestedView && VIEWS.some(item => item.id === requestedView) ? requestedView : 'cluster')
 
   // ---- derived, shared across views ----
   const years = useMemo(() => {
@@ -555,7 +557,7 @@ function ClassicAnalytics() {
       ) : view === 'trends' ? (
         <TrendsView ev={ev} series={series} provColor={provColor} navigate={navigate} />
       ) : view === 'split' ? (
-        <SplitView ev={ev} provColor={provColor} />
+        <SplitView ev={ev} provColor={provColor} navigate={navigate} />
       ) : (
         <CompareView years={years} yearAgg={yearAgg} />
       )}
@@ -1112,7 +1114,15 @@ function TrendsView({
 }
 
 /* ============ SPLIT (composition) ============ */
-function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor: (name: string) => string }) {
+function SplitView({
+  ev,
+  provColor,
+  navigate,
+}: {
+  ev: ReturnType<typeof useEv>
+  provColor: (name: string) => string
+  navigate: (to: string) => void
+}) {
   const [sel, setSel] = useState<string | null>(null)
   const byCost = ev.byProvider.filter(p => p.cost > 0)
   const totalCost = byCost.reduce((a, p) => a + p.cost, 0)
@@ -1238,6 +1248,22 @@ function SplitView({ ev, provColor }: { ev: ReturnType<typeof useEv>; provColor:
           </span>
         </div>
       </section>
+
+      <button className="cc-entry-card" type="button" onClick={() => navigate('/analytics/concentration')}>
+        <span className="cc-entry-visual" aria-hidden="true">
+          <svg viewBox="0 0 74 48" preserveAspectRatio="none">
+            <path className="guide" d="M5 42L69 5" />
+            <path className="area" d="M5 42C24 42 39 38 50 29C60 21 65 12 69 5V42Z" />
+            <path className="line" d="M5 42C24 42 39 38 50 29C60 21 65 12 69 5" />
+          </svg>
+        </span>
+        <span className="cc-entry-copy">
+          <span className="cap">Deeper analysis</span>
+          <strong>Cost concentration</strong>
+          <small>See how much spend comes from your most expensive energy.</small>
+        </span>
+        <Icon name="chev" size={18} />
+      </button>
     </>
   )
 }

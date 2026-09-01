@@ -7,6 +7,7 @@ const Savings = lazy(() => import('./pages/Savings'))
 const Statement = lazy(() => import('./pages/Statement'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const AnalyticsChart = lazy(() => import('./pages/AnalyticsChart'))
+const CostConcentration = lazy(() => import('./pages/CostConcentration'))
 const CostAnatomy = lazy(() => import('./pages/CostAnatomy'))
 const Vehicle = lazy(() => import('./pages/Vehicle'))
 const Settings = lazy(() => import('./pages/Settings'))
@@ -24,6 +25,7 @@ export default function AppRoutes() {
             <Route path="/statement" element={<Statement />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/analytics/chart" element={<AnalyticsChart />} />
+            <Route path="/analytics/concentration" element={<CostConcentration />} />
             <Route path="/cost-anatomy" element={<CostAnatomy />} />
             <Route path="/vehicle" element={<Vehicle />} />
             <Route path="/settings" element={<Settings />} />

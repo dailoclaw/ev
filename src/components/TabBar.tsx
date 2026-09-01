@@ -12,6 +12,7 @@ const TABS = [
 export default function TabBar({ onAdd }: { onAdd: () => void }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const isActive = (path: string) => (path === '/analytics' ? pathname.startsWith('/analytics') : pathname === path)
 
   return (
     <nav className="tabbar" aria-label="Primary">
@@ -25,9 +26,9 @@ export default function TabBar({ onAdd }: { onAdd: () => void }) {
         ) : (
           <button
             key={tab.path}
-            className={`ti ${pathname === tab.path ? 'on' : ''}`}
+            className={`ti ${isActive(tab.path) ? 'on' : ''}`}
             type="button"
-            aria-current={pathname === tab.path ? 'page' : undefined}
+            aria-current={isActive(tab.path) ? 'page' : undefined}
             onClick={() => navigate(tab.path)}
           >
             <Icon name={tab.icon} />

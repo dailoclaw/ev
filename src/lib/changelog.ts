@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.1.0',
+    date: '1 Sep 2026',
+    notes: [
+      'Added Cost Concentration as a standalone analysis screen, opened only from the bottom of Stats → Split.',
+      'Added a live draggable cost curve with all-energy, paid-only and provider views plus the exact charges behind the expensive tail.',
+    ],
+  },
+  {
     version: '4.0.7',
     date: '29 Aug 2026',
     notes: [
