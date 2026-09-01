@@ -4,6 +4,7 @@ import { previewFreeAllocation } from '../lib/savings'
 import { aud, todayIso } from '../lib/format'
 import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
 import { useEv } from '../lib/useEv'
+import { classifySave, playSaveFeedback } from '../lib/feedback'
 import { SyncBadge, TickSvg } from './ui'
 import GlassSegmented from './GlassSegmented'
 
@@ -44,9 +45,12 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
 
   const handleSave = () => {
     let typeName = selectedProviderName
+    // A brand-new charger has no history today, so its whole allowance is available.
+    let freeKwh = preview.freeKwh
     if (showNew) {
       const p = addProvider(newName, newFree, newColor)
       typeName = p.name
+      freeKwh = Math.min(newFree, kwh)
     }
     addSession({
       date,
@@ -55,6 +59,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
       cost,
       notes: notes.trim() || (isFee ? 'Monthly membership' : null),
     })
+    playSaveFeedback(classifySave({ isFee, kwh, cost, freeKwh }))
     setSaved(true)
     setTimeout(onClose, 1300)
   }

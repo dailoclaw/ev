@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { EnrichedSession } from '../lib/savings'
+import { previewFreeAllocation } from '../lib/savings'
 import { updateSession } from '../lib/data'
+import { classifySave, playSaveFeedback } from '../lib/feedback'
 import { todayIso } from '../lib/format'
+import { useEv } from '../lib/useEv'
 import { Mark } from './ui'
 
 export default function EditSessionSheet({ session, onClose }: { session: EnrichedSession; onClose: () => void }) {
@@ -12,9 +15,18 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const { sessions, providers, refRate } = useEv()
   const kwh = parseFloat(kwhStr) || 0
   const cost = parseFloat(costStr) || 0
   const canSave = session.isFee ? cost > 0 : kwh > 0 && cost >= 0
+
+  // How much of the edited charge would be free, ignoring the row being replaced —
+  // otherwise this session's own old allocation counts against itself.
+  const freeKwh = useMemo(() => {
+    const provider = providers.find(p => p.name === session.type)
+    const others = sessions.filter(s => s.id !== session.id)
+    return previewFreeAllocation(others, provider, date, kwh, refRate).freeKwh
+  }, [sessions, providers, refRate, session.id, session.type, date, kwh])
 
   const handleSave = async () => {
     setSaving(true)
@@ -26,6 +38,7 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
         cost,
         notes: notes.trim() || null,
       })
+      playSaveFeedback(classifySave({ isFee: session.isFee, kwh, cost, freeKwh }))
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save — try again.')

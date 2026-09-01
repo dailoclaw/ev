@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.0',
+    date: '1 Sep 2026',
+    notes: [
+      'Saving a charge now plays a short signature — rising for a free charge, flat for a paid one, falling when the day’s allowance ran out mid-charge.',
+      'Added Settings › Save feedback to choose vibrate, vibrate and sound, or off, with each tone playable as a preview.',
+    ],
+  },
+  {
     version: '4.1.0',
     date: '1 Sep 2026',
     notes: [
