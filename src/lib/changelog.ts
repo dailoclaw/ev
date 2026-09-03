@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.3',
+    date: '3 Sep 2026',
+    notes: [
+      'Redesigned Savings for the Minimal theme around one lifetime net figure, an animated cumulative-value curve and quiet ruled rows.',
+      'Added focused Minimal views for the honest math, today’s allowance and recent monthly savings while leaving Classic unchanged.',
+    ],
+  },
+  {
     version: '4.2.2',
     date: '3 Sep 2026',
     notes: [

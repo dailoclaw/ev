@@ -1,7 +1,7 @@
 {
   "name": "ev",
   "private": true,
-  "version": "4.2.2",
+  "version": "4.2.3",
   "type": "module",
   "engines": {
     "node": ">=24 <26"

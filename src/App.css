@@ -3906,6 +3906,240 @@ input[type='range'].capslider::-webkit-slider-thumb {
   border-radius: 8px;
 }
 
+/* ============ Canvas Savings — cumulative value ============ */
+.cv-savings .cv-big .explainable {
+  display: inline-block;
+  width: auto;
+  border-bottom: 0;
+}
+.cv-savings-unit {
+  display: inline-block;
+  margin-left: 10px;
+  color: var(--mut);
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+}
+.cv-savings-wave,
+.cv-allowance,
+.cv-savings-bars {
+  margin: 34px 0 0;
+}
+.cv-savings-wave svg {
+  display: block;
+  width: 100%;
+  height: 176px;
+  overflow: visible;
+  border-bottom: 1px solid var(--bd2);
+  background:
+    linear-gradient(var(--bd2) 1px, transparent 1px) 0 14px / 100% 42px,
+    linear-gradient(90deg, color-mix(in srgb, var(--bd2) 65%, transparent) 1px, transparent 1px) 4px 0 / 25% 100%;
+}
+.cv-savings-wave .area {
+  fill: color-mix(in srgb, var(--money) 20%, transparent);
+  animation: cv-savings-area 780ms ease 500ms both;
+}
+.cv-savings-wave .line {
+  fill: none;
+  stroke: var(--money);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: cv-savings-line 1.15s cubic-bezier(0.4, 0.5, 0.2, 1) 100ms both;
+}
+.cv-savings-wave .point {
+  fill: var(--money);
+  stroke: color-mix(in srgb, var(--money) 18%, transparent);
+  stroke-width: 12;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cv-savings-point 420ms cubic-bezier(0.3, 1.6, 0.5, 1) 1.05s both;
+}
+.cv-savings-wave figcaption,
+.cv-allowance figcaption,
+.cv-savings-bars figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  color: var(--fnt);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+.cv-savings-wave figcaption b {
+  flex: 1;
+  color: var(--mut);
+  font-size: 10.5px;
+  font-weight: 680;
+  text-align: center;
+}
+.cv-savings-equation {
+  margin-top: 34px;
+  border-top: 1px solid var(--bd2);
+}
+.cv-savings-equation > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--bd2);
+}
+.cv-savings-equation span {
+  color: var(--mut);
+  font-size: 14px;
+  font-weight: 580;
+}
+.cv-savings-equation b {
+  color: var(--tx);
+  font-size: 18px;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.cv-savings-equation .total {
+  padding-top: 22px;
+}
+.cv-savings-equation .total span,
+.cv-savings-equation .total b {
+  color: var(--tx);
+  font-weight: 760;
+}
+.cv-savings-equation b.money,
+.cv-savings-equation .total b.money {
+  color: var(--money);
+}
+.cv-savings-note {
+  margin-top: 34px;
+}
+.cv-savings-note > span {
+  color: var(--fnt);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cv-savings-note p {
+  margin-top: 12px;
+  color: var(--mut);
+  font-size: 13px;
+  font-weight: 560;
+  line-height: 1.6;
+}
+.cv-savings-note p + p {
+  margin-top: 9px;
+}
+.cv-savings-note b {
+  color: var(--tx);
+  font-weight: 740;
+}
+.cv-allowance {
+  padding-top: 30px;
+}
+.cv-allowance > div {
+  display: flex;
+  height: 82px;
+  gap: 6px;
+}
+.cv-allowance i {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--bd2);
+}
+.cv-allowance i span {
+  position: absolute;
+  inset: auto 0 0;
+  display: block;
+  background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 68%, var(--surf)));
+  animation: cv-savings-cell 640ms cubic-bezier(0.25, 0.9, 0.3, 1) both;
+  transform-origin: bottom;
+}
+.cv-row-static {
+  cursor: default;
+}
+.cv-savings-bars > div {
+  height: 220px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 42px 6px 0;
+  border-bottom: 1px solid var(--bd2);
+  background:
+    linear-gradient(var(--bd2) 1px, transparent 1px) 0 16px / 100% 52px;
+}
+.cv-savings-bars i {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--h);
+  border-radius: 999px 999px 7px 7px;
+  background: linear-gradient(180deg, var(--money), color-mix(in srgb, var(--money) 22%, var(--surf)));
+  animation: cv-grow 820ms ease both;
+  animation-delay: calc(var(--i) * 65ms);
+}
+.cv-savings-bars i b {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--tx);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 760;
+  white-space: nowrap;
+}
+.cv-savings-bars figcaption {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 6px;
+  text-align: center;
+}
+
+@keyframes cv-savings-line {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cv-savings-area {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cv-savings-point {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes cv-savings-cell {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@media (max-width: 380px) {
+  .cv-savings .appbar h1.cv-big {
+    font-size: 66px;
+  }
+  .cv-savings-unit {
+    display: block;
+    margin: 10px 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-savings-wave .area,
+  .cv-savings-wave .line,
+  .cv-savings-wave .point,
+  .cv-allowance i span,
+  .cv-savings-bars i {
+    animation: none;
+  }
+  .cv-savings-wave .line {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* ============ Canvas Stats — minimal analytics ============ */
 .cv-stats .cv-rate {
   font-size: 72px;
