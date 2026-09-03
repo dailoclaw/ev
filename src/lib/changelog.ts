@@ -8,6 +8,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.2',
+    date: '3 Sep 2026',
+    notes: [
+      'Replaced the startup loading cards with Charge Trace, a theme-aware animated ledger mark that hands off cleanly to the app.',
+      'Removed the dark-only startup artwork and the visible “Opening your ledger” and “Loading your ledger” messages.',
+    ],
+  },
+  {
     version: '4.2.1',
     date: '1 Sep 2026',
     notes: [

@@ -39,6 +39,196 @@
   background: var(--canvas);
 }
 
+/* ============ Charge Trace — theme-aware startup ============ */
+.startup-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  background: var(--canvas);
+  color: var(--tx);
+  isolation: isolate;
+}
+
+.startup-splash__atmosphere {
+  position: absolute;
+  width: min(88vw, 460px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--money) 23%, transparent), transparent 66%);
+  animation: startup-atmosphere-in 760ms cubic-bezier(0.22, 0.9, 0.28, 1) 170ms both,
+    startup-atmosphere-idle 2.8s ease-in-out 930ms infinite;
+}
+
+.startup-splash__trace {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  transform: translateY(-3px);
+  filter: drop-shadow(0 18px 34px color-mix(in srgb, var(--money) 16%, transparent));
+  animation: startup-mark-settle 850ms cubic-bezier(0.22, 0.9, 0.28, 1) both;
+}
+
+.startup-splash__trace svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.startup-splash__panel {
+  fill: color-mix(in srgb, var(--surf) 82%, transparent);
+  stroke: color-mix(in srgb, var(--steel) 22%, var(--bd));
+  stroke-width: 1.5;
+  stroke-dasharray: 392;
+  stroke-dashoffset: 392;
+  animation: startup-panel-draw 520ms cubic-bezier(0.22, 0.9, 0.28, 1) 50ms forwards;
+}
+
+.startup-splash__row {
+  fill: none;
+  stroke: color-mix(in srgb, var(--steel) 22%, var(--bd));
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-dasharray: 66;
+  stroke-dashoffset: 66;
+  animation: startup-row-draw 320ms cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
+}
+
+.startup-splash__row--one { animation-delay: 120ms; }
+.startup-splash__row--two { animation-delay: 210ms; }
+.startup-splash__row--three { animation-delay: 300ms; }
+
+.startup-splash__row-dot {
+  fill: color-mix(in srgb, var(--steel) 22%, var(--bd));
+  opacity: 0;
+  transform: scale(0.2);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: startup-dot-arrive 220ms cubic-bezier(0.2, 1.35, 0.32, 1) forwards;
+}
+
+.startup-splash__row-dot--one { animation-delay: 330ms; }
+.startup-splash__row-dot--two { animation-delay: 420ms; }
+.startup-splash__row-dot--three { animation-delay: 510ms; }
+
+.startup-splash__bus {
+  fill: none;
+  stroke: var(--money);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 152;
+  stroke-dashoffset: 152;
+  animation: startup-bus-draw 420ms cubic-bezier(0.22, 0.9, 0.28, 1) 430ms forwards;
+}
+
+.startup-splash__charge-node {
+  fill: var(--money);
+  opacity: 0;
+  transform: scale(0.25);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: startup-node-arrive 250ms cubic-bezier(0.2, 1.35, 0.32, 1) 730ms forwards;
+}
+
+.startup-splash__bolt {
+  fill: none;
+  stroke: var(--money);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 74;
+  stroke-dashoffset: 74;
+  animation: startup-bolt-draw 330ms cubic-bezier(0.22, 0.9, 0.28, 1) 590ms forwards;
+}
+
+.startup-splash__pulse {
+  fill: none;
+  stroke: var(--money);
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: startup-pulse 700ms cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
+}
+
+.startup-splash__pulse--inner { animation-delay: 780ms; }
+.startup-splash__pulse--outer { animation-delay: 880ms; }
+
+@keyframes startup-panel-draw {
+  from { fill-opacity: 0; stroke-dashoffset: 392; }
+  to { fill-opacity: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes startup-row-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes startup-dot-arrive {
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes startup-bus-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes startup-node-arrive {
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes startup-bolt-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes startup-pulse {
+  0% { opacity: 0; transform: scale(0.76); }
+  28% { opacity: 0.32; }
+  100% { opacity: 0; transform: scale(1.58); }
+}
+
+@keyframes startup-mark-settle {
+  from { transform: translateY(-3px) scale(0.92); }
+  78% { transform: translateY(-3px) scale(1.035); }
+  to { transform: translateY(-3px) scale(1); }
+}
+
+@keyframes startup-atmosphere-in {
+  from { opacity: 0; transform: scale(0.62); }
+  to { opacity: 0.72; transform: scale(0.96); }
+}
+
+@keyframes startup-atmosphere-idle {
+  0%, 100% { opacity: 0.58; transform: scale(0.93); }
+  50% { opacity: 0.76; transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-splash__atmosphere,
+  .startup-splash__trace,
+  .startup-splash__panel,
+  .startup-splash__row,
+  .startup-splash__row-dot,
+  .startup-splash__bus,
+  .startup-splash__charge-node,
+  .startup-splash__bolt,
+  .startup-splash__pulse {
+    animation: none;
+  }
+  .startup-splash__atmosphere { opacity: 0.58; transform: scale(0.96); }
+  .startup-splash__panel,
+  .startup-splash__row,
+  .startup-splash__bus,
+  .startup-splash__bolt { stroke-dashoffset: 0; }
+  .startup-splash__panel { fill-opacity: 1; }
+  .startup-splash__row-dot,
+  .startup-splash__charge-node { opacity: 1; transform: scale(1); }
+  .startup-splash__pulse { display: none; }
+}
+
 /* ============ Cockpit Ledger — design tokens ============ */
 :root {
   color-scheme: light;

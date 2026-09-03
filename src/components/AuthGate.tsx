@@ -2,8 +2,11 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { initializeData, retrySync, stopDataSync, useEvState } from '../lib/data'
 import { hasSupabaseConfig, supa } from '../lib/supa'
+import { applyTheme } from '../lib/theme'
+import StartupSplash from './StartupSplash'
 
 type AuthState = { loading: boolean; user: User | null }
+const STARTUP_INTRO_MS = 1500
 
 function GateCard({ children }: { children: ReactNode }) {
   return (
@@ -22,7 +25,17 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState<'password' | 'magic' | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [startupIntroComplete, setStartupIntroComplete] = useState(!hasSupabaseConfig)
   const data = useEvState()
+  const startupPending = hasSupabaseConfig && (
+    !startupIntroComplete || auth.loading || Boolean(auth.user && data.loading && data.syncStatus !== 'offline')
+  )
+
+  useEffect(() => {
+    if (!hasSupabaseConfig) return
+    const timer = window.setTimeout(() => setStartupIntroComplete(true), STARTUP_INTRO_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (!supa) return
@@ -44,6 +57,16 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     else if (!auth.loading) stopDataSync()
   }, [auth.loading, auth.user])
 
+  useEffect(() => {
+    if (!auth.user || data.loading) return
+    applyTheme(data.settings.theme)
+    try {
+      localStorage.setItem('ev.theme', data.settings.theme)
+    } catch {
+      // The current session can still use the restored theme when storage is unavailable.
+    }
+  }, [auth.user, data.loading, data.settings.theme])
+
   if (!hasSupabaseConfig) {
     return (
       <GateCard>
@@ -53,38 +76,33 @@ export default function AuthGate({ children }: { children: ReactNode }) {
     )
   }
 
-  if (auth.loading) {
-    return (
-      <GateCard>
-        <h1>Opening your ledger…</h1>
-        <p>Checking the saved Supabase session.</p>
-      </GateCard>
-    )
+  const signInWithPassword = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!supa || !email.trim() || !password) return
+    setBusy('password')
+    setMessage(null)
+    const { error } = await supa.auth.signInWithPassword({ email: email.trim(), password })
+    setBusy(null)
+    if (error) setMessage(error.message)
   }
 
-  if (!auth.user) {
-    const signInWithPassword = async (event: React.FormEvent) => {
-      event.preventDefault()
-      if (!supa || !email.trim() || !password) return
-      setBusy('password')
-      setMessage(null)
-      const { error } = await supa.auth.signInWithPassword({ email: email.trim(), password })
-      setBusy(null)
-      if (error) setMessage(error.message)
-    }
+  const sendLink = async () => {
+    if (!supa || !email.trim()) return
+    setBusy('magic')
+    setMessage(null)
+    const { error } = await supa.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
+    })
+    setBusy(null)
+    setMessage(error ? error.message : 'Check your email for the secure sign-in link.')
+  }
 
-    const sendLink = async () => {
-      if (!supa || !email.trim()) return
-      setBusy('magic')
-      setMessage(null)
-      const { error } = await supa.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
-      })
-      setBusy(null)
-      setMessage(error ? error.message : 'Check your email for the secure sign-in link.')
-    }
-    return (
+  let content: ReactNode
+  if (auth.loading || (auth.user && data.loading && data.syncStatus !== 'offline')) {
+    content = <main className="route-loading" aria-hidden="true" />
+  } else if (!auth.user) {
+    content = (
       <GateCard>
         <h1>Sign in</h1>
         <p>Your charging ledger is available only to the configured owner account.</p>
@@ -120,19 +138,8 @@ export default function AuthGate({ children }: { children: ReactNode }) {
         {message && <p role="status">{message}</p>}
       </GateCard>
     )
-  }
-
-  if (data.loading && data.syncStatus !== 'offline') {
-    return (
-      <GateCard>
-        <h1>Loading your ledger…</h1>
-        <p>Reading the local cache and syncing Supabase.</p>
-      </GateCard>
-    )
-  }
-
-  if (data.syncStatus === 'error' && data.sessions.length === 0 && data.providers.length === 0) {
-    return (
+  } else if (data.syncStatus === 'error' && data.sessions.length === 0 && data.providers.length === 0) {
+    content = (
       <GateCard>
         <h1>Ledger unavailable</h1>
         <p>{data.lastSyncError}</p>
@@ -144,7 +151,14 @@ export default function AuthGate({ children }: { children: ReactNode }) {
         </button>
       </GateCard>
     )
+  } else {
+    content = children
   }
 
-  return children
+  return (
+    <>
+      {content}
+      {startupPending && <StartupSplash />}
+    </>
+  )
 }

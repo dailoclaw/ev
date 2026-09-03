@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon.jpg', 'splash.jpg'],
+      includeAssets: ['favicon.svg', 'icon.jpg', 'theme-init.js'],
       manifest: {
         name: 'EV Command',
         short_name: 'EV Command',
