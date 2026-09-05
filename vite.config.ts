@@ -23,7 +23,24 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: true,
-        navigateFallback: '/index.html',
+        // Always ask production for the latest app shell before falling back to
+        // the cached copy. A precached navigation shell can otherwise leave an
+        // installed PWA one release behind (including the startup animation).
+        directoryIndex: null,
+        navigateFallback: null,
+        navigationPreload: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'ev-navigation',
+              networkTimeoutSeconds: 3,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 10 },
+            },
+          },
+        ],
         globPatterns: ['**/*.{js,css,html,svg,jpg,webp,woff2}'],
         globIgnores: ['car*.jpg'],
       },

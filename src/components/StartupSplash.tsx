@@ -1,6 +1,11 @@
 export default function StartupSplash() {
   return (
-    <main className="startup-splash" role="status" aria-label="Starting EV Command">
+    <main
+      className="startup-splash"
+      data-startup-animation="battery-cascade"
+      role="status"
+      aria-label="Starting EV Command"
+    >
       <div className="startup-splash__atmosphere" aria-hidden="true" />
       <div className="startup-splash__battery" aria-hidden="true">
         <svg viewBox="0 0 360 280">

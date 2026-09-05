@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.5',
+    date: '5 Sep 2026',
+    notes: [
+      'Made installed web-app launches fetch the current app shell first, so Battery Cascade replaces the previous startup animation immediately while retaining an offline fallback.',
+    ],
+  },
+  {
     version: '4.2.4',
     date: '5 Sep 2026',
     notes: [
