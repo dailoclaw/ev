@@ -8,6 +8,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.2.4',
+    date: '5 Sep 2026',
+    notes: [
+      'Replaced Charge Trace at startup with Battery Cascade: the traction pack fills in sequence, draws an oversized bolt and releases two expanding energy pulses.',
+    ],
+  },
+  {
     version: '4.2.3',
     date: '3 Sep 2026',
     notes: [

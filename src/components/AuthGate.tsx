@@ -6,7 +6,7 @@ import { applyTheme } from '../lib/theme'
 import StartupSplash from './StartupSplash'
 
 type AuthState = { loading: boolean; user: User | null }
-const STARTUP_INTRO_MS = 1500
+const STARTUP_INTRO_MS = 3200
 
 function GateCard({ children }: { children: ReactNode }) {
   return (
