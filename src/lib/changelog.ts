@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.1',
+    date: '22 Sep 2026',
+    notes: ['Updated build and test tools to resolve reported dependency security vulnerabilities.'],
+  },
+  {
     version: '4.3.0',
     date: '22 Sep 2026',
     notes: [

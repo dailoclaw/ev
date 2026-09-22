@@ -1,5 +1,10 @@
 # EV Command — Changelog
 
+## v4.3.1 (2026-09-22)
+### Fixes
+- Updated Vitest and its coverage tooling to address the development-server file-read advisory.
+- Updated fast-uri and js-yaml to patched releases in the development dependency tree.
+
 ## v4.3.0 (2026-09-22)
 ### New Features
 - Added animated sync status marks for pending, syncing, synced and failed states.
