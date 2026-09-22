@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
+/* Build utilities from app code only, excluding design studies and test output. */
+@tailwind utilities source('./');
+@source '../index.html';
 
 .auth-gate {
   min-height: 100dvh;

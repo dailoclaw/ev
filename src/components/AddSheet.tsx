@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { addProvider, addSession } from '../lib/data'
 import { previewFreeAllocation } from '../lib/savings'
 import { aud, todayIso } from '../lib/format'
 import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
 import { useEv } from '../lib/useEv'
 import { classifySave, playSaveFeedback } from '../lib/feedback'
-import { SyncBadge, TickSvg } from './ui'
+import { SyncBadge } from './ui'
 import GlassSegmented from './GlassSegmented'
+import StatusMark from './StatusMark'
+import { syncMarkState } from '../lib/syncPresentation'
 
 type Mode = 'charge' | 'fee'
 
 export default function AddSheet({ onClose }: { onClose: () => void }) {
-  const { providers: allProviders, sessions, refRate, synced, syncStatus, pendingCount } = useEv()
+  const { providers: allProviders, sessions, refRate, syncStatus, pendingCount } = useEv()
   const providers = useMemo(
     () => allProviders.filter(provider => !provider.archived),
     [allProviders],
@@ -28,6 +30,11 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const [costStr, setCostStr] = useState('')
   const [notes, setNotes] = useState('')
   const [saved, setSaved] = useState(false)
+  useEffect(() => {
+    if (!saved || syncStatus === 'error') return
+    const timer = setTimeout(onClose, 1600)
+    return () => clearTimeout(timer)
+  }, [saved, syncStatus, onClose])
   const selectedProviderName = providers.some(p => p.name === providerName) ? providerName : defaultProviderName
 
   const isFee = mode === 'fee'
@@ -61,7 +68,6 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
     })
     playSaveFeedback(classifySave({ isFee, kwh, cost, freeKwh }))
     setSaved(true)
-    setTimeout(onClose, 1300)
   }
 
   return (
@@ -69,18 +75,19 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Add charge or fee" onClick={e => e.stopPropagation()}>
         <div className="handle" />
         {saved ? (
-          <div style={{ textAlign: 'center', padding: '18px 0 26px' }}>
-            <TickSvg />
-            <b style={{ fontSize: 15, fontWeight: 800 }}>{isFee ? 'Fee saved' : 'Charge saved'}</b>
-            <p style={{ fontSize: 12, color: 'var(--mut)', fontWeight: 600, marginTop: 4 }}>
-              {synced ? 'Synced to Supabase' : `Saved safely · ${pendingCount || 1} change${(pendingCount || 1) === 1 ? '' : 's'} waiting to sync`}
+          <div className="save-status" role="status" aria-atomic="true">
+            <StatusMark status={syncMarkState(syncStatus)} size={52} />
+            <b>{syncStatus === 'error' ? 'Save needs attention' : isFee ? 'Fee saved' : 'Charge saved'}</b>
+            <p>
+              {syncStatus === 'synced' ? 'Synced to Supabase' : syncStatus === 'error' ? 'Sync failed. Check Settings for details and retry.' : syncStatus === 'offline' ? `${pendingCount || 1} change${(pendingCount || 1) === 1 ? '' : 's'} waiting to sync when online` : 'Syncing your changes…'}
             </p>
+            {syncStatus === 'error' && <button type="button" className="text-btn" onClick={onClose}>Close</button>}
           </div>
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <b style={{ fontSize: 17, fontWeight: 800 }}>{isFee ? 'New membership fee' : 'New charge'}</b>
-              <SyncBadge live={synced} label={synced ? 'Syncs live' : syncStatus === 'offline' ? 'Offline queue' : 'Will sync'} />
+              <SyncBadge status={syncStatus} />
             </div>
 
             <GlassSegmented

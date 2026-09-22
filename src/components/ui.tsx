@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import StatusMark from './StatusMark'
+import { syncLabel, syncMarkState } from '../lib/syncPresentation'
+import type { SyncStatus } from '../lib/appModel'
 import { providerInitial, type Provider } from '../lib/providers'
 
 /* ---- icons ---- */
@@ -253,11 +256,11 @@ export const FreeTag = ({ children = 'FREE' }: { children?: ReactNode }) => (
   <span className="freetag">{children}</span>
 )
 
-export function SyncBadge({ live, label }: { live: boolean; label: string }) {
+export function SyncBadge({ status, label }: { status: SyncStatus; label?: string }) {
   return (
-    <span className={`sync-badge ${live ? '' : 'off'}`}>
-      <span className="live" />
-      {label}
+    <span className={`sync-badge ${status === 'synced' ? '' : 'off'}`} data-sync={status} role="status" aria-atomic="true">
+      <StatusMark status={syncMarkState(status)} />
+      {label ?? syncLabel(status)}
     </span>
   )
 }

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { allowanceUsedOn } from '../lib/savings'
 import { aud, kwh, rate, thisMonth, todayIso } from '../lib/format'
-import { Bars, Icon, Ring } from '../components/ui'
+import { Bars, Icon } from '../components/ui'
 import Explainable from '../components/Explainable'
 import { deriveNetBenefit } from '../lib/derive'
 import CountUpNumber from '../components/CountUpNumber'
 import StyleVariant from '../components/StyleVariant'
+import SloshGauge from '../components/SloshGauge'
 
 type CanvasSavingsView = 'overview' | 'math' | 'allowance' | 'months'
 
@@ -155,7 +156,14 @@ function CanvasSavings() {
             backLabel="Back to savings"
           />
 
-          <CanvasAllowanceCells used={usedToday} max={allowance} />
+          <figure className="allowance-gauge-panel">
+            <SloshGauge used={usedToday} max={allowance} provider={freeProvider?.name ?? 'your network'} large />
+            <figcaption>
+              <strong>{freeProvider?.name}</strong>
+              <span>{usedToday.toFixed(1)} of {allowance.toFixed(1)} kWh used today</span>
+              <span>{leftToday.toFixed(1)} kWh still free</span>
+            </figcaption>
+          </figure>
 
           <div className="cv-rows">
             <div className="cv-row cv-row-static">
@@ -268,29 +276,6 @@ function CanvasSavingsWave({ data }: { data: Array<{ label: string; value: numbe
   )
 }
 
-function CanvasAllowanceCells({ used, max }: { used: number; max: number }) {
-  const cellCount = Math.max(1, Math.ceil(max))
-  return (
-    <figure className="cv-allowance" aria-label={`${used.toFixed(1)} of ${max.toFixed(1)} kilowatt-hours used today`}>
-      <div>
-        {Array.from({ length: cellCount }, (_, index) => {
-          const capacity = Math.min(1, Math.max(0, max - index))
-          const fill = capacity > 0 ? Math.min(capacity, Math.max(0, used - index)) / capacity : 0
-          return (
-            <i key={index}>
-              <span style={{ height: `${fill * 100}%` }} />
-            </i>
-          )
-        })}
-      </div>
-      <figcaption>
-        <span>1 kWh per cell</span>
-        <span>{Math.max(0, max - used).toFixed(1)} kWh left</span>
-      </figcaption>
-    </figure>
-  )
-}
-
 function CanvasSavingsBars({ data }: { data: Array<{ label: string; value: number }> }) {
   const max = Math.max(...data.map(point => point.value), 0.01)
   return (
@@ -378,16 +363,10 @@ function ClassicSavings() {
 
       {freeProvider && (
         <section className="hero-card" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <Ring
-            value={usedToday}
-            max={freeProvider.freeKwhPerDay}
-            label={usedToday.toFixed(1)}
-            sub={`of ${freeProvider.freeKwhPerDay}`}
-            size={88}
-            onSurface
-          />
+          <SloshGauge used={usedToday} max={freeProvider.freeKwhPerDay} provider={freeProvider.name} />
           <div>
             <span className="cap">Today's allowance</span>
+            <span className="allowance-exact">{usedToday.toFixed(1)} of {freeProvider.freeKwhPerDay.toFixed(1)} kWh used · {freeProvider.name}</span>
             <div style={{ fontSize: 16, fontWeight: 800, marginTop: 5 }}>
               {leftToday > 0 ? `${leftToday.toFixed(1)} kWh still free` : 'Fully used — nice'}
             </div>

@@ -8,6 +8,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.0',
+    date: '22 Sep 2026',
+    notes: [
+      'Sync now shows a clear animated state for waiting, syncing, success and errors.',
+      'Today’s free-energy allowance has a subtle liquid gauge in Classic and Minimal Savings.',
+      'Statement swipes settle smoothly and support mouse, keyboard and visible action controls.',
+    ],
+  },
+  {
     version: '4.2.5',
     date: '5 Sep 2026',
     notes: [

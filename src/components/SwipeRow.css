@@ -1,0 +1,7 @@
+.swiperow .swipe-content { display: flex; align-items: stretch; background: var(--surf); border: 1px solid var(--bd); border-radius: inherit; user-select: none; -webkit-user-select: none; }
+.swiperow .swipe-content .row { flex: 1; min-width: 0; margin: 0; border: 0; border-radius: inherit; box-shadow: none; padding-right: 4px; background: transparent; }
+.swiperow .swipe-actions button { width: 48px; min-height: 44px; }
+.swipe-toggle { width: 40px; flex: none; min-height: 44px; border: 0; background: transparent; color: var(--mut); font-size: 23px; font-weight: 700; letter-spacing: 1px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; cursor: pointer; }
+.swiperow button:focus-visible { outline: 2px solid var(--money-deep); outline-offset: -3px; }
+.swiperow .swipe-actions button:focus-visible { outline-color: #fff; }
+:root[data-density='compact'] .swiperow .swipe-content .row { padding-right: 4px; }

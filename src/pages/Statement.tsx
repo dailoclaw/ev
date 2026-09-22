@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import type { EnrichedSession } from '../lib/savings'
@@ -11,10 +11,9 @@ import EditSessionSheet from '../components/EditSessionSheet'
 import MonthNarrative from '../components/MonthNarrative'
 import CountUpNumber from '../components/CountUpNumber'
 import GlassSegmented from '../components/GlassSegmented'
+import SwipeRow from '../components/SwipeRow'
 import { narrateMonth } from '../lib/narrate'
 import { deleteSession, undoDeleteSession } from '../lib/data'
-
-const SWIPE_ACTIONS_WIDTH = 84
 
 function SessionRow({
   session,
@@ -33,69 +32,14 @@ function SessionRow({
   onEdit: () => void
   onDelete: () => void
 }) {
-  const contentRef = useRef<HTMLButtonElement>(null)
-  const dragging = useRef<{ startX: number; startedOpen: boolean; moved: boolean } | null>(null)
   const showMicroSplit = !session.isFee && session.amount > 0
   const freePct = showMicroSplit ? Math.max(0, Math.min(100, (session.freeKwh / session.amount) * 100)) : 0
   const paidPct = showMicroSplit ? Math.max(0, 100 - freePct) : 0
 
-  const setTx = (px: number, animate: boolean) => {
-    const el = contentRef.current
-    if (!el) return
-    el.style.transition = animate ? 'transform 0.18s ease' : 'none'
-    el.style.transform = `translateX(${px}px)`
-  }
-
-  useEffect(() => {
-    setTx(open ? -SWIPE_ACTIONS_WIDTH : 0, true)
-  }, [open])
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    dragging.current = { startX: e.touches[0].clientX, startedOpen: open, moved: false }
-  }
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!dragging.current) return
-    const dx = e.touches[0].clientX - dragging.current.startX
-    if (Math.abs(dx) > 4) dragging.current.moved = true
-    const base = dragging.current.startedOpen ? -SWIPE_ACTIONS_WIDTH : 0
-    const next = Math.min(0, Math.max(-SWIPE_ACTIONS_WIDTH, base + dx))
-    setTx(next, false)
-  }
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!dragging.current) return
-    const dx = e.changedTouches[0].clientX - dragging.current.startX
-    const base = dragging.current.startedOpen ? -SWIPE_ACTIONS_WIDTH : 0
-    const finalPx = base + dx
-    const moved = dragging.current.moved
-    dragging.current = null
-    if (!moved) {
-      // a tap, not a drag
-      if (open) onOpenChange(null)
-      else onTap()
-      return
-    }
-    const shouldOpen = finalPx < -SWIPE_ACTIONS_WIDTH / 2
-    onOpenChange(shouldOpen ? session.id : null)
-  }
-
   return (
-    <div className="swiperow">
-      <div className="swipe-actions">
-        <button type="button" className="edit" onClick={onEdit} aria-label="Edit charge">
-          <Icon name="edit" size={16} />
-        </button>
-        <button type="button" className="del" onClick={onDelete} aria-label="Delete charge">
-          <Icon name="trash" size={16} />
-        </button>
-      </div>
-      <button
-        className="row swipe-content"
-        type="button"
-        ref={contentRef}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+    <SwipeRow label={`${session.type} ${session.isFee ? 'fee' : 'charge'}`}
+      open={open} onOpenChange={next => onOpenChange(next ? session.id : null)}
+      onTap={onTap} onEdit={onEdit} onDelete={onDelete}>
         <Mark provider={provider} name={session.type} />
         <span>
           <strong>
@@ -121,8 +65,7 @@ function SessionRow({
           )}
         </span>
         <b className="amt">{aud(session.cost)}</b>
-      </button>
-    </div>
+    </SwipeRow>
   )
 }
 

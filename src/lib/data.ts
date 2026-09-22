@@ -193,6 +193,9 @@ function mutationOperation(
 }
 
 async function persistAndSync(operations: OutboxOperation[]) {
+  // Reflect the pending mutation immediately, before IndexedDB finishes writing.
+  state = { ...state, synced: false, syncStatus: isOnline() ? 'syncing' : 'offline' }
+  emit()
   try {
     await commitCachedState(cachedSnapshot(), operations)
     const pendingCount = (await listOutbox(ownerId ?? undefined)).length

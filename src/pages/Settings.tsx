@@ -409,7 +409,7 @@ export default function Settings() {
           <strong>Supabase sync</strong>
           <small>{syncDescription}</small>
         </span>
-        <SyncBadge live={ev.synced} label={ev.synced ? 'Live' : ev.syncStatus === 'offline' ? 'Offline' : 'Pending'} />
+        <SyncBadge status={ev.syncStatus} label={ev.syncStatus === 'offline' ? 'Offline' : undefined} />
       </div>
       {(ev.syncStatus === 'error' || ev.syncStatus === 'offline') && (
         <button className="row" type="button" onClick={() => void retrySync()}>
