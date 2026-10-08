@@ -1,5 +1,11 @@
 # EV Command — Changelog
 
+## v4.3.2 (2026-10-09)
+### Fixes
+- Prevented completed uploads from removing newer queued edits or deletes by acknowledging the uploaded revision atomically.
+- Upgraded existing pending offline operations in place without discarding their payloads.
+- Added regression tests for paused uploads, replacement operations and legacy queue entries.
+
 ## v4.3.1 (2026-09-22)
 ### Fixes
 - Updated Vitest and its coverage tooling to address the development-server file-read advisory.

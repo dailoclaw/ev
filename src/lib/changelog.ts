@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.2',
+    date: '9 Oct 2026',
+    notes: ['Edits and deletes made during an upload now stay queued until their latest change has synced.'],
+  },
+  {
     version: '4.3.1',
     date: '22 Sep 2026',
     notes: ['Updated build and test tools to resolve reported dependency security vulnerabilities.'],

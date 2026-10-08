@@ -17,13 +17,15 @@ export interface CachedSnapshot {
   cachedAt: string
 }
 
-export type OutboxOperation =
+export type OutboxMutation =
   | { id: string; ownerId: string; updatedAt: string; action: 'session-upsert'; payload: Record<string, unknown> }
   | { id: string; ownerId: string; updatedAt: string; action: 'session-delete'; payload: { id: string } }
   | { id: string; ownerId: string; updatedAt: string; action: 'provider-upsert'; payload: Record<string, unknown> }
   | { id: string; ownerId: string; updatedAt: string; action: 'settings-update'; payload: Record<string, unknown> }
   | { id: string; ownerId: string; updatedAt: string; action: 'photo-upsert'; payload: { path: string; dataUrl: string } }
   | { id: string; ownerId: string; updatedAt: string; action: 'photo-delete'; payload: { path: string } }
+
+export type OutboxOperation = OutboxMutation & { revision: string }
 
 let openPromise: Promise<IDBDatabase> | null = null
 
@@ -65,29 +67,60 @@ export async function loadCachedSnapshot(): Promise<CachedSnapshot | null> {
 }
 
 /** Atomically persist the optimistic snapshot and all operations needed to sync it. */
-export async function commitCachedState(snapshot: CachedSnapshot, operations: OutboxOperation[] = []): Promise<void> {
+export async function commitCachedState(snapshot: CachedSnapshot, operations: OutboxMutation[] = []): Promise<void> {
   const db = await openDb()
   const transaction = db.transaction([SNAPSHOTS, OUTBOX], 'readwrite')
   transaction.objectStore(SNAPSHOTS).put(snapshot, CURRENT)
   const outbox = transaction.objectStore(OUTBOX)
-  for (const operation of operations) outbox.put(operation)
+  // A new token for every durable write, even for identical payloads/timestamps.
+  for (const operation of operations) outbox.put({ ...operation, revision: crypto.randomUUID() })
   await transactionDone(transaction)
 }
 
 export async function listOutbox(ownerId?: string): Promise<OutboxOperation[]> {
   const db = await openDb()
-  const transaction = db.transaction(OUTBOX, 'readonly')
-  const operations = (await requestResult(transaction.objectStore(OUTBOX).getAll())) as OutboxOperation[]
+  // Upgrade pre-revision entries in place, atomically across browser tabs.
+  const transaction = db.transaction(OUTBOX, 'readwrite')
+  const done = transactionDone(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  const request = store.getAll()
+  const read = new Promise<OutboxOperation[]>((resolve, reject) => {
+    request.onsuccess = () => {
+      try {
+        const operations = request.result as OutboxOperation[]
+        for (const operation of operations) {
+          if (typeof operation.revision === 'string' && operation.revision.length > 0) continue
+          operation.revision = crypto.randomUUID()
+          store.put(operation)
+        }
+        resolve(operations)
+      } catch (error) {
+        transaction.abort()
+        reject(error)
+      }
+    }
+    request.onerror = () => reject(request.error ?? new Error('Could not read the offline queue'))
+  })
+  const [operations] = await Promise.all([read, done])
   return operations
     .filter(operation => !ownerId || operation.ownerId === ownerId)
     .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
 }
 
-export async function removeOutboxOperation(id: string): Promise<void> {
+/** Acknowledge only the version actually uploaded; preserve any newer mutation. */
+export async function acknowledgeOutboxOperation(operation: OutboxOperation): Promise<void> {
   const db = await openDb()
   const transaction = db.transaction(OUTBOX, 'readwrite')
-  transaction.objectStore(OUTBOX).delete(id)
-  await transactionDone(transaction)
+  const done = transactionDone(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  const request = store.get(operation.id)
+  request.onsuccess = () => {
+    const current = request.result as OutboxOperation | undefined
+    if (current?.revision === operation.revision && current.ownerId === operation.ownerId) {
+      store.delete(operation.id)
+    }
+  }
+  await done
 }
 
 export async function clearOfflineCache(): Promise<void> {

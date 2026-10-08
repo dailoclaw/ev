@@ -4,9 +4,9 @@ import {
   commitCachedState,
   listOutbox,
   loadCachedSnapshot,
-  removeOutboxOperation,
+  acknowledgeOutboxOperation,
   type CachedSnapshot,
-  type OutboxOperation,
+  type OutboxMutation,
 } from './cache'
 import { nextPaletteColor, type Provider } from './providers'
 import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from './repository'
@@ -184,15 +184,15 @@ let lifecycleBound = false
 
 function mutationOperation(
   id: string,
-  action: OutboxOperation['action'],
+  action: OutboxMutation['action'],
   payload: Record<string, unknown>,
   updatedAt = now(),
-): OutboxOperation {
+): OutboxMutation {
   if (!ownerId) throw new Error('Sign in before changing the ledger.')
-  return { id: `${ownerId}:${id}`, ownerId, updatedAt, action, payload } as OutboxOperation
+  return { id: `${ownerId}:${id}`, ownerId, updatedAt, action, payload } as OutboxMutation
 }
 
-async function persistAndSync(operations: OutboxOperation[]) {
+async function persistAndSync(operations: OutboxMutation[]) {
   // Reflect the pending mutation immediately, before IndexedDB finishes writing.
   state = { ...state, synced: false, syncStatus: isOnline() ? 'syncing' : 'offline' }
   emit()
@@ -222,7 +222,7 @@ async function flushOutbox(currentOwnerId: string) {
   const operations = await listOutbox(currentOwnerId)
   for (const operation of operations) {
     await applyOutboxOperation(operation, currentOwnerId)
-    await removeOutboxOperation(operation.id)
+    await acknowledgeOutboxOperation(operation)
   }
 }
 
@@ -246,7 +246,7 @@ function applyRemote(remote: Awaited<ReturnType<typeof fetchRemoteSnapshot>>) {
 async function migrateLegacyState(currentOwnerId: string) {
   if (localStorage.getItem(LS_MIGRATED) === 'done') return
 
-  const operations: OutboxOperation[] = []
+  const operations: OutboxMutation[] = []
   const legacyProviders = readLS<Provider[]>(LS_PROVIDERS, [])
   const archivedIds = new Set(readLS<string[]>(LS_ARCHIVED, []))
   const orderedIds = readLS<string[]>(LS_PROVIDER_ORDER, [])
