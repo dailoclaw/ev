@@ -107,6 +107,17 @@ export async function listOutbox(ownerId?: string): Promise<OutboxOperation[]> {
     .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
 }
 
+/** Read a candidate and its prerequisites together without scanning the queue again. */
+export async function readOutboxOperations(ids: string[]): Promise<(OutboxOperation | undefined)[]> {
+  const db = await openDb()
+  const transaction = db.transaction(OUTBOX, 'readonly')
+  const done = transactionDone(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  const reads = Promise.all(ids.map(id => requestResult<OutboxOperation | undefined>(store.get(id))))
+  const [operations] = await Promise.all([reads, done])
+  return operations
+}
+
 /** Acknowledge only the version actually uploaded; preserve any newer mutation. */
 export async function acknowledgeOutboxOperation(operation: OutboxOperation): Promise<void> {
   const db = await openDb()

@@ -3,11 +3,13 @@ import { DEFAULT_SETTINGS, type AppSettings, type SyncStatus, type VehicleAssump
 import {
   commitCachedState,
   listOutbox,
+  readOutboxOperations,
   loadCachedSnapshot,
   acknowledgeOutboxOperation,
   type CachedSnapshot,
   type OutboxMutation,
 } from './cache'
+import { isOutboxOperationReady, orderOutboxOperations, outboxPrerequisiteIds } from './outboxPlan'
 import { nextPaletteColor, type Provider } from './providers'
 import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from './repository'
 import type { Session } from './savings'
@@ -201,10 +203,9 @@ function mutationOperation(
   id: string,
   action: OutboxMutation['action'],
   payload: Record<string, unknown>,
-  updatedAt = now(),
 ): OutboxMutation {
   if (!ownerId) throw new Error('Sign in before changing the ledger.')
-  return { id: `${ownerId}:${id}`, ownerId, updatedAt, action, payload } as OutboxMutation
+  return { id: `${ownerId}:${id}`, ownerId, updatedAt: now(), action, payload } as OutboxMutation
 }
 
 async function persistAndSync(operations: OutboxMutation[]) {
@@ -242,8 +243,12 @@ async function persistAndSync(operations: OutboxMutation[]) {
 async function flushOutbox(session: DataSession) {
   const operations = await listOutbox(session.ownerId)
   assertCurrentSession(session)
-  for (const operation of operations) {
+  for (const operation of orderOutboxOperations(operations)) {
     assertCurrentSession(session)
+    const [current, ...prerequisites] = await readOutboxOperations([operation.id, ...outboxPrerequisiteIds(operation)])
+    assertCurrentSession(session)
+    // A replacement or newly queued prerequisite belongs to the next pass.
+    if (current?.revision !== operation.revision || !isOutboxOperationReady(current, prerequisites)) continue
     await applyOutboxOperation(operation, session.ownerId, () => assertCurrentSession(session))
     assertCurrentSession(session)
     await acknowledgeOutboxOperation(operation)
@@ -344,7 +349,7 @@ async function migrateLegacyState(session: DataSession) {
   }
   if (legacyPhoto?.startsWith('data:image/')) {
     operations.push(
-      mutationOperation('photo', 'photo-upsert', { path: settings.vehiclePhotoPath!, dataUrl: legacyPhoto }, new Date(Date.now() - 1).toISOString()),
+      mutationOperation('photo', 'photo-upsert', { path: settings.vehiclePhotoPath!, dataUrl: legacyPhoto }),
     )
   }
   operations.push(mutationOperation('settings', 'settings-update', settingsPayload(settings)))
@@ -639,7 +644,7 @@ export function uploadVehiclePhoto(dataUrl: string) {
   emit()
   void persistAndSync([
     mutationOperation('photo', 'photo-upsert', { path, dataUrl }),
-    mutationOperation('settings', 'settings-update', settingsPayload(settings), new Date(Date.now() + 1).toISOString()),
+    mutationOperation('settings', 'settings-update', settingsPayload(settings)),
   ])
 }
 
@@ -649,7 +654,7 @@ export function removeVehiclePhoto() {
   state = { ...state, settings, vehiclePhoto: null }
   emit()
   const operations = [mutationOperation('settings', 'settings-update', settingsPayload(settings))]
-  if (path) operations.push(mutationOperation('photo', 'photo-delete', { path }, new Date(Date.now() + 1).toISOString()))
+  if (path) operations.push(mutationOperation('photo', 'photo-delete', { path }))
   void persistAndSync(operations)
 }
 

@@ -1,5 +1,12 @@
 # EV Command — Changelog
 
+## v4.3.4 (2026-10-09)
+### Fixes
+- Ordered provider/session and photo/settings synchronization by dependencies instead of timestamp offsets.
+- Rechecked current queue revisions and prerequisites before upload to skip obsolete operations safely.
+- Preserved dependent writes when prerequisites fail; contradictory photo operations report a recoverable sync error.
+- Added constraint-aware backend tests for ordering, retries and changes queued during paused uploads.
+
 ## v4.3.3 (2026-10-09)
 ### Fixes
 - Added session generation guards to cache initialization, synchronization, persistence completions, backup and restore.

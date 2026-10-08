@@ -544,6 +544,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 
 ### Step 1 — Protect pending edits (C1, C6, M5)
 
+**Latest implementation update (9 October 2026):** M5 explicit provider/session and photo/settings ordering is implemented and verified locally in v4.3.4. See [dependency fix notes](DEPENDENCY-ORDERING-FIX.md). C1, C6 and M5 core fixes are now implemented; cross-tab conflict management remains open. Earlier updates below record their original delivery scope.
+
 **Further implementation update (9 October 2026):** C6 session generation and lifecycle guards are implemented and verified locally in v4.3.3. See [session fix notes](SESSION-LIFECYCLE-FIX.md). Dependency ordering and cross-tab conflict handling remain open. The older update below records the prior v4.3.2 scope.
 
 **Implementation update (9 October 2026):** C1 revision-aware acknowledgement and legacy queue compatibility are implemented and verified locally in v4.3.2. See [fix notes](SYNC-ACKNOWLEDGEMENT-FIX.md). Session epochs, dependency ordering and the remaining acceptance scenarios are still open.

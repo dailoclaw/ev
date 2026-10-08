@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.4',
+    date: '9 Oct 2026',
+    notes: ['Offline sync now saves providers before their charges and keeps photo uploads and removals in the correct order.'],
+  },
+  {
     version: '4.3.3',
     date: '9 Oct 2026',
     notes: ['Sign-out and account changes now stop stale sync work from restoring data or continuing queued uploads.'],
