@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.3',
+    date: '9 Oct 2026',
+    notes: ['Sign-out and account changes now stop stale sync work from restoring data or continuing queued uploads.'],
+  },
+  {
     version: '4.3.2',
     date: '9 Oct 2026',
     notes: ['Edits and deletes made during an upload now stay queued until their latest change has synced.'],

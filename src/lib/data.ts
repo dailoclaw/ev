@@ -176,8 +176,23 @@ function applyCachedSnapshot(snapshot: CachedSnapshot) {
 }
 
 let ownerId: string | null = null
-let syncPromise: Promise<void> | null = null
-let syncRequested = false
+interface DataSession {
+  ownerId: string
+  epoch: number
+  ready: boolean
+  syncPromise: Promise<void> | null
+  syncRequested: boolean
+}
+let sessionEpoch = 0
+let activeSession: DataSession | null = null
+const isCurrentSession = (session: DataSession) => activeSession === session && session.epoch === sessionEpoch
+function assertCurrentSession(session: DataSession) {
+  if (!isCurrentSession(session)) throw new Error('The account session changed. Please try again.')
+}
+function requireSession(): DataSession {
+  if (!activeSession) throw new Error('Sign in before changing the ledger.')
+  return activeSession
+}
 let reloadTimer: ReturnType<typeof setTimeout> | undefined
 let realtimeChannel: ReturnType<NonNullable<typeof supa>['channel']> | null = null
 let lifecycleBound = false
@@ -193,12 +208,17 @@ function mutationOperation(
 }
 
 async function persistAndSync(operations: OutboxMutation[]) {
+  const session = requireSession()
+  const snapshot = cachedSnapshot()
   // Reflect the pending mutation immediately, before IndexedDB finishes writing.
   state = { ...state, synced: false, syncStatus: isOnline() ? 'syncing' : 'offline' }
   emit()
   try {
-    await commitCachedState(cachedSnapshot(), operations)
-    const pendingCount = (await listOutbox(ownerId ?? undefined)).length
+    assertCurrentSession(session)
+    await commitCachedState(snapshot, operations)
+    if (!isCurrentSession(session)) return
+    const pendingCount = (await listOutbox(session.ownerId)).length
+    if (!isCurrentSession(session)) return
     state = {
       ...state,
       pendingCount,
@@ -209,6 +229,7 @@ async function persistAndSync(operations: OutboxMutation[]) {
     emit()
     if (isOnline()) void synchronize()
   } catch (error) {
+    if (!isCurrentSession(session)) return
     state = {
       ...state,
       syncStatus: 'error',
@@ -218,11 +239,15 @@ async function persistAndSync(operations: OutboxMutation[]) {
   }
 }
 
-async function flushOutbox(currentOwnerId: string) {
-  const operations = await listOutbox(currentOwnerId)
+async function flushOutbox(session: DataSession) {
+  const operations = await listOutbox(session.ownerId)
+  assertCurrentSession(session)
   for (const operation of operations) {
-    await applyOutboxOperation(operation, currentOwnerId)
+    assertCurrentSession(session)
+    await applyOutboxOperation(operation, session.ownerId, () => assertCurrentSession(session))
+    assertCurrentSession(session)
     await acknowledgeOutboxOperation(operation)
+    assertCurrentSession(session)
   }
 }
 
@@ -243,7 +268,9 @@ function applyRemote(remote: Awaited<ReturnType<typeof fetchRemoteSnapshot>>) {
   emit()
 }
 
-async function migrateLegacyState(currentOwnerId: string) {
+async function migrateLegacyState(session: DataSession) {
+  assertCurrentSession(session)
+  const currentOwnerId = session.ownerId
   if (localStorage.getItem(LS_MIGRATED) === 'done') return
 
   const operations: OutboxMutation[] = []
@@ -323,15 +350,15 @@ async function migrateLegacyState(currentOwnerId: string) {
   operations.push(mutationOperation('settings', 'settings-update', settingsPayload(settings)))
 
   await commitCachedState(cachedSnapshot(), operations)
+  assertCurrentSession(session)
   localStorage.setItem(LS_MIGRATED, 'done')
   ;[LS_SESSIONS, LS_PROVIDERS, LS_BUDGET, LS_ARCHIVED, LS_PROVIDER_ORDER, LS_VEHICLE, LS_PHOTO].forEach(key =>
     localStorage.removeItem(key),
   )
 }
 
-async function runSynchronization() {
-  const currentOwnerId = ownerId
-  if (!currentOwnerId || !supa) return
+async function runSynchronization(session: DataSession) {
+  if (!isCurrentSession(session) || !supa) return
   if (!isOnline()) {
     state = { ...state, loading: false, synced: false, syncStatus: 'offline' }
     emit()
@@ -341,37 +368,47 @@ async function runSynchronization() {
   state = { ...state, syncStatus: 'syncing', synced: false, lastSyncError: null }
   emit()
   try {
-    await flushOutbox(currentOwnerId)
-    if (ownerId !== currentOwnerId) return
-    const initialRemote = await fetchRemoteSnapshot()
-    if (ownerId !== currentOwnerId) return
-    if ((await listOutbox(currentOwnerId)).length > 0) {
-      syncRequested = true
+    await flushOutbox(session)
+    assertCurrentSession(session)
+    const initialRemote = await fetchRemoteSnapshot(session.ownerId, () => assertCurrentSession(session))
+    assertCurrentSession(session)
+    const initialPending = await listOutbox(session.ownerId)
+    assertCurrentSession(session)
+    if (initialPending.length > 0) {
+      session.syncRequested = true
       return
     }
     applyRemote(initialRemote)
-    await migrateLegacyState(currentOwnerId)
-    if (ownerId !== currentOwnerId) return
-    await flushOutbox(currentOwnerId)
-    if (ownerId !== currentOwnerId) return
-    if ((await listOutbox(currentOwnerId)).length > 0) {
-      syncRequested = true
+    assertCurrentSession(session)
+    await migrateLegacyState(session)
+    assertCurrentSession(session)
+    await flushOutbox(session)
+    assertCurrentSession(session)
+    const migrationPending = await listOutbox(session.ownerId)
+    assertCurrentSession(session)
+    if (migrationPending.length > 0) {
+      session.syncRequested = true
       return
     }
-    const canonicalRemote = await fetchRemoteSnapshot()
-    if (ownerId !== currentOwnerId) return
-    if ((await listOutbox(currentOwnerId)).length > 0) {
-      syncRequested = true
+    const canonicalRemote = await fetchRemoteSnapshot(session.ownerId, () => assertCurrentSession(session))
+    assertCurrentSession(session)
+    const canonicalPending = await listOutbox(session.ownerId)
+    assertCurrentSession(session)
+    if (canonicalPending.length > 0) {
+      session.syncRequested = true
       return
     }
     applyRemote(canonicalRemote)
-    state = { ...state, pendingCount: 0, synced: true, syncStatus: 'synced', loading: false }
+    assertCurrentSession(session)
     await commitCachedState(cachedSnapshot())
+    assertCurrentSession(session)
+    state = { ...state, pendingCount: 0, synced: true, syncStatus: 'synced', loading: false }
     emit()
   } catch (error) {
-    if (ownerId !== currentOwnerId) return
+    if (!isCurrentSession(session)) return
     const message = error instanceof Error ? error.message : 'Supabase synchronization failed.'
-    const pendingCount = (await listOutbox(currentOwnerId).catch(() => [])).length
+    const pendingCount = (await listOutbox(session.ownerId).catch(() => [])).length
+    if (!isCurrentSession(session)) return
     state = {
       ...state,
       pendingCount,
@@ -385,21 +422,27 @@ async function runSynchronization() {
 }
 
 export function synchronize(): Promise<void> {
-  if (syncPromise) {
-    syncRequested = true
-    return syncPromise
+  const session = activeSession
+  if (!session?.ready) return Promise.resolve()
+  if (session.syncPromise) {
+    session.syncRequested = true
+    return session.syncPromise
   }
-  syncRequested = false
-  syncPromise = runSynchronization().finally(() => {
-    syncPromise = null
-    if (syncRequested) void synchronize()
+  session.syncRequested = false
+  session.syncPromise = runSynchronization(session).finally(() => {
+    session.syncPromise = null
+    if (isCurrentSession(session) && session.syncRequested) void synchronize()
   })
-  return syncPromise
+  return session.syncPromise
 }
 
 function reloadSoon() {
+  const session = activeSession
+  if (!session) return
   clearTimeout(reloadTimer)
-  reloadTimer = setTimeout(() => void synchronize(), 250)
+  reloadTimer = setTimeout(() => {
+    if (isCurrentSession(session)) void synchronize()
+  }, 250)
 }
 
 function bindLifecycle() {
@@ -411,38 +454,54 @@ function bindLifecycle() {
   window.addEventListener('focus', reloadSoon)
   window.addEventListener('online', reloadSoon)
   window.addEventListener('offline', () => {
+    if (!activeSession) return
     state = { ...state, synced: false, syncStatus: 'offline' }
     emit()
   })
 }
 
 export async function initializeData(currentOwnerId: string) {
-  if (ownerId === currentOwnerId && state.syncStatus !== 'signed-out') return synchronize()
+  if (activeSession?.ownerId === currentOwnerId) return synchronize()
+  stopDataSync()
+  const session: DataSession = {
+    ownerId: currentOwnerId, epoch: sessionEpoch, ready: false, syncPromise: null, syncRequested: false,
+  }
+  activeSession = session
   ownerId = currentOwnerId
   state = { ...state, loading: true, syncStatus: 'loading', lastSyncError: null }
   emit()
 
   const cached = await loadCachedSnapshot().catch(() => null)
+  if (!isCurrentSession(session)) return
   if (cached?.ownerId === currentOwnerId) applyCachedSnapshot(cached)
+  if (!isCurrentSession(session)) return
   const pendingCount = (await listOutbox(currentOwnerId).catch(() => [])).length
+  if (!isCurrentSession(session)) return
   state = { ...state, pendingCount }
   emit()
+  if (!isCurrentSession(session)) return
 
   bindLifecycle()
+  const reloadCurrentSession = () => { if (isCurrentSession(session)) reloadSoon() }
   realtimeChannel =
     supa
       ?.channel('ev-owner-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'charging_sessions' }, reloadSoon)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'providers' }, reloadSoon)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, reloadSoon)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'charging_sessions' }, reloadCurrentSession)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'providers' }, reloadCurrentSession)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, reloadCurrentSession)
       .subscribe() ?? null
+  session.ready = true
   await synchronize()
 }
 
 export function stopDataSync() {
+  sessionEpoch += 1
+  activeSession = null
+  ownerId = null
+  clearTimeout(reloadTimer)
+  reloadTimer = undefined
   if (realtimeChannel && supa) void supa.removeChannel(realtimeChannel)
   realtimeChannel = null
-  ownerId = null
   state = {
     ...state,
     sessions: [],
@@ -597,16 +656,19 @@ export function removeVehiclePhoto() {
 /* ================= Backup & restore ================= */
 
 export async function buildBackup(): Promise<Backup> {
-  let vehiclePhotoDataUrl = state.vehiclePhoto?.startsWith('data:image/') ? state.vehiclePhoto : null
-  if (!vehiclePhotoDataUrl && state.settings.vehiclePhotoPath && state.synced) {
-    vehiclePhotoDataUrl = await downloadVehiclePhoto(state.settings.vehiclePhotoPath).catch(() => null)
+  const session = requireSession()
+  const snapshot = state
+  let vehiclePhotoDataUrl = snapshot.vehiclePhoto?.startsWith('data:image/') ? snapshot.vehiclePhoto : null
+  if (!vehiclePhotoDataUrl && snapshot.settings.vehiclePhotoPath && snapshot.synced) {
+    vehiclePhotoDataUrl = await downloadVehiclePhoto(snapshot.settings.vehiclePhotoPath, () => assertCurrentSession(session)).catch(() => null)
   }
+  assertCurrentSession(session)
   return {
     version: 2,
     exportedAt: now(),
-    settings: state.settings,
-    providers: state.providers,
-    sessions: state.sessions,
+    settings: snapshot.settings,
+    providers: snapshot.providers,
+    sessions: snapshot.sessions,
     vehiclePhotoDataUrl,
   }
 }
@@ -629,6 +691,7 @@ export function previewRestore(backup: Backup) {
 
 /** Merge-only restore: adds missing ledger rows, then restores settings and photo. */
 export async function restoreMerge(backup: Backup): Promise<{ providersAdded: number; sessionsAdded: number }> {
+  const session = requireSession()
   const { newProviders, newSessions } = backupDelta(backup, state.providers, state.sessions)
   const providerByName = new Map(state.providers.map(provider => [provider.name.toLowerCase(), provider]))
   for (const item of newProviders) {
@@ -647,6 +710,7 @@ export async function restoreMerge(backup: Backup): Promise<{ providersAdded: nu
   })
   if (backup.vehiclePhotoDataUrl) uploadVehiclePhoto(backup.vehiclePhotoDataUrl)
   await commitCachedState(cachedSnapshot())
+  assertCurrentSession(session)
   void synchronize()
   return { providersAdded: newProviders.length, sessionsAdded: newSessions.length }
 }

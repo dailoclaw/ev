@@ -1,5 +1,13 @@
 # EV Command — Changelog
 
+## v4.3.3 (2026-10-09)
+### Fixes
+- Added session generation guards to cache initialization, synchronization, persistence completions, backup and restore.
+- Invalidated old work immediately on authentication changes and removed its timers and Realtime subscription.
+- Scoped sync scheduling to each session so a pending old request cannot block a new account.
+- Guarded paginated reads and photo downloads, and checked remote settings and queued operation ownership.
+- Added paused-operation regression tests for sign-out, account switching and same-account reauthentication.
+
 ## v4.3.2 (2026-10-09)
 ### Fixes
 - Prevented completed uploads from removing newer queued edits or deletes by acknowledging the uploaded revision atomically.

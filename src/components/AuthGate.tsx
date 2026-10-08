@@ -40,15 +40,27 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supa) return
     let active = true
+    let authEventReceived = false
+    let authenticatedOwner: string | null = null
+    const publishUser = (user: User | null) => {
+      if (!active) return
+      const nextOwner = user?.id ?? null
+      // Invalidate work immediately, before React processes the new auth state.
+      if (nextOwner !== authenticatedOwner) stopDataSync()
+      authenticatedOwner = nextOwner
+      setAuth({ loading: false, user })
+    }
     void supa.auth.getSession().then(({ data: sessionData }) => {
-      if (active) setAuth({ loading: false, user: sessionData.session?.user ?? null })
+      if (!authEventReceived) publishUser(sessionData.session?.user ?? null)
     })
     const { data: subscription } = supa.auth.onAuthStateChange((_event, session) => {
-      if (active) setAuth({ loading: false, user: session?.user ?? null })
+      authEventReceived = true
+      publishUser(session?.user ?? null)
     })
     return () => {
       active = false
       subscription.subscription.unsubscribe()
+      stopDataSync()
     }
   }, [])
 

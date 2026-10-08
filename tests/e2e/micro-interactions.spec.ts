@@ -19,7 +19,7 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
   }, { owner })
   await page.route('https://example.supabase.co/**', async route => {
     const request = route.request()
-    if (hold) await hold
+    if (hold && !request.url().includes('/auth/v1/')) await hold
     if (fail) { await route.fulfill({ status: 403, json: { message: 'Test sync rejected' } }); return }
     const table = new URL(request.url()).pathname.split('/').pop()
     if (request.method() === 'GET') {
@@ -159,3 +159,33 @@ for (const [used, allowance] of [[0, 7], [9, 7], [0.25, 0.5]]) {
     await expect(page.getByRole('meter')).toHaveAttribute('aria-valuemax', String(allowance))
   })
 }
+
+
+test('sign-out stays signed out when a paused sync response resumes', async ({ page }) => {
+  const backend = await ledger(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  await expect(page.locator('.startup-splash')).toHaveCount(0)
+  backend.fail(true)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'error')
+  backend.fail(false)
+  const resume = backend.pause()
+  const requested = page.waitForRequest(request => request.url().includes('/rest/v1/providers'))
+  await page.getByRole('button', { name: /Retry sync/ }).click()
+  await requested
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
+  const resumedResponses = Promise.all(['providers', 'charging_sessions', 'app_settings'].map(table =>
+    page.waitForResponse(response => response.url().includes(`/rest/v1/${table}`)),
+  ))
+  resume()
+  await resumedResponses
+  await expect.poll(() => page.evaluate(async () => {
+    const modulePath = '/src/lib/data.ts'
+    const data = await import(/* @vite-ignore */ modulePath)
+    await data.synchronize()
+    return { status: data.getState().syncStatus, sessions: data.getState().sessions.length }
+  })).toEqual({ status: 'signed-out', sessions: 0 })
+  await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
+})
