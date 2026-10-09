@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.9',
+    date: '9 Oct 2026',
+    notes: ['Account links survive special names and renames; Minimal photo controls work across views; charger order and Undo now preserve stable identities and receipt allocations.'],
+  },
+  {
     version: '4.3.8',
     date: '9 Oct 2026',
     notes: ['Backups now validate identities and photos, preserve charger metadata and charge IDs, and show explicit restore behavior with offline support and retryable saves.'],

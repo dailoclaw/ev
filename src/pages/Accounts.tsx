@@ -1,4 +1,5 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { legacyAccountName, providerAccountPath } from '../lib/accountRoutes'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate, shortDate } from '../lib/format'
 import { FreeTag, Icon, Mark, SplitBar } from '../components/ui'
@@ -49,7 +50,7 @@ export function AccountsList() {
             className="row"
             type="button"
             key={p.name}
-            onClick={() => navigate(`/accounts/${encodeURIComponent(p.name)}`)}
+            onClick={() => navigate(providerAccountPath(p.name, ev.providers))}
           >
             <Mark provider={provider} name={p.name} />
             <span>
@@ -73,12 +74,14 @@ export function AccountsList() {
 
 export function AccountDetail() {
   const navigate = useNavigate()
-  const { name = '' } = useParams()
+  const { name = '', providerId } = useParams()
+  const { pathname } = useLocation()
+  const legacyName = legacyAccountName(name, pathname)
   const ev = useEv()
-  const decoded = decodeURIComponent(name)
-  const summary = ev.byProvider.find(p => p.name === decoded)
-  const provider = ev.providers.find(p => p.name === decoded)
-  const sessions = ev.sessionsDesc.filter(s => s.type === decoded).slice(0, 12)
+  const provider = providerId === undefined ? ev.providers.find(p => p.name === legacyName) : ev.providers.find(p => p.id === providerId)
+  const resolvedName = providerId === undefined ? legacyName : provider?.name
+  const summary = ev.byProvider.find(p => p.name === resolvedName)
+  const sessions = ev.sessionsDesc.filter(s => s.type === resolvedName).slice(0, 12)
 
   if (!summary) {
     return (
@@ -87,7 +90,7 @@ export function AccountDetail() {
           <div>
             <h1>Not found</h1>
           </div>
-          <button className="icon-btn" type="button" onClick={() => navigate(-1)}>
+          <button className="icon-btn" type="button" aria-label="Back to accounts" onClick={() => navigate('/accounts')}>
             <Icon name="back" />
           </button>
         </header>

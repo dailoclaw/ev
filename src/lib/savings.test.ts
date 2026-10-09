@@ -88,3 +88,21 @@ describe('savings engine', () => {
     })
   })
 })
+
+it('keeps same-day receipt allocations stable through reordered fetches and Undo insertion', () => {
+  const original = enrichSessions(sessions, providers)
+  const reordered = enrichSessions([...sessions].reverse(), providers)
+  const allocation = (rows: ReturnType<typeof enrichSessions>) => rows.map(row => [row.id, row.freeKwh, row.paidKwh, row.savedValue]).sort()
+  expect(allocation(reordered)).toEqual(allocation(original))
+  const restored = enrichSessions([...sessions.filter(row => row.id !== 'a'), sessions[0]], providers)
+  expect(allocation(restored)).toEqual(allocation(original))
+  expect(original.find(row => row.id === 'a')?.freeKwh).toBe(5)
+  expect(original.find(row => row.id === 'b')?.freeKwh).toBe(2)
+})
+
+it('allocates by preserved creation time ahead of random UUID order', () => {
+  const earlier = { ...sessions[0], id: 'z', createdAt: '2026-01-01T00:00:00.000Z' }
+  const later = { ...sessions[1], id: 'a', createdAt: '2026-01-01T00:00:01.000Z' }
+  const rows = enrichSessions([later, earlier], providers)
+  expect(rows.map(row => [row.id, row.freeKwh])).toEqual([['a', 2], ['z', 5]])
+})

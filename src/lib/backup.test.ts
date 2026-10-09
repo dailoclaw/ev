@@ -90,3 +90,10 @@ it('rejects a backup above the supported 25000 charge ceiling', () => {
   const sessions = Array.from({ length: 25001 }, (_, id) => ({ ...row, id: String(id) }))
   expect(parseBackup(JSON.stringify({ ...backup, sessions }))).toBeNull()
 })
+
+it('preserves charge creation metadata through parsing and merge and rejects invalid timestamps', () => {
+  const createdAt = '2026-01-01T00:00:00.000Z'
+  const prepared = normalizeBackupValues({ ...backup, sessions: [{ ...row, createdAt }] })
+  expect(planRestore(prepared, [], []).newSessions[0].createdAt).toBe(createdAt)
+  expect(parseBackup(JSON.stringify({ ...backup, sessions: [{ ...row, createdAt: '2026-02-30T00:00:00.000Z' }] }))).toBeNull()
+})

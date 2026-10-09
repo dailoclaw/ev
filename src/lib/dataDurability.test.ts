@@ -157,3 +157,46 @@ it('restores a legacy budget without replacing current vehicle settings or photo
   expect(getState().vehiclePhoto).toBe(TEST_PHOTO)
   expect((await cache.listOutbox()).some(item => item.action.startsWith('photo-'))).toBe(false)
 })
+
+it('restores the deleted UUID and renamed charger identity, replacing the pending delete', async () => {
+  const removed = await deleteSession('s')
+  await updateProvider('p', { name: 'Renamed' })
+  const restored = await undoDeleteSession(removed!)
+  expect(restored).toEqual({ ...session, type: 'Renamed' })
+  expect(getState().sessions).toEqual([restored])
+  const operation = (await cache.listOutbox()).find(item => item.id.endsWith('session:s'))!
+  expect(operation.action).toBe('session-upsert')
+  expect(operation).toMatchObject({ payload: { id: 's' } })
+  await updateSession('s', { cost: 2 })
+  await undoDeleteSession(removed!)
+  expect(getState().sessions).toHaveLength(1)
+  expect(getState().sessions[0].cost).toBe(2)
+  stopDataSync(); await initializeData('owner')
+  expect(getState().sessions).toEqual([{ ...restored, cost: 2 }])
+})
+
+it('keeps an explicit paid-before-free charger order through reload', async () => {
+  const free = await addProvider('Free charger', 7)
+  await setProviderOrder(['p', free.id])
+  expect(getState().providers.map(item => item.id)).toEqual(['p', free.id])
+  stopDataSync(); await initializeData('owner')
+  expect(getState().providers.map(item => item.id)).toEqual(['p', free.id])
+})
+
+it('rejects Undo if the original charger has disappeared', async () => {
+  await expect(undoDeleteSession({ ...session, id: 'gone', providerId: 'missing' })).rejects.toThrow('no longer exists')
+  expect(getState().sessions).toEqual([session])
+  expect(await cache.listOutbox()).toEqual([])
+})
+
+it('keeps new charge creation order when the clock repeats or moves backwards', async () => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-01-01T00:00:00.000Z'))
+  const first = await addSession(session)
+  const second = await addSession(session)
+  expect(Date.parse(second.createdAt!)).toBeGreaterThan(Date.parse(first.createdAt!))
+  const removed = await deleteSession(first.id)
+  const restored = await undoDeleteSession(removed!)
+  expect(restored.createdAt).toBe(first.createdAt)
+  const operations = await cache.listOutbox()
+  expect(operations.find(item => item.id.endsWith(`session:${first.id}`))).toMatchObject({ payload: { created_at: first.createdAt } })
+})

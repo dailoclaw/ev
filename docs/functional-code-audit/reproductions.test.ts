@@ -45,11 +45,10 @@ it('demonstrates accepted fully allowance-covered cost disappears from curve', (
   expect(costConcentration(sessions, 'all', null, 88).totalCost).toBe(0)
 })
 
-it('demonstrates router params already decoded and account decoding throws', () => {
+it('regression: router params preserve a percent name without a second decode', () => {
   const name = '50% Charger'
   const matches = matchRoutes([{ path: '/accounts/:name' }], `/accounts/${encodeURIComponent(name)}`)!
   expect(matches[0].params.name).toBe(name)
-  expect(() => decodeURIComponent(matches[0].params.name!)).toThrow(URIError)
 })
 
 it('demonstrates Date.parse normalizes the invalid day', () => {

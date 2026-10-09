@@ -30,6 +30,7 @@ export default function AppRoutes() {
             <Route path="/vehicle" element={<Vehicle />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/accounts" element={<AccountsList />} />
+            <Route path="/accounts/id/:providerId" element={<AccountDetail />} />
             <Route path="/accounts/:name" element={<AccountDetail />} />
             <Route path="/history" element={<Navigate to="/statement" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -57,11 +57,11 @@ test('audit: receipt does not dismiss on Escape and focus remains outside dialog
   await expect(page.getByRole('dialog')).toBeVisible()
 })
 
-test('audit: minimal distance view has no mounted photo input', async ({ page }) => {
+test('regression: minimal distance view retains its photo input', async ({ page }) => {
   await ledger(page, 'minimal')
   await page.goto('/vehicle')
   await expect(page.locator('.startup-splash')).toHaveCount(0)
   await page.getByRole('button', { name: /Distance powered/ }).click()
   await expect(page.getByRole('button', { name: 'Add a vehicle photo', exact: true })).toBeVisible()
-  await expect(page.locator('input[type="file"]')).toHaveCount(0)
+  await expect(page.locator('input[type="file"]')).toHaveCount(1)
 })

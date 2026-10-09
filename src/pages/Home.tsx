@@ -1,3 +1,4 @@
+import { providerAccountPath } from '../lib/accountRoutes'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
@@ -228,7 +229,7 @@ function ClassicHome() {
             className="row"
             type="button"
             key={p.name}
-            onClick={() => navigate(`/accounts/${encodeURIComponent(p.name)}`)}
+            onClick={() => navigate(providerAccountPath(p.name, ev.providers))}
           >
             <Mark provider={provider} name={p.name} />
             <span>

@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useEvState } from './data'
 import {
   enrichSessions,
+  compareSessions,
   monthlySummaries,
   providerSummaries,
   totals,
@@ -39,7 +40,7 @@ export function useEv(): EvData {
   const { sessions, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError } = useEvState()
 
   return useMemo(() => {
-    const ordered = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
+    const ordered = [...sessions].sort(compareSessions)
     const basis = referenceRateBasis(sessions, providers)
     const enriched = enrichSessions(ordered, providers)
     const sessionsDesc = [...enriched].reverse()

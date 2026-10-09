@@ -43,8 +43,9 @@ async function fetchSessions(assertCurrent: () => void): Promise<DbSession[]> {
     assertCurrent()
     const { data, error } = await client
       .from('charging_sessions')
-      .select('id,provider_id,date,amount,cost,notes')
+      .select('id,provider_id,date,amount,cost,notes,created_at')
       .order('date', { ascending: true })
+      .order('created_at', { ascending: true })
       .order('id', { ascending: true })
       .range(from, from + PAGE_SIZE - 1)
     assertCurrent()

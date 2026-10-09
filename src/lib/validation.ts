@@ -64,6 +64,8 @@ export function normalizeProvider<T extends Pick<Provider, 'name' | 'freeKwhPerD
 export function normalizeSession<T extends Pick<Session, 'date' | 'type' | 'amount' | 'cost' | 'notes'>>(session: T): T {
   const error = validateSessionInput(session)
   if (error) throw new Error(error)
+  const createdAt = (session as T & { createdAt?: unknown }).createdAt
+  if (createdAt !== undefined && !isSessionCreatedAt(createdAt)) throw new Error('Charge creation timestamp must be valid.')
   return { ...session, type: session.type.trim(), amount: roundDecimal(session.amount, 3), cost: roundDecimal(session.cost, 2) }
 }
 
@@ -108,6 +110,12 @@ export function isBackupProvider(value: unknown): value is Provider {
   )
 }
 
+export function isSessionCreatedAt(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false
+  const time = Date.parse(value)
+  return Number.isFinite(time) && new Date(time).toISOString() === value
+}
+
 export function isBackupSession(value: unknown): value is Session {
   if (!value || typeof value !== 'object') return false
   const session = value as Partial<Session>
@@ -116,6 +124,7 @@ export function isBackupSession(value: unknown): value is Session {
     session.id.length > 0 &&
     session.id.length <= 100 &&
     (session.providerId === undefined || (typeof session.providerId === 'string' && session.providerId.length <= 100)) &&
+    (session.createdAt === undefined || isSessionCreatedAt(session.createdAt)) &&
     typeof session.date === 'string' &&
     typeof session.type === 'string' &&
     typeof session.amount === 'number' &&

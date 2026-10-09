@@ -26,6 +26,7 @@ export interface DbProvider {
 export interface DbSession {
   id: string
   provider_id: string
+  created_at?: string
   date: string
   amount: number
   cost: number

@@ -1,3 +1,4 @@
+import { TEST_PHOTO, ALT_TEST_PHOTO } from '../../src/lib/testPhotoFixtures'
 import { expect, test, type Page } from '@playwright/test'
 
 // Exercise the real app and offline outbox against an isolated fake owner/backend.
@@ -6,6 +7,8 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
   const owner = '11111111-1111-4111-8111-111111111111'
   const provider = '22222222-2222-4222-8222-222222222222'
   const providerRow = { id: provider, name: 'FreeCo', color: '#059669', free_kwh_per_day: allowance, archived: false, sort_order: 0 }
+  let providerRows = [providerRow]
+  let photo: Buffer | null = null
   const date = new Date().toLocaleDateString('en-CA')
   let sessions = used > 0 ? [{ id: '33333333-3333-4333-8333-333333333333', provider_id: provider, date, amount: used, cost: 0, notes: null }] : []
   let fail = false
@@ -24,19 +27,31 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
     const request = route.request()
     if (hold && !request.url().includes('/auth/v1/')) await hold
     if (fail) { await route.fulfill({ status: 403, json: { message: 'Test sync rejected' } }); return }
+    if (request.url().includes('/storage/v1/')) {
+      if (request.method() === 'GET') await route.fulfill({ status: photo ? 200 : 404, body: photo ?? 'Missing photo', contentType: 'image/jpeg' })
+      else if (request.method() === 'DELETE') { photo = null; await route.fulfill({ json: [] }) }
+      else { photo = request.postDataBuffer(); await route.fulfill({ json: { Key: 'vehicle.jpg' } }) }
+      return
+    }
     const table = new URL(request.url()).pathname.split('/').pop()
     if (request.method() !== 'GET' && table === rejectedTable) {
       await route.fulfill({ status: rejectionCode === '42501' ? 403 : 400, json: { code: rejectionCode, message: 'Test write rejected' } }); return
     }
     if (request.method() === 'GET') {
       await route.fulfill({ json: table === 'providers'
-        ? [providerRow]
+        ? providerRows
         : table === 'charging_sessions' ? sessions : table === 'app_settings' ? settings : { user: { id: owner } } })
     } else {
       if (table === 'app_settings') Object.assign(settings, request.postDataJSON())
-      if (table === 'providers') Object.assign(providerRow, request.postDataJSON())
+      if (table === 'providers') {
+        const input = request.postDataJSON()
+        providerRows = [...providerRows.filter(row => row.id !== input.id), { ...providerRows.find(row => row.id === input.id), ...input }]
+      }
       if (table === 'charging_sessions') {
-        if (request.method() === 'DELETE') sessions = []
+        if (request.method() === 'DELETE') {
+          const id = new URL(request.url()).searchParams.get('id')?.replace(/^eq\./, '')
+          sessions = sessions.filter(row => row.id !== id)
+        }
         else {
           const input = request.postDataJSON()
           sessions = [...sessions.filter(s => s.id !== input.id), input]
@@ -490,3 +505,159 @@ test('v1 preview preserves settings and photos while valid raster photos decode 
     await page.getByRole('button', { name: 'Cancel', exact: true }).click()
   }
 })
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} photo picker, save retry and removal work across views and reload`, async ({ page }) => {
+    test.setTimeout(45000)
+    await ledger(page, style)
+    await injectQuotaFailure(page)
+    await page.goto('/vehicle')
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+    const choose = async (dataUrl: string) => {
+      const chooser = page.waitForEvent('filechooser')
+      await page.getByRole('button', { name: /^(Add a vehicle photo|Change vehicle photo)$/ }).click()
+      await (await chooser).setFiles({ name: 'vehicle.png', mimeType: 'image/png', buffer: Buffer.from(dataUrl.split(',')[1], 'base64') })
+    }
+    await choose(TEST_PHOTO)
+    await expect(page.getByRole('alert').filter({ hasText: 'Not saved on this device' }).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Retry photo save' })).toBeEnabled()
+    await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+    await page.getByRole('button', { name: 'Retry photo save' }).click()
+    await expect(page.getByAltText('Your vehicle')).toBeVisible()
+    await expect.poll(() => page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      return data.getState().pendingCount
+    })).toBe(0)
+    await page.reload()
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    await expect(page.getByAltText('Your vehicle')).toBeVisible()
+    if (style === 'minimal') await page.getByRole('button', { name: /Distance powered/ }).click()
+    await expect(page.locator('input[type=file]')).toHaveCount(1)
+    await choose(ALT_TEST_PHOTO)
+    await expect(page.getByRole('button', { name: 'Remove vehicle photo', exact: true })).toBeEnabled()
+    await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+    await page.getByRole('button', { name: 'Remove vehicle photo', exact: true }).click()
+    await expect(page.getByRole('alert').filter({ hasText: 'Not saved on this device' }).first()).toBeVisible()
+    await expect(page.getByAltText('Your vehicle')).toBeVisible()
+    await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+    await page.getByRole('button', { name: 'Remove vehicle photo', exact: true }).click()
+    await expect(page.getByAltText('Your vehicle')).toHaveCount(0)
+    await expect.poll(() => page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      return data.getState().pendingCount
+    })).toBe(0)
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Add a vehicle photo', exact: true })).toBeVisible()
+    await expect(page.getByAltText('Your vehicle')).toHaveCount(0)
+  })
+
+  test(`${style} paid charger can move above a free charger and survives sync and reload`, async ({ page, context }) => {
+    await ledger(page, style)
+    await page.goto('/settings')
+    await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+    await context.setOffline(true)
+    await page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      await data.addProvider('PaidCo', 0)
+    })
+    await page.getByRole('button', { name: /PaidCo/, exact: false }).first().click()
+    await page.getByRole('button', { name: 'Move PaidCo up', exact: true }).click()
+    await page.getByRole('button', { name: 'Add charge', exact: true }).click()
+    await expect(page.locator('.provrow button').first()).toHaveText('PaidCo')
+    await page.locator('.sheet-backdrop').click({ position: { x: 5, y: 5 } })
+    await context.setOffline(false)
+    await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+    await page.reload()
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Add charge', exact: true }).click()
+    await expect(page.locator('.provrow button').first()).toHaveText('PaidCo')
+  })
+}
+
+test('account links preserve percent, encoded literals, Unicode and slash names through rename', async ({ page }) => {
+  test.setTimeout(60000)
+  await ledger(page)
+  await page.goto('/accounts')
+  await expect(page.locator('.startup-splash')).toHaveCount(0)
+  const idPath = '/accounts/id/22222222-2222-4222-8222-222222222222'
+  for (const name of ['50% Charger', 'Literal %20', '東京 ⚡', 'AC/DC', 'Literal %2F']) {
+    await page.evaluate(async name => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      await data.updateProvider('22222222-2222-4222-8222-222222222222', { name })
+      await data.synchronize()
+    }, name)
+    await page.goto(`/accounts/${encodeURIComponent(name)}`)
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+    await page.goto('/accounts')
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    await page.locator('button.row').filter({ hasText: name }).click()
+    await expect(page).toHaveURL(new RegExp(`${idPath}$`))
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+  }
+  await page.evaluate(async () => {
+    const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+    await data.updateProvider('22222222-2222-4222-8222-222222222222', { name: 'Renamed charger' })
+    await data.synchronize()
+  })
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Renamed charger', exact: true })).toBeVisible()
+})
+
+for (const failure of ['render', 'import']) {
+  test(`route ${failure} failure has a recovery screen and Home remains usable`, async ({ page }) => {
+    await ledger(page)
+    await page.route('**/src/pages/Accounts.tsx*', async route => {
+      if (failure === 'import') await route.abort()
+      else await route.fulfill({ contentType: 'application/javascript', body: 'export function AccountsList(){throw new Error("Test render failure")};export function AccountDetail(){throw new Error("Test render failure")}' })
+    })
+    await page.goto('/accounts')
+    await expect(page.getByRole('heading', { name: 'Unable to open this page' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Reload app', exact: true })).toBeVisible()
+    await page.getByRole('link', { name: 'Return home', exact: true }).click()
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('heading', { name: 'Unable to open this page' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Add charge', exact: true })).toBeVisible()
+  })
+}
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} Undo retains UUID, creation time and allowance through sync and reload`, async ({ page, context }) => {
+    await ledger(page, style)
+    await page.goto('/statement')
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    const before = await page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      await data.addSession({ type: 'FreeCo', date: data.getState().sessions[0].date, amount: 8, cost: 1, notes: 'Later charge' })
+      await data.synchronize()
+      const snapshot = await data.buildBackup()
+      return snapshot.sessions.map((row: { id: string; createdAt?: string }) => ({ id: row.id, createdAt: row.createdAt }))
+    })
+    await context.setOffline(true)
+    const row = page.locator('.swiperow').first()
+    await row.getByRole('button', { name: 'Actions for FreeCo charge' }).click()
+    await row.getByRole('button', { name: 'Delete FreeCo charge' }).click()
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(page.locator('.swiperow')).toHaveCount(2)
+    const check = async () => page.evaluate(async () => {
+      const dataPath = '/src/lib/data.ts', savingsPath = '/src/lib/savings.ts'
+      const data = await import(/* @vite-ignore */ dataPath), savings = await import(/* @vite-ignore */ savingsPath)
+      const state = data.getState()
+      return { rows: state.sessions.map((row: { id: string; createdAt?: string }) => ({ id: row.id, createdAt: row.createdAt })).sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)), free: savings.enrichSessions(state.sessions, state.providers).map((row: { id: string; freeKwh: number }) => [row.id, row.freeKwh]).sort() }
+    })
+    const local = await check()
+    expect(local.rows).toEqual(before.sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)))
+    await context.setOffline(false)
+    await expect.poll(() => page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      return data.getState().pendingCount
+    })).toBe(0)
+    await page.reload()
+    await expect(page.locator('.startup-splash')).toHaveCount(0)
+    const reloaded = await check()
+    expect(reloaded.free).toEqual(local.free)
+    // Legacy rows acquire their fixed ordering timestamp when first persisted.
+    expect(reloaded.rows.map((row: { id: string }) => row.id)).toEqual(local.rows.map((row: { id: string }) => row.id))
+    expect(reloaded.rows.find((row: { id: string }) => row.id === before.find((row: { createdAt?: string }) => row.createdAt)?.id)?.createdAt).toBe(before.find((row: { createdAt?: string }) => row.createdAt)?.createdAt)
+  })
+}

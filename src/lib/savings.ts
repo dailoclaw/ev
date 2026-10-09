@@ -8,6 +8,8 @@ export interface Session {
   id: string
   /** Stable provider key used by persistence; calculations continue to display `type`. */
   providerId?: string
+  /** Creation timestamp preserved across sync, backup and Undo. */
+  createdAt?: string
   date: string // yyyy-mm-dd
   type: string // provider name
   amount: number // kWh
@@ -112,9 +114,15 @@ export function referenceRate(sessions: Session[], providers: Provider[]): numbe
   return referenceRateBasis(sessions, providers).rate
 }
 
+export const LEGACY_SESSION_CREATED_AT = '1970-01-01T00:00:00.000Z'
+export const compareSessions = (a: Session, b: Session): number =>
+  a.date.localeCompare(b.date) ||
+  (Date.parse(a.createdAt ?? LEGACY_SESSION_CREATED_AT) - Date.parse(b.createdAt ?? LEGACY_SESSION_CREATED_AT)) ||
+  (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+
 /**
  * Apply each provider's daily free allowance across sessions.
- * Sessions on the same provider+day consume the allowance in date order.
+ * Same-day sessions use creation time, then ID, independent of fetch/Undo order.
  */
 export function enrichSessions(sessions: Session[], providers: Provider[]): EnrichedSession[] {
   const refRate = referenceRate(sessions, providers)
@@ -122,8 +130,7 @@ export function enrichSessions(sessions: Session[], providers: Provider[]): Enri
   // allowance remaining per provider+day key
   const remaining = new Map<string, number>()
 
-  // process in chronological order so allowance applies to the first charge of the day
-  const ordered = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
+  const ordered = [...sessions].sort(compareSessions)
   const enriched = new Map<string, EnrichedSession>()
 
   for (const s of ordered) {

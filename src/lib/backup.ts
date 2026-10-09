@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, type AppSettings } from './appModel'
 import type { Provider } from './providers'
-import type { Session } from './savings'
+import { LEGACY_SESSION_CREATED_AT, type Session } from './savings'
 import { isBackupProvider, isBackupSession, isUuid, validateSettings, normalizeSettings, normalizeProvider, normalizeSession, roundDecimal } from './validation'
 import { validateBackupPhoto } from './backupPhoto'
 
@@ -37,7 +37,7 @@ function prepareBackup(value: unknown, allowProvenance: boolean): Backup {
     ids.add(canonicalId(item.id))
     const provider = item.providerId === undefined ? byName.get(key(item.type)) : byId.get(canonicalId(item.providerId))
     if (!provider || key(provider.name) !== key(item.type)) throw new Error('A backup charge has an invalid charger reference.')
-    sessions.push(normalizeSession({ id: canonicalId(item.id), providerId: provider.id, date: item.date, type: provider.name, amount: item.amount, cost: item.cost, notes: item.notes }))
+    sessions.push(normalizeSession({ id: canonicalId(item.id), providerId: provider.id, date: item.date, type: provider.name, amount: item.amount, cost: item.cost, notes: item.notes, ...(item.createdAt === undefined ? {} : { createdAt: item.createdAt }) }))
   }
   const sourceVersion = raw.version === 1 || (allowProvenance && raw.sourceVersion === 1) ? 1 : 2
   const settings = raw.version === 1 ? { ...DEFAULT_SETTINGS, budgetCap: raw.budgetCap as number } : raw.settings as AppSettings
@@ -110,7 +110,7 @@ export function planRestore(backup: Backup, currentProviders: Provider[], curren
     const signature = sessionSignature(session, provider.id)
     if (current) {
       matched++
-      if (signature !== sessionSignature(current, current.providerId ?? existingByName.get(key(current.type))?.id)) conflicts++
+      if (signature !== sessionSignature(current, current.providerId ?? existingByName.get(key(current.type))?.id) || (session.createdAt ?? LEGACY_SESSION_CREATED_AT) !== (current.createdAt ?? LEGACY_SESSION_CREATED_AT)) conflicts++
       continue
     }
     const count = signatures.get(signature) ?? 0

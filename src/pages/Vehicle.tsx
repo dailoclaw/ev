@@ -1,5 +1,6 @@
+import { useVehiclePhoto } from '../lib/useVehiclePhoto'
 import { VEHICLE_LIMITS } from '../lib/validation'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { aud, kwh, rate } from '../lib/format'
@@ -7,7 +8,7 @@ import { Icon } from '../components/ui'
 import CountUpNumber from '../components/CountUpNumber'
 import RecordsSection from '../components/RecordsSection'
 import { LiquidGlass } from 'liquid-glass-web-react'
-import { removeVehiclePhoto, setVehicleAssumptions, uploadVehiclePhoto } from '../lib/data'
+import { setVehicleAssumptions } from '../lib/data'
 import { DEFAULT_SETTINGS, type VehicleAssumptions as Assumptions } from '../lib/appModel'
 import StyleVariant from '../components/StyleVariant'
 
@@ -33,28 +34,6 @@ function VehicleGlassStat({ className, children }: { className: string; children
     </LiquidGlass>
   )
 }
-function compressImage(file: File, maxWidth = 960, quality = 0.82): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const img = new Image()
-      img.onload = () => {
-        const scale = Math.min(1, maxWidth / img.width, maxWidth / img.height)
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.max(1, Math.round(img.width * scale))
-        canvas.height = Math.max(1, Math.round(img.height * scale))
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return reject(new Error('Canvas unavailable'))
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', quality))
-      }
-      img.onerror = () => reject(new Error('Could not read that image'))
-      img.src = reader.result as string
-    }
-    reader.onerror = () => reject(new Error('Could not read that file'))
-    reader.readAsDataURL(file)
-  })
-}
 
 type VehicleView = 'overview' | 'efficiency' | 'distance' | 'petrol' | 'assumptions'
 
@@ -69,32 +48,10 @@ function CanvasVehicle() {
   const a = ev.settings.vehicle
   const [view, setView] = useState<VehicleView>('overview')
   const photo = ev.vehiclePhoto
-  const [photoError, setPhotoError] = useState<string | null>(null)
-  const [photoRetry, setPhotoRetry] = useState<string | null>(null)
-  const [photoSaving, setPhotoSaving] = useState(false)
-  const photoInputRef = useRef<HTMLInputElement>(null)
+  const { photoError, photoRetry, photoSaving, photoInputRef, savePhoto, onPhotoChosen, removePhoto } = useVehiclePhoto()
 
   const save = (patch: Partial<Assumptions>) => {
     void setVehicleAssumptions(patch).catch(() => undefined)
-  }
-
-  const savePhoto = async (compressed: string) => {
-    setPhotoSaving(true)
-    try {
-      await uploadVehiclePhoto(compressed)
-      setPhotoError(null)
-      setPhotoRetry(null)
-    } catch (error) {
-      setPhotoRetry(compressed)
-      setPhotoError(error instanceof Error ? error.message : 'Could not save that photo. Please retry.')
-    } finally { setPhotoSaving(false) }
-  }
-  const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    try { await savePhoto(await compressImage(file)) }
-    catch (error) { setPhotoError(error instanceof Error ? error.message : 'Could not read that photo.') }
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -148,6 +105,7 @@ function CanvasVehicle() {
           <button
             className={`cv-car-stage ${photo ? 'has-photo' : ''}`}
             type="button"
+            disabled={photoSaving}
             onClick={() => photoInputRef.current?.click()}
             aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
           >
@@ -171,9 +129,6 @@ function CanvasVehicle() {
               <small>saved</small>
             </VehicleGlassStat>
           </button>
-          <input disabled={photoSaving} ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
-          {photoError && <p role="alert" className="cv-error">{photoError}</p>}
-          {photoRetry && <button type="button" disabled={photoSaving} onClick={() => void savePhoto(photoRetry)}>Retry photo save</button>}
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => setView('efficiency')}>
               <span className="k">Efficiency</span>
@@ -288,6 +243,7 @@ function CanvasVehicle() {
           <button
             className={`cv-distance-photo ${photo ? 'has-photo' : ''}`}
             type="button"
+            disabled={photoSaving}
             onClick={() => photoInputRef.current?.click()}
             aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
           >
@@ -407,6 +363,10 @@ function CanvasVehicle() {
           </div>
         </>
       )}
+      <input disabled={photoSaving} ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
+      {photo && <button type="button" className="text-btn" disabled={photoSaving} onClick={() => void removePhoto()}>Remove vehicle photo</button>}
+      {photoError && <p role="alert" className="cv-error">{photoError}</p>}
+      {photoRetry && <button type="button" disabled={photoSaving} onClick={() => void savePhoto(photoRetry)}>Retry photo save</button>}
     </main>
   )
 }
@@ -482,36 +442,10 @@ function ClassicVehicle() {
   const a = ev.settings.vehicle
   const [editing, setEditing] = useState(false)
   const photo = ev.vehiclePhoto
-  const [photoError, setPhotoError] = useState<string | null>(null)
-  const [photoRetry, setPhotoRetry] = useState<string | null>(null)
-  const [photoSaving, setPhotoSaving] = useState(false)
-  const photoInputRef = useRef<HTMLInputElement>(null)
+  const { photoError, photoRetry, photoSaving, photoInputRef, savePhoto, onPhotoChosen, removePhoto } = useVehiclePhoto()
 
   const save = (patch: Partial<Assumptions>) => {
     void setVehicleAssumptions(patch).catch(() => undefined)
-  }
-
-  const savePhoto = async (compressed: string) => {
-    setPhotoSaving(true)
-    try {
-      await uploadVehiclePhoto(compressed)
-      setPhotoError(null)
-      setPhotoRetry(null)
-    } catch (error) {
-      setPhotoRetry(compressed)
-      setPhotoError(error instanceof Error ? error.message : 'Could not save that photo. Please retry.')
-    } finally { setPhotoSaving(false) }
-  }
-  const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    try { await savePhoto(await compressImage(file)) }
-    catch (error) { setPhotoError(error instanceof Error ? error.message : 'Could not read that photo.') }
-  }
-
-  const removePhoto = () => {
-    void removeVehiclePhoto().catch(error => setPhotoError(error instanceof Error ? error.message : 'Could not remove that photo. Please retry.'))
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -540,6 +474,7 @@ function ClassicVehicle() {
       <button
         type="button"
         className="vehicle-photo"
+        disabled={photoSaving}
         onClick={() => photoInputRef.current?.click()}
         aria-label={photo ? 'Change vehicle photo' : 'Add a vehicle photo'}
       >
@@ -558,14 +493,14 @@ function ClassicVehicle() {
           Synced privately to Supabase and included in JSON backups.
         </p>
         {photo && (
-          <button type="button" className="text-btn" onClick={removePhoto}>
+          <button type="button" className="text-btn" disabled={photoSaving} onClick={() => void removePhoto()} aria-label="Remove vehicle photo">
             Remove
           </button>
         )}
       </div>
       {photoRetry && <button type="button" disabled={photoSaving} onClick={() => void savePhoto(photoRetry)}>Retry photo save</button>}
       {photoError && (
-        <p style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: -8, marginBottom: 12 }}>{photoError}</p>
+        <p role="alert" style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: -8, marginBottom: 12 }}>{photoError}</p>
       )}
 
       {editing && (

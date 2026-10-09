@@ -20,7 +20,7 @@ import { classifySyncFailure } from './syncFailure'
 import { isOutboxOperationReady, orderOutboxOperations, outboxPrerequisiteIds } from './outboxPlan'
 import { nextPaletteColor, type Provider } from './providers'
 import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from './repository'
-import type { Session } from './savings'
+import { LEGACY_SESSION_CREATED_AT, type Session } from './savings'
 import { supa, type DbProvider, type DbSession, type DbSettings } from './supa'
 import { validateProviderInput, validateSessionInput, normalizeSettings, normalizeProvider, normalizeSession } from './validation'
 import { planRestore, assertBackupSize, normalizeBackupValues, sessionSignature, type Backup } from './backup'
@@ -107,8 +107,8 @@ const readLS = <T,>(key: string, fallback: T): T => {
 const finalizeProviders = (providers: Provider[]): Provider[] =>
   [...providers].sort(
     (a, b) =>
-      Number(b.freeKwhPerDay > 0) - Number(a.freeKwhPerDay > 0) ||
       (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER) ||
+      Number(b.freeKwhPerDay > 0) - Number(a.freeKwhPerDay > 0) ||
       a.name.localeCompare(b.name),
   )
 
@@ -129,6 +129,7 @@ const mapSession = (session: DbSession, providersById: Map<string, string>): Ses
   amount: Number(session.amount),
   cost: Number(session.cost),
   notes: session.notes,
+  ...(session.created_at ? { createdAt: new Date(session.created_at).toISOString() } : {}),
 })
 
 const mapSettings = (settings: DbSettings): AppSettings => ({
@@ -160,6 +161,7 @@ const sessionPayload = (session: Session) => ({
   amount: session.amount,
   cost: session.cost,
   notes: session.notes,
+  created_at: session.createdAt ?? LEGACY_SESSION_CREATED_AT,
 })
 
 const settingsPayload = (settings: AppSettings) => ({
@@ -677,13 +679,17 @@ function createProvider(input: NewProviderInput, providers = state.providers): P
   return normalizeProvider({ ...input, name: input.name.trim(), id: uuid(), archived: false, sortOrder: Math.max(-1, ...providers.map(item => item.sortOrder ?? -1)) + 1 })
 }
 
-export function addSession(input: Omit<Session, 'id' | 'providerId'>, newProvider?: NewProviderInput): Promise<Session> {
+export function addSession(input: Omit<Session, 'id' | 'providerId' | 'createdAt'>, newProvider?: NewProviderInput): Promise<Session> {
   return saveLocal(() => {
     const validationError = validateSessionInput(input)
     if (validationError) throw new Error(validationError)
     const provider = newProvider ? createProvider(newProvider) : state.providers.find(candidate => candidate.name === input.type)
     if (!provider) throw new Error('Choose a valid provider before saving.')
-    const session: Session = normalizeSession({ ...input, type: provider.name, id: uuid(), providerId: provider.id })
+    const previousCreated = state.sessions.reduce((latest, charge) =>
+      charge.date === input.date && charge.providerId === provider.id
+        ? Math.max(latest, Date.parse(charge.createdAt ?? LEGACY_SESSION_CREATED_AT) || 0) : latest, 0)
+    const createdAt = new Date(Math.max(Date.now(), previousCreated + 1)).toISOString()
+    const session: Session = normalizeSession({ ...input, type: provider.name, id: uuid(), providerId: provider.id, createdAt })
     const operations = [mutationOperation(`session:${session.id}`, 'session-upsert', sessionPayload(session))]
     if (newProvider) operations.push(mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider)))
     return { next: { ...state, sessions: [...state.sessions, session], providers: newProvider ? finalizeProviders([...state.providers, provider]) : state.providers }, operations, result: session }
@@ -707,7 +713,16 @@ export function deleteSession(id: string): Promise<Session | null> {
 }
 
 export function undoDeleteSession(session: Session) {
-  return addSession({ date: session.date, type: session.type, amount: session.amount, cost: session.cost, notes: session.notes })
+  return saveLocal(() => {
+    const existing = state.sessions.find(candidate => candidate.id === session.id)
+    if (existing) return { next: state, operations: [], result: existing }
+    const provider = session.providerId === undefined
+      ? state.providers.find(candidate => candidate.name === session.type)
+      : state.providers.find(candidate => candidate.id === session.providerId)
+    if (!provider) throw new Error('The charger for this charge no longer exists.')
+    const restored = normalizeSession({ ...session, providerId: provider.id, type: provider.name })
+    return { next: { ...state, sessions: [...state.sessions, restored] }, operations: [mutationOperation(`session:${restored.id}`, 'session-upsert', sessionPayload(restored))], result: restored }
+  })
 }
 
 export function addProvider(name: string, freeKwhPerDay: number, color = nextPaletteColor(state.providers)): Promise<Provider> {

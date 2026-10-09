@@ -1,5 +1,15 @@
 # EV Command — Changelog
 
+## v4.3.9 (2026-10-09)
+### Fixes
+- Removed redundant account name decoding; new account links use stable provider IDs and survive renames while legacy name URLs remain supported.
+- Added page error recovery for render and lazy-import failures with Home and reload actions.
+- Kept the Minimal vehicle photo input mounted across views; added removal and shared busy, error and retry handling for both styles.
+- Made explicit charger order take precedence over allowance grouping and persist through sync/reload.
+- Restored original charge UUIDs and creation timestamps on Undo; repeated Undo preserves an existing row.
+- Preserved the existing database creation timestamp through reads, writes and backups; same-day allowance allocation and history use creation time then UUID consistently.
+- Added regression checks for special-name links, rename recovery, photo failures/reloads, paid-before-free order, Undo identity and stable receipt allocations.
+
 ## v4.3.8 (2026-10-09)
 ### Fixes
 - Shared backup preflight and merge planning reject duplicate identities, broken references and incomplete or invalid photos.

@@ -1,3 +1,4 @@
+import { providerAccountPath } from '../lib/accountRoutes'
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
@@ -310,7 +311,7 @@ function CanvasStats() {
                   className="cv-provider"
                   key={p.name}
                   type="button"
-                  onClick={() => navigate(`/accounts/${encodeURIComponent(p.name)}`)}
+                  onClick={() => navigate(providerAccountPath(p.name, ev.providers))}
                   style={{ ['--pc' as string]: color, ['--w' as string]: `${width}%` }}
                 >
                   <Mark provider={provider} name={p.name} />

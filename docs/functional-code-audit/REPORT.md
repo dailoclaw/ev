@@ -604,6 +604,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 4. Restore original UUID on Undo; use stable order for same-day allowance allocation.
 5. **Gate:** these controls work in both styles, online/offline, after refresh.
 
+**Implementation update (9 October 2026):** Special-name account routes and stable ID links, routed-page recovery, shared photo handling with the Minimal input mounted across views, authoritative charger order, original-identity Undo and creation-time/UUID allocation order are implemented locally in v4.3.9. See [visible functional fix notes](VISIBLE-FUNCTIONAL-FIX.md). Local browser checks use a fake backend; deployed schema/RLS/storage and cross-tab conflict acceptance remain open.
+
 ### Step 6 — Repair analytics semantics (M7, M9, M10)
 
 1. Specify attribution for paid costs on fully allowance-covered rows; assert concentration total equals scoped energy cost or separately reports exclusions.
