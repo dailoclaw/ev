@@ -399,6 +399,8 @@ export default function Settings() {
           Monthly cap — {aud(ev.budgetCap, 0)}
         </span>
         <input
+          aria-label="Monthly spending cap (AUD)"
+          aria-valuetext={aud(ev.budgetCap)}
           type="range"
           className="capslider"
           min={20}

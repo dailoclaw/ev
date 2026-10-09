@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useReducedMotion } from './useReducedMotion'
+import { useEffect, useState } from 'react'
 
 /** How long the $ ⇄ kWh transition owns the chart, in ms. Must outlast the
  *  longest staggered pill animation (delay cap 238ms + 300ms roll). */
@@ -8,10 +9,7 @@ export const ROLL_MS = 620
  *  class that re-scales the bars and rolls their value pills. Stays false on
  *  first render (nothing to roll from) and when reduced motion is asked for. */
 export function useUnitRoll(metric: string) {
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
   // `roll` is 0 when idle, else a token bumped on every flip — so toggling
   // again mid-animation restarts the window instead of inheriting its timer.
   const [seen, setSeen] = useState(metric)
@@ -28,5 +26,5 @@ export function useUnitRoll(metric: string) {
     return () => clearTimeout(id)
   }, [roll])
 
-  return roll > 0
+  return !reduceMotion && roll > 0
 }

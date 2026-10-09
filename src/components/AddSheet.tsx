@@ -1,3 +1,4 @@
+import Modal from './Modal'
 import { INPUT_LIMITS } from '../lib/validation'
 import { useEffect, useMemo, useState } from 'react'
 import { addSession } from '../lib/data'
@@ -70,8 +71,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="sheet-backdrop" role="presentation" onClick={() => { if (!saving) onClose() }}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label="Add charge or fee" onClick={e => e.stopPropagation()}>
+    <Modal label="Add charge or fee" onClose={onClose} busy={saving}>
         <div className="handle" />
         {saved ? (
           <div className="save-status" role="status" aria-atomic="true">
@@ -100,12 +100,13 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               ]}
             />
 
-            <label>Charger</label>
-            <div className="provrow">
+            <p className="field-label">Charger</p>
+            <div className="provrow" role="group" aria-label="Charger">
               {providers.map(p => (
                 <button disabled={saving}
                   key={p.id}
                   type="button"
+                  aria-pressed={!showNew && selectedProviderName === p.name}
                   className={!showNew && selectedProviderName === p.name ? 'on' : ''}
                   onClick={() => {
                     setShowNew(false)
@@ -115,33 +116,33 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                   {p.name}
                 </button>
               ))}
-              <button disabled={saving} type="button" className={`newp ${showNew ? 'on' : ''}`} onClick={() => setShowNew(v => !v)}>
+              <button disabled={saving} type="button" aria-pressed={showNew} className={`newp ${showNew ? 'on' : ''}`} onClick={() => setShowNew(v => !v)}>
                 + New
               </button>
             </div>
 
             {showNew && (
               <div className="freepreview" style={{ background: 'var(--surf2)', borderColor: 'var(--bd)', color: 'var(--tx)' }}>
-                <label style={{ margin: '0 0 5px' }}>New charger name</label>
+                <label htmlFor="add-new-name" style={{ margin: '0 0 5px' }}>New charger name</label>
                 <div className="fld" style={{ background: 'var(--surf)' }}>
-                  <input disabled={saving} maxLength={80} value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
+                  <input id="add-new-name" aria-describedby="add-error" disabled={saving} maxLength={80} value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
                 </div>
-                <label>Colour</label>
-                <div className="colorrow">
+                <p className="field-label">Colour</p>
+                <div className="colorrow" role="group" aria-label="Charger colour">
                   {PROVIDER_PALETTE.slice(0, 5).map(c => (
                     <button disabled={saving}
                       key={c}
                       type="button"
                       className={newColor === c ? 'on' : ''}
                       style={{ background: c }}
-                      aria-label={`Colour ${c}`}
+                      aria-label={`Colour ${c}`} aria-pressed={newColor === c}
                       onClick={() => setNewColor(c)}
                     />
                   ))}
                 </div>
-                <label>Free allowance (kWh per day)</label>
+                <label htmlFor="add-allowance">Free allowance (kWh per day)</label>
                 <div className="fld" style={{ background: 'var(--surf)' }}>
-                  <input disabled={saving}
+                  <input id="add-allowance" aria-describedby="add-error" disabled={saving}
                     type="number"
                     min={0}
                     max={INPUT_LIMITS.allowance}
@@ -154,16 +155,16 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <label>{isFee ? 'Billed on' : 'Date'}</label>
+            <label htmlFor="add-date">{isFee ? 'Billed on' : 'Date'}</label>
             <div className="fld">
-              <input disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+              <input id="add-date" aria-describedby="add-error" disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
             </div>
 
             {isFee ? (
               <>
-                <label>Fee amount</label>
+                <label htmlFor="add-cost">Fee amount</label>
                 <div className="fld">
-                  <input disabled={saving}
+                  <input id="add-cost" aria-describedby="add-error" disabled={saving}
                     type="number"
                     inputMode="decimal"
                     min={0}
@@ -181,9 +182,9 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
-                  <label>Energy</label>
+                  <label htmlFor="add-energy">Energy</label>
                   <div className="fld">
-                    <input disabled={saving}
+                    <input id="add-energy" aria-describedby="add-error" disabled={saving}
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -197,9 +198,9 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <label>Cost</label>
+                  <label htmlFor="add-cost">Cost</label>
                   <div className="fld">
-                    <input disabled={saving}
+                    <input id="add-cost" aria-describedby="add-error" disabled={saving}
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -214,9 +215,9 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <label>Notes (optional)</label>
+            <label htmlFor="add-notes">Notes (optional)</label>
             <div className="fld">
-              <input disabled={saving}
+              <input id="add-notes" aria-describedby="add-error" disabled={saving}
                 maxLength={INPUT_LIMITS.notes} value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder={isFee ? 'e.g. Monthly membership' : 'e.g. Norwood carpark'}
@@ -234,13 +235,12 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {error && <p role="alert" style={{ color: 'var(--neg)' }}>{error}</p>}
+            {error && <p id="add-error" role="alert" style={{ color: 'var(--neg)' }}>{error}</p>}
             <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave || saving} onClick={handleSave}>
               {saving ? 'Saving…' : showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
             </button>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

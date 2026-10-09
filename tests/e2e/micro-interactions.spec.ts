@@ -242,7 +242,6 @@ test('failed edit keeps its input and succeeds only after a durable retry', asyn
   await dialog.getByRole('button', { name: 'Save changes' }).click()
   await expect(dialog.getByRole('alert')).toContainText('Not saved on this device')
   await expect(cost).toHaveValue('1.25')
-  await page.getByRole('button', { name: 'Dismiss save error' }).click()
   await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
   await dialog.getByRole('button', { name: 'Save changes' }).click()
   await expect(dialog).toHaveCount(0)
@@ -269,7 +268,6 @@ test('failed new charger and charge save stays atomic and preserves the add form
   await expect(dialog.getByRole('alert')).toContainText('Not saved on this device')
   await expect(dialog.getByPlaceholder('e.g. Evie')).toHaveValue('New charger')
   await expect(dialog.locator('.save-status')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Dismiss save error' }).click()
   await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
   await dialog.getByRole('button', { name: 'Create charger & save' }).click()
   await expect(dialog.locator('.save-status')).toBeVisible()
@@ -444,6 +442,7 @@ test('backup worker previews, cancels, restores offline and safely repeats', asy
   await backupFile(page, restoreFixture())
   await page.getByRole('button', { name: 'Merge safely' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Added 1 charge and 1 charger' })).toBeVisible()
+  while (await page.locator('.achievement-card').count()) await page.locator('.achievement-card').getByRole('button', { name: 'Continue', exact: true }).click()
   await backupFile(page, restoreFixture())
   await page.getByRole('button', { name: 'Merge safely' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Added 0 charges and 0 chargers' })).toBeVisible()
@@ -751,3 +750,157 @@ for (const style of ['classic', 'minimal']) {
     }
   })
 }
+
+for (const style of ['classic', 'minimal']) for (const theme of ['light', 'dark']) {
+  test(`${style} ${theme} modal keyboard focus, labels, Escape and restoration`, async ({ page }) => {
+    await ledger(page, style, theme)
+    await page.goto('/')
+    await expect(page.getByRole('button', { name: 'Add charge', exact: true })).toBeVisible()
+    const ratios = await page.evaluate(() => {
+      const css = getComputedStyle(document.documentElement)
+      const luminance = (hex: string) => {
+        const c = hex.match(/[0-9a-f]{2}/gi)!.map(v => parseInt(v, 16) / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+        return c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722
+      }
+      return ['fnt', 'mut', 'tx', 'money', 'money-deep', 'neg', 'warn'].flatMap(text => ['canvas', 'surf', 'surf2'].map(background => {
+        const a = luminance(css.getPropertyValue(`--${text}`)), b = luminance(css.getPropertyValue(`--${background}`))
+        return { name: `${text} on ${background}`, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) }
+      }))
+    })
+    for (const result of ratios) expect(result.ratio, result.name).toBeGreaterThanOrEqual(4.5)
+    const add = page.getByRole('button', { name: 'Add charge', exact: true })
+    await add.focus(); await page.keyboard.press('Enter')
+    const dialog = page.getByRole('dialog', { name: 'Add charge or fee' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Close dialog', exact: true })).toBeFocused()
+    await expect(dialog.getByRole('spinbutton', { name: 'Energy', exact: true })).toBeVisible()
+    await expect(dialog.getByRole('spinbutton', { name: 'Cost', exact: true })).toBeVisible()
+    await expect(dialog.getByLabel('Date', { exact: true })).toBeVisible()
+    for (let i = 0; i < 16; i++) {
+      await page.keyboard.press(i % 3 ? 'Tab' : 'Shift+Tab')
+      expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true)
+    }
+    await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0); await expect(add).toBeFocused()
+    await page.goto('/statement')
+    const row = page.locator('.swiperow').first().locator('.row')
+    await row.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('dialog', { name: 'Session receipt' })).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(row).toBeFocused()
+    await page.getByRole('button', { name: 'Actions for FreeCo charge' }).click()
+    const edit = page.getByRole('button', { name: 'Edit FreeCo charge' })
+    await edit.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('dialog', { name: 'Edit charge' }).getByRole('spinbutton', { name: 'Energy' })).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: 'Actions for FreeCo charge' })).toBeFocused()
+    await page.goto('/savings')
+    if (style === 'classic') {
+      const ratios = await page.locator('.savecard').evaluate(card => {
+        const css = getComputedStyle(card)
+        const stops = [...css.backgroundImage.matchAll(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g)].map(match => match.slice(1).map(Number))
+        const light = (rgb: number[]) => {
+          const c = rgb.map(v => v / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+          return c[0] * 0.2126 + c[1] * 0.7152 + c[2] * 0.0722
+        }
+        const opacity = Number(getComputedStyle(card.querySelector('small')!).opacity)
+        return stops.map(background => {
+          const blended = background.map(v => 255 * opacity + v * (1 - opacity))
+          return (light(blended) + 0.05) / (light(background) + 0.05)
+        })
+      })
+      expect(ratios).toHaveLength(3)
+      for (const ratio of ratios) expect(ratio).toBeGreaterThanOrEqual(4.5)
+    }
+    const explain = page.getByRole('button', { name: 'Lifetime net benefit — show how this was calculated' })
+    await explain.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('dialog', { name: 'How Lifetime net benefit was calculated' })).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(explain).toBeFocused()
+    await page.goto('/settings')
+    await expect(page.getByRole('slider', { name: 'Monthly spending cap (AUD)' })).toBeVisible()
+    const release = page.getByRole('button', { name: /EV Command v.*what's new/ })
+    await release.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('dialog', { name: "What's new" })).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(release).toBeFocused()
+    await page.goto('/vehicle')
+    const record = page.getByRole('button', { name: /View .* record status/ }).first()
+    await record.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('dialog', { name: /./ })).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(record).toBeFocused()
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content')
+    expect(viewport).not.toContain('user-scalable=no')
+    await page.goto('/settings')
+    await page.setViewportSize({ width: 780, height: 844 })
+    await page.evaluate(() => { document.body.style.zoom = '2' })
+    await expect(page.getByRole('slider', { name: 'Monthly spending cap (AUD)' })).toBeVisible()
+    const layout = await page.evaluate(() => ({ width: window.innerWidth, scroll: document.documentElement.scrollWidth,
+      overflow: [...document.querySelectorAll<HTMLElement>('body *')].filter(el => el.getBoundingClientRect().right > window.innerWidth + 1).slice(0, 12).map(el => ({ tag: el.tagName, cls: el.className, html: el.outerHTML.slice(0, 500), visibility: getComputedStyle(el).visibility, right: el.getBoundingClientRect().right, text: el.textContent?.slice(0, 70) })) }))
+    expect(layout.scroll, JSON.stringify(layout)).toBeLessThanOrEqual(layout.width)
+  })
+}
+
+test('trend chart supports keyboard selection and motion changes are reactive', async ({ page }) => {
+  await ledger(page, 'classic')
+  await page.goto('/analytics')
+  await page.getByRole('navigation', { name: 'Analytics views' }).getByRole('button', { name: 'Trends', exact: true }).click()
+  const points = page.locator('circle[role="button"]')
+  await points.first().focus(); await page.keyboard.press('Enter')
+  await expect(points.first()).toHaveAttribute('aria-pressed', 'true')
+  await page.keyboard.press('End'); await expect(points.last()).toBeFocused()
+  await expect(points.last()).toHaveAttribute('aria-pressed', 'true')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.keyboard.press('Home')
+  await expect(points.first()).toBeFocused()
+  await expect(page.locator('animateMotion')).toHaveCount(0)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.keyboard.press('End')
+  await expect(page.locator('animateMotion')).toHaveCount(1)
+})
+
+test('nested achievement stays readable and Escape restores the underlying sheet', async ({ page }) => {
+  await ledger(page)
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Add charge', exact: true }).click()
+  const parent = page.getByRole('dialog', { name: 'Add charge or fee' })
+  const notes = parent.getByLabel('Notes (optional)', { exact: true })
+  await notes.focus()
+  await page.evaluate(async () => {
+    const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+    const date = data.getState().sessions[0].date
+    for (let i = 0; i < 4; i++) await data.addSession({ type: 'FreeCo', date, amount: 0.5, cost: 0, notes: null })
+  })
+  const achievement = page.getByRole('dialog', { name: 'Free five' })
+  await expect(achievement).toBeVisible()
+  await page.clock.install(); await page.clock.fastForward(5000)
+  await expect(achievement).toBeVisible()
+  await page.keyboard.press('Escape'); await expect(achievement).toHaveCount(0)
+  await expect(parent).toBeVisible(); await expect(notes).toBeFocused()
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden')
+  await page.keyboard.press('Escape'); await expect(parent).toHaveCount(0)
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
+})
+
+test('achievement restores Add focus after its saving sheet automatically closes', async ({ page }) => {
+  await ledger(page)
+  await page.goto('/')
+  await expect.poll(() => page.evaluate(async () => {
+    const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+    return data.getState().sessions.length
+  })).toBeGreaterThan(0)
+  await page.evaluate(async () => {
+    const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+    const date = data.getState().sessions[0].date
+    for (let i = 0; i < 3; i++) await data.addSession({ type: 'FreeCo', date, amount: 0.5, cost: 0, notes: null })
+  })
+  const add = page.getByRole('button', { name: 'Add charge', exact: true })
+  await add.click()
+  const parent = page.getByRole('dialog', { name: 'Add charge or fee' })
+  await parent.getByLabel('Energy', { exact: true }).fill('0.5')
+  await parent.getByLabel('Cost', { exact: true }).fill('0')
+  await parent.getByRole('button', { name: 'Save charge', exact: true }).click()
+  const achievement = page.getByRole('dialog', { name: 'Free five' })
+  await expect(achievement).toBeVisible()
+  await expect(parent).toHaveCount(0)
+  await expect(achievement).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(achievement).toHaveCount(0)
+  await expect(add).toBeFocused()
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
+})

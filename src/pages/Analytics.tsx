@@ -1,3 +1,4 @@
+import { useReducedMotion } from '../lib/useReducedMotion'
 import { providerAccountPath } from '../lib/accountRoutes'
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -391,6 +392,8 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
   const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
   const area = `${line} L 100 100 L 0 100 Z`
 
+  const reduceMotion = useReducedMotion()
+
   useEffect(() => {
     const path = pathRef.current
     const clip = clipRef.current
@@ -398,8 +401,6 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
     if (!path || !clip || !dot) return
 
     const length = path.getTotalLength()
-    const reduceMotion =
-      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const setProgress = (progress: number) => {
       const point = path.getPointAtLength(length * progress)
@@ -427,7 +428,7 @@ function CanvasTrend({ values, kind }: { values: number[]; kind: 'rate' | 'free'
 
     id = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(id)
-  }, [line])
+  }, [line, reduceMotion])
 
   return (
     <div className={`cv-trend ${kind}`}>
@@ -978,10 +979,7 @@ function TrendsView({
   const [prov, setProv] = useState('All')
   const [selIdx, setSelIdx] = useState<number | null>(null)
   const provNames = ['All', ...ev.byProvider.map(p => p.name)]
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
 
   const data = series(prov, metric).slice(-6)
   const n = data.length
@@ -1022,6 +1020,7 @@ function TrendsView({
           <button
             key={name}
             type="button"
+            aria-pressed={prov === name}
             className={`chip ${prov === name ? 'on' : ''}`}
             style={{ ['--pc' as string]: name === 'All' ? 'var(--money)' : provColor(name) }}
             onClick={() => setProv(name)}
@@ -1052,6 +1051,17 @@ function TrendsView({
                 r="12"
                 fill="transparent"
                 style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                role="button" tabIndex={0} aria-label={`${p.label}: ${fmt(p.value)}`} aria-pressed={activeIdx === i}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelIdx(i) }
+                  else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === 'Home' || event.key === 'End') {
+                    event.preventDefault()
+                    const next = event.key === 'Home' ? 0 : event.key === 'End' ? n - 1 : Math.max(0, Math.min(n - 1, i + (event.key === 'ArrowRight' ? 1 : -1)))
+                    setSelIdx(next)
+                    const circles = event.currentTarget.parentElement?.querySelectorAll<SVGCircleElement>('circle[role="button"]')
+                    circles?.[next]?.focus()
+                  }
+                }}
                 onClick={() => setSelIdx(i)}
               />
             ))}

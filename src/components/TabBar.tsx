@@ -19,7 +19,7 @@ export default function TabBar({ onAdd }: { onAdd: () => void }) {
       {TABS.map((tab, i) =>
         'fab' in tab ? (
           <div className="fabwrap" key={i}>
-            <button className="fabb" type="button" aria-label="Add charge" onClick={onAdd}>
+            <button className="fabb" type="button" aria-label="Add charge" data-modal-global-fallback="" onClick={onAdd}>
               <Icon name="plus" />
             </button>
           </div>

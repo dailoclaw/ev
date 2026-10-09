@@ -1,3 +1,4 @@
+import Modal from './Modal'
 import type { EnrichedSession } from '../lib/savings'
 import type { Provider } from '../lib/providers'
 import { aud, longDate, rate } from '../lib/format'
@@ -15,8 +16,7 @@ export default function ReceiptSheet({
   const freePct = session.amount > 0 ? (session.freeKwh / session.amount) * 100 : 0
 
   return (
-    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label="Session receipt" onClick={e => e.stopPropagation()}>
+    <Modal label="Session receipt" onClose={onClose}>
         <div className="handle" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
           <Mark provider={provider} name={session.type} />
@@ -106,7 +106,6 @@ export default function ReceiptSheet({
             {session.notes}
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

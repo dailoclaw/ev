@@ -3,8 +3,18 @@ import type { Session } from './savings'
 export function buildCsv(sessions: Array<Session & { freeKwh?: number }>): string {
   const escape = (value: string | number | null) => {
     const raw = value == null ? '' : String(value)
-    const text = typeof value === 'string' && /^[=+\-@]/.test(raw) ? `'${raw}` : raw
-    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+    let prefix = 0
+    let hasControlPrefix = false
+    while (prefix < raw.length) {
+      const code = raw.charCodeAt(prefix)
+      const control = code < 32 || code === 127
+      if (!control && !/\s/u.test(raw[prefix])) break
+      hasControlPrefix ||= control
+      prefix += 1
+    }
+    const dangerous = hasControlPrefix || /^[=+\-@＝＋－＠]/u.test(raw.slice(prefix))
+    const text = typeof value === 'string' && dangerous ? `'${raw}` : raw
+    return /[",;\r\n\t]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
   }
   const header = 'Date,Provider,AmountKwh,CostAud,FreeKwh,Notes'
   const rows = sessions.map(session =>

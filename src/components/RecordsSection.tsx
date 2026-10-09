@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import Modal from './Modal'
+import { useMemo, useState } from 'react'
 import { records } from '../lib/records'
 import { shortDate } from '../lib/format'
 import { useEv } from '../lib/useEv'
@@ -14,27 +15,12 @@ type RecordDetail = {
 }
 
 function RecordDetailPopup({ record, onClose }: { record: RecordDetail; onClose: () => void }) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
-
   const progress = record.progress == null ? null : Math.round(Math.min(1, record.progress) * 100)
 
   return (
-    <div className="record-detail-backdrop" role="presentation" onClick={onClose}>
-      <section
-        className={`record-detail-card ${record.achieved ? 'achieved' : 'open'}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="record-detail-title"
-        aria-describedby="record-detail-description"
-        onClick={event => event.stopPropagation()}
-      >
-        <button className="record-detail-close" type="button" aria-label="Close record details" onClick={onClose}>×</button>
+    <Modal className={`record-detail-card ${record.achieved ? 'achieved' : 'open'}`}
+      backdropClass="record-detail-backdrop" labelledBy="record-detail-title" describedBy="record-detail-description"
+      onClose={onClose} closeLabel="Close record details">
         <div className="record-detail-icon" aria-hidden="true">
           <Icon name={record.icon} size={52} />
         </div>
@@ -47,9 +33,8 @@ function RecordDetailPopup({ record, onClose }: { record: RecordDetail; onClose:
             <div aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
           </div>
         )}
-        <button className="primary-btn" type="button" onClick={onClose} autoFocus>Done</button>
-      </section>
-    </div>
+        <button className="primary-btn" type="button" onClick={onClose}>Done</button>
+    </Modal>
   )
 }
 

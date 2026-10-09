@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
+import Modal from './Modal'
 import type { Derivation } from '../lib/derive'
 
 /**
@@ -12,15 +12,8 @@ import type { Derivation } from '../lib/derive'
 export default function ExplainSheet({ deriv, onClose }: { deriv: Derivation; onClose: () => void }) {
   const [showRows, setShowRows] = useState(false)
 
-  return createPortal(
-    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`How ${deriv.title} was calculated`}
-        onClick={e => e.stopPropagation()}
-      >
+  return (
+    <Modal label={`How ${deriv.title} was calculated`} onClose={onClose}>
         <div className="handle" />
 
         <div className="exp-head">
@@ -64,8 +57,6 @@ export default function ExplainSheet({ deriv, onClose }: { deriv: Derivation; on
         )}
 
         {deriv.footnote && <p className="exp-foot">{deriv.footnote}</p>}
-      </div>
-    </div>,
-    document.body,
+    </Modal>
   )
 }

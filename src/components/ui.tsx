@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useReducedMotion } from '../lib/useReducedMotion'
+import { useEffect, useState, type ReactNode } from 'react'
 import StatusMark from './StatusMark'
 import { syncLabel, syncMarkState } from '../lib/syncPresentation'
 import type { SyncStatus } from '../lib/appModel'
@@ -99,10 +100,7 @@ export function Ring({
   color?: string
 }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
   const [animatedPct, setAnimatedPct] = useState(0)
 
   useEffect(() => {
@@ -149,10 +147,7 @@ export function Ring({
 
 /* ---- budget thermometer ---- */
 export function Thermo({ spent, projected, cap }: { spent: number; projected: number; cap: number }) {
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
   const [armed, setArmed] = useState(false)
   const pct = (n: number) => cap > 0 ? Math.min(100, Math.max(0, (n / cap) * 100)) : n > 0 ? 100 : 0
 
@@ -183,10 +178,7 @@ export function Thermo({ spent, projected, cap }: { spent: number; projected: nu
 
 /* ---- free/paid split bar ---- */
 export function SplitBar({ segments }: { segments: Array<{ pct: number; color?: string; cls?: string }> }) {
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
   const segmentKey = segments.map(s => `${s.pct}:${s.color ?? ''}:${s.cls ?? ''}`).join('|')
   const [armed, setArmed] = useState(false)
 

@@ -1,3 +1,4 @@
+import Modal from './Modal'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { records, type RecordAchievement } from '../lib/records'
@@ -5,7 +6,6 @@ import { useEv } from '../lib/useEv'
 import { Icon } from './ui'
 
 const SEEN_KEY = 'ev.seenRecordAchievements.v1'
-const AUTO_DISMISS_MS = 3800
 const SUMMARY_THRESHOLD = 4
 
 type Celebration = RecordAchievement & { count?: number }
@@ -85,19 +85,6 @@ export default function AchievementCelebration({ preview = false }: { preview?: 
     setQueue(current => current.slice(1))
   }, [])
 
-  useEffect(() => {
-    if (!active || preview) return
-    const timer = window.setTimeout(dismiss, AUTO_DISMISS_MS)
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') dismiss()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [active, dismiss, preview])
-
   if (!active) return null
 
   const viewRecords = () => {
@@ -122,15 +109,8 @@ export default function AchievementCelebration({ preview = false }: { preview?: 
   }
 
   return (
-    <div className="achievement-backdrop" role="presentation" onClick={dismiss}>
-      <section
-        className="achievement-card"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="achievement-title"
-        aria-describedby="achievement-detail"
-        onClick={event => event.stopPropagation()}
-      >
+    <Modal className="achievement-card" backdropClass="achievement-backdrop" labelledBy="achievement-title"
+      describedBy="achievement-detail" onClose={dismiss} closeLabel="Close achievement">
         <div className="achievement-rays" aria-hidden="true" />
         <div className="achievement-burst" aria-hidden="true">
           {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
@@ -146,7 +126,6 @@ export default function AchievementCelebration({ preview = false }: { preview?: 
           <button className="primary-btn" type="button" onClick={viewRecords}>{preview ? 'Replay Animation' : 'View Records'}</button>
           <button className="text-btn" type="button" onClick={dismiss} autoFocus>Continue</button>
         </div>
-      </section>
-    </div>
+    </Modal>
   )
 }

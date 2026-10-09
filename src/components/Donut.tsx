@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useReducedMotion } from '../lib/useReducedMotion'
+import { useEffect, useState } from 'react'
 import CountUpNumber from './CountUpNumber'
 
 const R = 69
@@ -16,10 +17,7 @@ export default function Donut({
   sub: string
 }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
-  const reduceMotion = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    [],
-  )
+  const reduceMotion = useReducedMotion()
   // Start filled when motion is off, so the ring is never drawn empty.
   const [shown, setShown] = useState(0)
 

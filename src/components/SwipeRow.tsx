@@ -97,7 +97,7 @@ export default function SwipeRow({ children, label, open, onOpenChange, onTap, o
   }
 
   return (
-    <div className="swiperow" data-open={open} onKeyDown={event => {
+    <div className="swiperow" data-modal-focus-group="" data-open={open} onKeyDown={event => {
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Escape') {
         event.preventDefault()
         const next = event.key === 'ArrowLeft'
@@ -119,7 +119,7 @@ export default function SwipeRow({ children, label, open, onOpenChange, onTap, o
           if (open) changeOpen(false)
           else onTap()
         }}>{children}</button>
-        <button className="swipe-toggle" type="button" data-swipe-toggle=""
+        <button className="swipe-toggle" type="button" data-swipe-toggle="" data-modal-focus-fallback=""
           aria-label={`Actions for ${label}`} aria-expanded={open} aria-controls={id}
           onClick={() => changeOpen(!open)}><span aria-hidden="true">···</span></button>
       </div>

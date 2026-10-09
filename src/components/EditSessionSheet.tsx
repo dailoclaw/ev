@@ -1,3 +1,4 @@
+import Modal from './Modal'
 import { INPUT_LIMITS } from '../lib/validation'
 import { useMemo, useState } from 'react'
 import type { EnrichedSession } from '../lib/savings'
@@ -49,8 +50,7 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
   }
 
   return (
-    <div className="sheet-backdrop" role="presentation" onClick={() => { if (!saving) onClose() }}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label="Edit charge" onClick={e => e.stopPropagation()}>
+    <Modal label="Edit charge" onClose={onClose} busy={saving}>
         <div className="handle" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
           <Mark name={session.type} />
@@ -60,16 +60,16 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
           </div>
         </div>
 
-        <label>{session.isFee ? 'Billed on' : 'Date'}</label>
+        <label htmlFor="edit-date">{session.isFee ? 'Billed on' : 'Date'}</label>
         <div className="fld">
-          <input disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+          <input id="edit-date" aria-describedby="edit-error" disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
         </div>
 
         {!session.isFee && (
           <>
-            <label>Energy</label>
+            <label htmlFor="edit-energy">Energy</label>
             <div className="fld">
-              <input disabled={saving}
+              <input id="edit-energy" aria-describedby="edit-error" disabled={saving}
                 type="number"
                 inputMode="decimal"
                 min={0}
@@ -83,23 +83,22 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
           </>
         )}
 
-        <label>Cost</label>
+        <label htmlFor="edit-cost">Cost</label>
         <div className="fld">
-          <input disabled={saving} type="number" inputMode="decimal" min={0} max={INPUT_LIMITS.cost} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
+          <input id="edit-cost" aria-describedby="edit-error" disabled={saving} type="number" inputMode="decimal" min={0} max={INPUT_LIMITS.cost} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
           <span className="unit">AUD</span>
         </div>
 
-        <label>Notes (optional)</label>
+        <label htmlFor="edit-notes">Notes (optional)</label>
         <div className="fld">
-          <input disabled={saving} maxLength={INPUT_LIMITS.notes} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
+          <input id="edit-notes" aria-describedby="edit-error" disabled={saving} maxLength={INPUT_LIMITS.notes} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
         </div>
 
-        {error && <p role="alert" style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}
+        {error && <p id="edit-error" role="alert" style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}
 
         <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave || saving} onClick={handleSave}>
           {saving ? 'Saving...' : 'Save changes'}
         </button>
-      </div>
-    </div>
+    </Modal>
   )
 }

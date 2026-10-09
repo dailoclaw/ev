@@ -1,0 +1,9 @@
+Date,Provider,AmountKwh,CostAud,FreeKwh,Notes
+2026-10-09,Security QA,10,5.00,0.00,'=1+2
+2026-10-09,Security QA,10,5.00,0.00,"' 	=1+2"
+2026-10-09,Security QA,10,5.00,0.00,"'=1+2"
+2026-10-09,Security QA,10,5.00,0.00,"'
+=1+2"
+2026-10-09,Security QA,10,5.00,0.00,'＝1+2
+2026-10-09,Security QA,10,5.00,0.00,"ordinary,comma;=1+2"
+2026-10-09,Security QA,10,5.00,0.00,"quoted ""text"",=1+2"

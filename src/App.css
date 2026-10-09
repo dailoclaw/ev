@@ -189,14 +189,14 @@
   padding-right: 104px;
   margin-bottom: 10px;
   color: #fff;
-  background: linear-gradient(140deg, #047857, #059669 55%, #0d9488);
+  background: linear-gradient(140deg, #047857, #06684c 55%, #087268);
   box-shadow: 0 14px 30px rgba(5, 150, 105, 0.32);
 }
 .savecard.no-ring {
   padding-right: 16px;
 }
 .savecard .cap {
-  color: rgba(255, 255, 255, 0.75);
+  color: #fff;
 }
 .savecard .big {
   display: block;
@@ -769,7 +769,7 @@
   position: relative;
   z-index: 1;
   margin-bottom: 0;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   will-change: transform;
 }
 
@@ -2220,7 +2220,7 @@ input[type='range'].capslider::-webkit-slider-thumb {
   position: relative;
   margin-top: 8px;
   cursor: ew-resize;
-  touch-action: none;
+  touch-action: pinch-zoom;
 }
 .cc-chart svg {
   display: block;
@@ -4852,3 +4852,14 @@ input[type='range'].capslider::-webkit-slider-thumb {
     animation: none;
   }
 }
+
+/* Native modal layer: existing sheet/card layouts live inside the top layer. */
+.modal-root { inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; border: 0; padding: 0; background: transparent; color: var(--tx); }
+.modal-root::backdrop { background: transparent; }
+.modal-root .sheet, .modal-root .record-detail-card, .modal-root .achievement-card { position: relative; }
+.modal-close { position: absolute; top: 8px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--bd); background: var(--surf); color: var(--tx); font-size: 24px; cursor: pointer; }
+.sheet .field-label { margin: 14px 0 7px; font-size: 12px; font-weight: 800; color: var(--mut); }
+:root :where(button, input, select, textarea, a, [tabindex]):focus-visible { outline: 3px solid var(--money-deep); outline-offset: 3px; }
+.modal-root .sheet { padding-top: 48px; }
+/* Keep decorative glass lenses from expanding the page when its scale changes. */
+.glass-seg { overflow: clip; border-radius: 999px; }

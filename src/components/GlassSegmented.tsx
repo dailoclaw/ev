@@ -1,3 +1,4 @@
+import { useReducedMotion } from '../lib/useReducedMotion'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { LiquidGlass, type LiquidGlassHandle } from 'liquid-glass-web-react'
 
@@ -28,6 +29,7 @@ export default function GlassSegmented<T extends SegmentValue>({
   style,
   compact = false,
 }: GlassSegmentedProps<T>) {
+  const reduceMotion = useReducedMotion()
   const glassRef = useRef<LiquidGlassHandle>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -43,7 +45,6 @@ export default function GlassSegmented<T extends SegmentValue>({
     motion.target = target
     cancelAnimationFrame(motion.raf)
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!animate || reduceMotion) {
       motion.x = target
       motion.v = 0
@@ -72,7 +73,7 @@ export default function GlassSegmented<T extends SegmentValue>({
     }
 
     motion.raf = requestAnimationFrame(tick)
-  }, [])
+  }, [reduceMotion])
 
   useLayoutEffect(() => {
     const track = trackRef.current
@@ -110,7 +111,7 @@ export default function GlassSegmented<T extends SegmentValue>({
     <LiquidGlass
       ref={glassRef}
       className={`glass-seg ${compact ? 'glass-seg--compact' : ''} ${className}`.trim()}
-      style={{ touchAction: 'none', ...style }}
+      style={{ touchAction: 'pan-y pinch-zoom', ...style }}
       x={initialX}
       y={0.5}
       width={lensWidth}

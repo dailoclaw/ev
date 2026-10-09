@@ -627,6 +627,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 6. Test Tab/Shift+Tab, Escape, invoker focus restoration, screen reader names/errors, 200% zoom, both themes/styles, and nested celebration/sheet behavior.
 7. **Gate:** security audit passes and modal/form workflows are independently usable by keyboard and assistive technology.
 
+**Implementation update (9 October 2026):** Compatible vulnerable dependency patches, hardened CSV serialization, shared native dialogs, associated field labels, budget naming, keyboard trend controls, zoom enablement, contrast tokens and reactive motion preferences are implemented locally in v4.3.11. See [security/accessibility notes](SECURITY-ACCESSIBILITY-FIX.md). Actual Excel/LibreOffice import and save/reopen, independent screen-reader validation and physical zoom acceptance remain open; Computer Use permissions blocked Excel UI validation. The full Step 7 manual gate is not complete.
+
 ### Step 8 — Validate the production environment
 
 1. Add a Microsoft Edge Playwright project and manual managed-Edge checks.

@@ -1,5 +1,14 @@
 # EV Command — Changelog
 
+## v4.3.11 (2026-10-09)
+### Fixes
+- Patched all vulnerable brace-expansion and source-map-js resolutions without forced major upgrades.
+- Hardened CSV fields against whitespace/control-prefixed and full-width formulas; quoted CR, LF and delimiter payloads.
+- Shared native modal behavior across charge, edit, receipt, explanation, release, record and achievement dialogs, with keyboard containment, Escape, visible close controls and focus restoration.
+- Associated charge/edit field labels, named the budget slider, and announced provider/color selections.
+- Enabled viewport zoom, contained decorative lens overflow during enlargement, increased text-token contrast, added form/chart focus indicators and keyboard trend-chart controls.
+- Made reduced-motion consumers react to preference changes and kept achievement messages open until dismissed.
+
 ## v4.3.10 (2026-10-09)
 ### Fixes
 - Preserved recorded costs on fully allowance-covered charges in concentration charts; disclosed excluded non-energy charges.
