@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.12', date: '9 Oct 2026',
+    notes: ['Fixed offline entry on unvisited routes; added production-build checks and Edge projects, plus a settings Realtime migration and stricter save acknowledgement.'],
+  },
+  {
     version: '4.3.11', date: '9 Oct 2026',
     notes: ['Patched vulnerable dependencies and hardened CSV exports; dialogs support keyboard focus and Escape, forms have associated labels, zoom is enabled and motion preferences update live.'],
   },

@@ -80,7 +80,7 @@ it('preserves SQL error codes and HTTP status for rejected writes', async () => 
   backend.from.mockReturnValue({ upsert: async () => ({ error: { code: '23514', message: 'Constraint failed', details: 'Detail' }, status: 400 }) })
   await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'session-upsert', payload: { id: 's' } }, 'owner-1', () => {})).rejects.toMatchObject({ code: '23514', status: 400, message: 'Constraint failed' })
 })
-it.each([null, { id: 1, owner_id: 'owner-2' }])('does not acknowledge a settings update without a matching owner row', async data => {
+it.each([null, { id: 1, owner_id: 'owner-2' }, { id: 2, owner_id: 'owner-1' }])('does not acknowledge a settings update without a matching owner row', async data => {
   const query = { update: () => query, eq: () => query, select: () => query, maybeSingle: async () => ({ data, error: null, status: 200 }) }
   backend.from.mockReturnValue(query)
   await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'settings-update', payload: { budget_cap: 80 } }, 'owner-1', () => {})).rejects.toMatchObject({ code: '42501' })
@@ -93,4 +93,59 @@ it('acknowledges settings only when a matching owner row is returned', async () 
 it('classifies malformed queued photos before sending them to storage', async () => {
   await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'photo-upsert', payload: { path: 'owner-1/vehicle.jpg', dataUrl: 'data:image/jpeg;base64,invalid***' } }, 'owner-1', () => {})).rejects.toMatchObject({ code: 'INVALID_INPUT' })
   expect(backend.storageFrom).not.toHaveBeenCalled()
+})
+
+it('reads more than 500 sessions in stable ordered pages without truncation', async () => {
+  const rows = Array.from({ length: 1201 }, (_, i) => ({ id: `session-${i}`, date: '2026-01-01', created_at: String(i) }))
+  const ranges: [number, number][] = []
+  const orders: string[] = []
+  backend.from.mockImplementation((table: string) => {
+    const query = {
+      select: () => query, eq: () => query,
+      order: (field: string) => { if (table === 'charging_sessions') orders.push(field); return query },
+      range: async (from: number, to: number) => {
+        if (table !== 'charging_sessions') return { data: [], error: null }
+        ranges.push([from, to]); return { data: rows.slice(from, to + 1), error: null }
+      },
+      maybeSingle: async () => ({ data: settings, error: null }),
+    }
+    return query
+  })
+  const snapshot = await fetchRemoteSnapshot('owner-1', () => {})
+  expect(snapshot.sessions).toEqual(rows)
+  expect(ranges).toEqual([[0, 499], [500, 999], [1000, 1499]])
+  expect(orders).toEqual(Array.from({ length: 3 }, () => ['date', 'created_at', 'id']).flat())
+})
+
+it('fails the snapshot if a later session page cannot be read', async () => {
+  backend.from.mockImplementation((table: string) => {
+    const query = {
+      select: () => query, order: () => query, eq: () => query,
+      range: async (from: number) => table === 'charging_sessions'
+        ? from === 0 ? { data: Array.from({ length: 500 }, () => ({})), error: null } : { data: null, error: new Error('Page unavailable') }
+        : { data: [], error: null },
+      maybeSingle: async () => ({ data: settings, error: null }),
+    }
+    return query
+  })
+  await expect(fetchRemoteSnapshot('owner-1', () => {})).rejects.toThrow('Page unavailable')
+})
+
+it('retains ledger data when a private photo download fails', async () => {
+  backend.from.mockImplementation(() => {
+    const query = {
+      select: () => query, order: () => query, eq: () => query,
+      range: async () => ({ data: [], error: null }),
+      maybeSingle: async () => ({ data: { ...settings, vehicle_photo_path: 'owner-1/vehicle.jpg' }, error: null }),
+    }
+    return query
+  })
+  backend.storageFrom.mockReturnValue({ download: async () => ({ data: null, error: new Error('Storage unavailable') }) })
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  try {
+    const snapshot = await fetchRemoteSnapshot('owner-1', () => {})
+    expect(snapshot.settings.vehicle_photo_path).toBe('owner-1/vehicle.jpg')
+    expect(snapshot.vehiclePhotoDataUrl).toBeNull()
+    expect(warning).toHaveBeenCalled()
+  } finally { warning.mockRestore() }
 })

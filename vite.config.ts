@@ -35,6 +35,7 @@ export default defineConfig({
             handler: 'NetworkFirst',
             options: {
               cacheName: 'ev-navigation',
+              precacheFallback: { fallbackURL: '/index.html' },
               networkTimeoutSeconds: 3,
               cacheableResponse: { statuses: [0, 200] },
               expiration: { maxEntries: 10 },

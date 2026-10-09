@@ -133,7 +133,7 @@ export async function applyOutboxOperation(operation: OutboxOperation, ownerId: 
       const result = await client.from('app_settings').update(operation.payload).eq('id', 1).eq('owner_id', ownerId).select('id,owner_id').maybeSingle()
       error = result.error
       status = result.status
-      if (!error && (!result.data || result.data.owner_id !== ownerId)) {
+      if (!error && (!result.data || result.data.id !== 1 || result.data.owner_id !== ownerId)) {
         error = Object.assign(new Error('Settings were not updated for this owner. Check owner permissions before retrying.'), { code: '42501' })
       }
       break

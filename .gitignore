@@ -29,3 +29,7 @@ coverage/
 
 # supabase CLI local state
 supabase/.temp/
+
+# Isolated fake-backend production validation build
+dist-validation/
+test-results-production/

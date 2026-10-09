@@ -638,6 +638,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 5. Test photo-storage failure and paginated reads with >500 sessions plus concurrent edits.
 6. **Gate:** no unexplained runtime exceptions, no pending-write loss, actual RLS/storage behavior matches code assumptions.
 
+**Implementation update (9 October 2026):** v4.3.12 adds production-build CSP/lazy-route/PWA/queue/recovery checks, branded Edge test projects and CI installation, an offline navigation shell fallback, stricter settings-row acknowledgement and an idempotent settings Realtime publication migration. See [production validation notes](PRODUCTION-VALIDATION.md). Disposable database/RLS/storage/Realtime, installed/managed Edge and actual deployed upgrades remain open; Step 8's full gate is not complete.
+
 ### Step 9 — Reduce maintenance cost
 
 1. Extract domain selectors and large view components incrementally; avoid changing visible functionality.

@@ -1,5 +1,14 @@
 # EV Command — Changelog
 
+## v4.3.12 (2026-10-09)
+### Fixes
+- Applied the shell cache policy to deep links while retaining immutable asset caching.
+- Added isolated production-build validation with deployed-equivalent headers and Microsoft Edge projects.
+- Fixed offline cold starts and unvisited deep links with a precached shell fallback, preserving network-first navigation.
+- Added PWA cold-start, offline route, queued-write, worker replacement and missing-chunk recovery checks.
+- Added settings to the Realtime publication and required the expected singleton row before acknowledging settings saves.
+- Verified multi-page reads, later-page failures and private-photo download failures with repository regressions.
+
 ## v4.3.11 (2026-10-09)
 ### Fixes
 - Patched all vulnerable brace-expansion and source-map-js resolutions without forced major upgrades.
