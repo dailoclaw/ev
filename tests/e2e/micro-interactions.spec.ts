@@ -5,9 +5,12 @@ import { expect, test, type Page } from '@playwright/test'
 async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5, allowance = 7, vehicle = { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7 }) {
   const owner = '11111111-1111-4111-8111-111111111111'
   const provider = '22222222-2222-4222-8222-222222222222'
+  const providerRow = { id: provider, name: 'FreeCo', color: '#059669', free_kwh_per_day: allowance, archived: false, sort_order: 0 }
   const date = new Date().toLocaleDateString('en-CA')
   let sessions = used > 0 ? [{ id: '33333333-3333-4333-8333-333333333333', provider_id: provider, date, amount: used, cost: 0, notes: null }] : []
   let fail = false
+  let rejectedTable: string | undefined
+  let rejectionCode = '23514'
   let hold: Promise<void> | undefined
   const settings = { id: 1, owner_id: owner, budget_cap: 50, theme, style, density: 'comfortable',
     vehicle_efficiency: vehicle.efficiency, petrol_price: vehicle.petrolPrice, petrol_use: vehicle.petrolUse, vehicle_photo_path: null, updated_at: new Date().toISOString() }
@@ -22,11 +25,16 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
     if (hold && !request.url().includes('/auth/v1/')) await hold
     if (fail) { await route.fulfill({ status: 403, json: { message: 'Test sync rejected' } }); return }
     const table = new URL(request.url()).pathname.split('/').pop()
+    if (request.method() !== 'GET' && table === rejectedTable) {
+      await route.fulfill({ status: rejectionCode === '42501' ? 403 : 400, json: { code: rejectionCode, message: 'Test write rejected' } }); return
+    }
     if (request.method() === 'GET') {
       await route.fulfill({ json: table === 'providers'
-        ? [{ id: provider, name: 'FreeCo', color: '#059669', free_kwh_per_day: allowance, archived: false, sort_order: 0 }]
+        ? [providerRow]
         : table === 'charging_sessions' ? sessions : table === 'app_settings' ? settings : { user: { id: owner } } })
     } else {
+      if (table === 'app_settings') Object.assign(settings, request.postDataJSON())
+      if (table === 'providers') Object.assign(providerRow, request.postDataJSON())
       if (table === 'charging_sessions') {
         if (request.method() === 'DELETE') sessions = []
         else {
@@ -34,11 +42,13 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
           sessions = [...sessions.filter(s => s.id !== input.id), input]
         }
       }
-      await route.fulfill({ status: 204 })
+      if (table === 'app_settings') await route.fulfill({ status: 200, json: { id: 1, owner_id: owner } })
+      else await route.fulfill({ status: 204 })
     }
   })
   await page.routeWebSocket('wss://example.supabase.co/**', socket => socket.close())
   return {
+    rejectWrites: (table?: string, code = '23514') => { rejectedTable = table; rejectionCode = code },
     fail: (value: boolean) => { fail = value },
     pause: () => { let resume!: () => void; hold = new Promise<void>(resolve => { resume = resolve }); return () => { hold = undefined; resume() } },
   }
@@ -321,4 +331,67 @@ test('invalid edit shows a validation error, preserves input and leaves the queu
     const cache = await import(/* @vite-ignore */ modulePath)
     return (await cache.listOutbox()).length
   })).toBe(0)
+})
+
+test('rejected settings survive reload and sync after a visible correction', async ({ page }) => {
+  const backend = await ledger(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  backend.rejectWrites('app_settings')
+  await page.locator('input[type="range"]').fill('80')
+  const recovery = page.getByRole('region', { name: 'Sync recovery' })
+  await expect(recovery).toContainText('Test write rejected')
+  await page.reload()
+  await expect(recovery).toContainText('Test write rejected')
+  await recovery.getByRole('button', { name: 'Correct rejected settings' }).click()
+  const form = page.getByRole('form', { name: 'Correct rejected settings' })
+  await expect(form.getByLabel('Monthly budget (AUD)')).toHaveValue('80')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await form.getByLabel('Monthly budget (AUD)').fill('90')
+  backend.rejectWrites()
+  await form.getByRole('button', { name: 'Save correction' }).click()
+  await expect(recovery).toHaveCount(0)
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  await expect(page.locator('input[type="range"]')).toHaveValue('90')
+})
+test('discard requires confirmation, restores cloud settings and retains a downloadable archive', async ({ page }) => {
+  const backend = await ledger(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  backend.rejectWrites('app_settings')
+  await page.locator('input[type="range"]').fill('80')
+  const recovery = page.getByRole('region', { name: 'Sync recovery' })
+  await expect(recovery).toContainText('Test write rejected')
+  page.once('dialog', dialog => dialog.dismiss())
+  await recovery.getByRole('button', { name: 'Discard all pending changes' }).click()
+  await expect(page.locator('input[type="range"]')).toHaveValue('80')
+  page.once('dialog', async dialog => { expect(dialog.message()).toContain('ALL 1 pending'); await dialog.accept() })
+  await recovery.getByRole('button', { name: 'Discard all pending changes' }).click()
+  await expect(recovery).toContainText('1 recovery archive is saved')
+  await expect(page.locator('input[type="range"]')).toHaveValue('50')
+  await page.reload()
+  await expect(recovery).toContainText('1 recovery archive is saved')
+  const download = page.waitForEvent('download')
+  await recovery.getByRole('button', { name: 'Download sync recovery copy' }).click()
+  expect((await download).suggestedFilename()).toBe('ev-sync-recovery.json')
+})
+
+test('a rejected charger name can be corrected without dropping its charges', async ({ page }) => {
+  const backend = await ledger(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  backend.rejectWrites('providers', '23505')
+  await page.getByRole('button', { name: /FreeCo Free allowance/ }).click()
+  await page.getByRole('button', { name: 'Increase FreeCo daily allowance' }).click()
+  const recovery = page.getByRole('region', { name: 'Sync recovery' })
+  await expect(recovery).toContainText('Test write rejected')
+  await recovery.getByRole('button', { name: 'Correct rejected charger' }).click()
+  const form = page.getByRole('form', { name: 'Correct rejected charger' })
+  await form.getByLabel('Name', { exact: true }).fill('Corrected charger')
+  backend.rejectWrites()
+  await form.getByRole('button', { name: 'Save correction' }).click()
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  await page.goto('/statement')
+  await expect(page.locator('.swiperow')).toHaveCount(1)
+  await expect(page.locator('.swiperow')).toContainText('Corrected charger')
 })

@@ -36,12 +36,12 @@ export function isOutboxOperationReady(operation: OutboxOperation, prerequisites
     if (operation.action === 'settings-update') {
       if (prerequisite.action === 'photo-upsert' && prerequisite.payload.path === operation.payload.vehicle_photo_path) return false
       if (prerequisite.action === 'photo-delete' && prerequisite.payload.path === operation.payload.vehicle_photo_path) {
-        throw new Error('Queued settings reference a photo queued for removal. Update the vehicle photo before retrying sync.')
+        throw Object.assign(new Error('Queued settings reference a photo queued for removal. Update the vehicle photo before retrying sync.'), { code: 'QUEUE_CONFLICT' })
       }
     }
     if (operation.action === 'photo-delete' && prerequisite.action === 'settings-update') {
       if (prerequisite.payload.vehicle_photo_path === operation.payload.path) {
-        throw new Error('Queued settings still reference the photo queued for removal. Remove or replace the vehicle photo before retrying sync.')
+        throw Object.assign(new Error('Queued settings still reference the photo queued for removal. Remove or replace the vehicle photo before retrying sync.'), { code: 'QUEUE_CONFLICT' })
       }
       return false
     }

@@ -1,5 +1,14 @@
 # EV Command — Changelog
 
+## v4.3.7 (2026-10-09)
+### Fixes
+- Preserved server error codes/status and held invalid, conflicting or unauthorized queue revisions for review.
+- Allowed independent writes to sync while rejected prerequisites retain their dependent writes.
+- Added correction forms, explicit retry and recovery downloads in Settings.
+- Required confirmation to discard all pending changes; archived the local snapshot and queue atomically before restoring cloud state.
+- Guarded rejection/recovery against stale revisions, concurrent edits and account changes; upgraded IndexedDB without losing existing writes.
+- Verified settings writes return a matching owner row before acknowledging success.
+
 ## v4.3.6 (2026-10-09)
 ### Fixes
 - Shared settings bounds and enums across live saves, legacy migration and v1/v2 backup parsing.

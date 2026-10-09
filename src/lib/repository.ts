@@ -1,3 +1,4 @@
+import { syncInputError } from './syncFailure'
 import type { OutboxOperation } from './cache'
 import { supa, type DbProvider, type DbSession, type DbSettings } from './supa'
 
@@ -93,8 +94,10 @@ export async function fetchRemoteSnapshot(ownerId: string, assertCurrent: () => 
 
 function dataUrlToBlob(dataUrl: string): Blob {
   const match = /^data:([^;,]+);base64,(.+)$/.exec(dataUrl)
-  if (!match) throw new Error('Vehicle photo is not a supported data URL')
-  const bytes = Uint8Array.from(atob(match[2]), char => char.charCodeAt(0))
+  if (!match) throw syncInputError('Vehicle photo is not a supported data URL')
+  let decoded: string
+  try { decoded = atob(match[2]) } catch { throw syncInputError('Vehicle photo contains invalid base64 data') }
+  const bytes = Uint8Array.from(decoded, char => char.charCodeAt(0))
   return new Blob([bytes], { type: match[1] })
 }
 
@@ -113,20 +116,27 @@ export async function applyOutboxOperation(operation: OutboxOperation, ownerId: 
   if (operation.ownerId !== ownerId) throw new Error('The queued change belongs to a different account.')
   const client = requireClient()
   let error: { message: string } | null = null
+  let status: number | undefined
 
   switch (operation.action) {
     case 'session-upsert':
-      ;({ error } = await client.from('charging_sessions').upsert(operation.payload, { onConflict: 'id' }))
+      ;({ error, status } = await client.from('charging_sessions').upsert(operation.payload, { onConflict: 'id' }))
       break
     case 'session-delete':
-      ;({ error } = await client.from('charging_sessions').delete().eq('id', operation.payload.id))
+      ;({ error, status } = await client.from('charging_sessions').delete().eq('id', operation.payload.id))
       break
     case 'provider-upsert':
-      ;({ error } = await client.from('providers').upsert(operation.payload, { onConflict: 'id' }))
+      ;({ error, status } = await client.from('providers').upsert(operation.payload, { onConflict: 'id' }))
       break
-    case 'settings-update':
-      ;({ error } = await client.from('app_settings').update(operation.payload).eq('id', 1).eq('owner_id', ownerId))
+    case 'settings-update': {
+      const result = await client.from('app_settings').update(operation.payload).eq('id', 1).eq('owner_id', ownerId).select('id,owner_id').maybeSingle()
+      error = result.error
+      status = result.status
+      if (!error && (!result.data || result.data.owner_id !== ownerId)) {
+        error = Object.assign(new Error('Settings were not updated for this owner. Check owner permissions before retrying.'), { code: '42501' })
+      }
       break
+    }
     case 'photo-upsert': {
       const blob = dataUrlToBlob(operation.payload.dataUrl)
       const upload = await client.storage
@@ -147,5 +157,5 @@ export async function applyOutboxOperation(operation: OutboxOperation, ownerId: 
   }
 
   assertCurrent()
-  if (error) throw new Error(error.message)
+  if (error) throw Object.assign(new Error(error.message), error, status === undefined ? {} : { status })
 }

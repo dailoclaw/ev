@@ -78,7 +78,7 @@ describe('offline cache', () => {
     // Seed the pre-fix disk format directly, rather than through the new writer.
     const legacy = { ...metadata, action: 'session-delete', payload: { id: '1' } }
     await new Promise<void>((resolve, reject) => {
-      const request = indexedDB.open('ev-command', 1)
+      const request = indexedDB.open('ev-command')
       request.onsuccess = () => {
         const db = request.result
         const tx = db.transaction('outbox', 'readwrite')
@@ -148,4 +148,93 @@ it.each(['error', 'blocked'] as const)('recovers after an asynchronous IndexedDB
   })
   await expect(loadCachedSnapshot()).rejects.toThrow(event === 'error' ? 'Open failed' : 'blocked by another tab')
   await expect(loadCachedSnapshot()).resolves.toBeNull()
+})
+
+describe('sync recovery storage', () => {
+  const snapshot = { ownerId: 'owner-1', sessions: [], providers: [], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: '' }
+  const mutation = { id: 'owner-1:settings', ownerId: 'owner-1', updatedAt: '', action: 'settings-update' as const, payload: { budget_cap: -1 } }
+  it('holds rejection details across reload and preserves a newer correction', async () => {
+    const { setOutboxRejection } = await import('./cache')
+    await commitCachedState(snapshot, [mutation])
+    const [old] = await listOutbox()
+    const rejection = { kind: 'invalid' as const, message: 'Invalid budget', code: '23514', failedAt: '' }
+    expect(await setOutboxRejection(old, rejection)).toBe(true)
+    resetCacheConnectionForTests()
+    expect((await listOutbox())[0].rejection).toEqual(rejection)
+    await commitCachedState(snapshot, [{ ...mutation, payload: { budget_cap: 80 } }])
+    expect(await setOutboxRejection(old, rejection)).toBe(false)
+    expect(await setOutboxRejection(old)).toBe(false)
+    expect((await listOutbox())[0].rejection).toBeUndefined()
+  })
+  it('archives the local snapshot and queue atomically while preserving other owners', async () => {
+    const { discardOutboxToRemote, listRecoveryArchives } = await import('./cache')
+    await commitCachedState(snapshot, [mutation, { ...mutation, id: 'owner-2:settings', ownerId: 'owner-2' }])
+    const pending = await listOutbox('owner-1')
+    const remote = { ...snapshot, settings: { ...DEFAULT_SETTINGS, budgetCap: 70 } }
+    await discardOutboxToRemote(remote, pending)
+    expect(await loadCachedSnapshot()).toEqual(remote)
+    expect(await listOutbox('owner-1')).toEqual([])
+    expect(await listOutbox('owner-2')).toHaveLength(1)
+    expect(await listRecoveryArchives('owner-1')).toEqual([expect.objectContaining({ snapshot, operations: pending })])
+    expect(await listRecoveryArchives('owner-2')).toEqual([])
+  })
+  it('refuses stale discard without changing the snapshot, queue or archive', async () => {
+    const { discardOutboxToRemote, listRecoveryArchives } = await import('./cache')
+    await commitCachedState(snapshot, [mutation])
+    const pending = await listOutbox('owner-1')
+    await commitCachedState(snapshot, [{ ...mutation, payload: { budget_cap: 80 } }])
+    const latest = await listOutbox()
+    await expect(discardOutboxToRemote(snapshot, pending)).rejects.toThrow('changed during recovery')
+    expect(await listOutbox()).toEqual(latest)
+    expect(await loadCachedSnapshot()).toEqual(snapshot)
+    expect(await listRecoveryArchives('owner-1')).toEqual([])
+  })
+  it('aborts recovery if the account changes before commit', async () => {
+    const { discardOutboxToRemote, listRecoveryArchives } = await import('./cache')
+    await commitCachedState(snapshot, [mutation])
+    const pending = await listOutbox('owner-1')
+    await expect(discardOutboxToRemote(snapshot, pending, () => { throw new Error('Signed out') })).rejects.toThrow('Signed out')
+    expect(await listOutbox()).toEqual(pending)
+    expect(await listRecoveryArchives('owner-1')).toEqual([])
+  })
+  it('rolls back queue deletion and cloud adoption if archiving fails', async () => {
+    const { discardOutboxToRemote, listRecoveryArchives } = await import('./cache')
+    await commitCachedState(snapshot, [mutation])
+    const pending = await listOutbox('owner-1')
+    vi.spyOn(crypto, 'randomUUID').mockImplementationOnce(() => { throw new Error('Archive failed') })
+    await expect(discardOutboxToRemote(snapshot, pending)).rejects.toThrow()
+    expect(await listOutbox()).toEqual(pending)
+    expect(await loadCachedSnapshot()).toEqual(snapshot)
+    expect(await listRecoveryArchives('owner-1')).toEqual([])
+  })
+})
+
+it('upgrades a version-one database without losing its snapshot or queued writes', async () => {
+  resetCacheConnectionForTests()
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase('ev-command')
+    request.onsuccess = () => resolve()
+    request.onerror = () => reject(request.error)
+    request.onblocked = () => reject(new Error('Test database still open'))
+  })
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open('ev-command', 1)
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore('snapshots')
+      request.result.createObjectStore('outbox', { keyPath: 'id' })
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+  const snapshot = { ownerId: 'owner-1', sessions: [], providers: [], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: '' }
+  const operation = { id: 'owner-1:settings', ownerId: 'owner-1', updatedAt: '', action: 'settings-update', payload: { budget_cap: 80 } }
+  const transaction = db.transaction(['snapshots', 'outbox'], 'readwrite')
+  transaction.objectStore('snapshots').put(snapshot, 'current')
+  transaction.objectStore('outbox').put(operation)
+  await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onabort = () => reject(transaction.error) })
+  db.close()
+  expect(await loadCachedSnapshot()).toEqual(snapshot)
+  expect(await listOutbox()).toEqual([expect.objectContaining({ ...operation, revision: expect.any(String) })])
+  const { listRecoveryArchives } = await import('./cache')
+  expect(await listRecoveryArchives('owner-1')).toEqual([])
 })

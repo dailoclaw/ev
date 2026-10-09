@@ -1,12 +1,14 @@
+import type { SyncFailure } from './syncFailure'
 import type { AppSettings } from './appModel'
 import type { Provider } from './providers'
 import type { Session } from './savings'
 
 const DB_NAME = 'ev-command'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const SNAPSHOTS = 'snapshots'
 const OUTBOX = 'outbox'
 const CURRENT = 'current'
+const RECOVERY = 'recovery'
 
 export interface CachedSnapshot {
   ownerId: string
@@ -25,7 +27,8 @@ export type OutboxMutation =
   | { id: string; ownerId: string; updatedAt: string; action: 'photo-upsert'; payload: { path: string; dataUrl: string } }
   | { id: string; ownerId: string; updatedAt: string; action: 'photo-delete'; payload: { path: string } }
 
-export type OutboxOperation = OutboxMutation & { revision: string }
+export type OutboxOperation = OutboxMutation & { revision: string; rejection?: SyncFailure & { failedAt: string } }
+export interface RecoveryArchive { id: string; ownerId: string; createdAt: string; snapshot: CachedSnapshot; operations: OutboxOperation[] }
 
 let openPromise: Promise<IDBDatabase> | null = null
 
@@ -38,6 +41,10 @@ function openDb(): Promise<IDBDatabase> {
       const db = request.result
       if (!db.objectStoreNames.contains(SNAPSHOTS)) db.createObjectStore(SNAPSHOTS)
       if (!db.objectStoreNames.contains(OUTBOX)) db.createObjectStore(OUTBOX, { keyPath: 'id' })
+      if (!db.objectStoreNames.contains(RECOVERY)) {
+        const recovery = db.createObjectStore(RECOVERY, { keyPath: 'id' })
+        recovery.createIndex('ownerId', 'ownerId')
+      }
     }
     request.onsuccess = () => {
       const db = request.result
@@ -157,7 +164,8 @@ export async function acknowledgeOutboxOperation(operation: OutboxOperation): Pr
 
 export async function clearOfflineCache(): Promise<void> {
   const db = await openDb()
-  const transaction = db.transaction([SNAPSHOTS, OUTBOX], 'readwrite')
+  const transaction = db.transaction([SNAPSHOTS, OUTBOX, RECOVERY], 'readwrite')
+  transaction.objectStore(RECOVERY).clear()
   transaction.objectStore(SNAPSHOTS).clear()
   transaction.objectStore(OUTBOX).clear()
   await transactionDone(transaction)
@@ -167,4 +175,84 @@ export async function clearOfflineCache(): Promise<void> {
 export function resetCacheConnectionForTests() {
   openPromise?.then(db => db.close()).catch(() => undefined)
   openPromise = null
+}
+
+/** Failure/retry metadata never overwrites a newer payload or another owner's write. */
+export async function setOutboxRejection(operation: OutboxOperation, rejection?: OutboxOperation['rejection']): Promise<boolean> {
+  const db = await openDb()
+  const transaction = db.transaction(OUTBOX, 'readwrite')
+  const done = transactionDone(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  let changed = false
+  const request = store.get(operation.id)
+  request.onsuccess = () => {
+    const current = request.result as OutboxOperation | undefined
+    if (current?.revision !== operation.revision || current.ownerId !== operation.ownerId) return
+    const next = { ...current }
+    if (rejection) next.rejection = rejection
+    else delete next.rejection
+    store.put(next)
+    changed = true
+  }
+  await done
+  return changed
+}
+
+export async function listRecoveryArchives(ownerId: string): Promise<RecoveryArchive[]> {
+  const db = await openDb()
+  const transaction = db.transaction(RECOVERY, 'readonly')
+  const done = transactionDone(transaction)
+  const read = requestResult<RecoveryArchive[]>(transaction.objectStore(RECOVERY).index('ownerId').getAll(ownerId))
+  const [archives] = await Promise.all([read, done])
+  return archives.filter(archive => archive.ownerId === ownerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+/** Restore cloud state and archive every discarded local change in one guarded transaction. */
+export async function discardOutboxToRemote(snapshot: CachedSnapshot, expected: OutboxOperation[], assertCurrent: () => void = () => {}): Promise<void> {
+  if (!expected.length || expected.some(operation => operation.ownerId !== snapshot.ownerId)) throw new Error('No matching pending changes to discard.')
+  const revisions = new Map(expected.map(operation => [operation.id, operation.revision]))
+  const db = await openDb()
+  const transaction = db.transaction([SNAPSHOTS, OUTBOX, RECOVERY], 'readwrite')
+  const done = transactionDone(transaction)
+  let failure: Error | undefined
+  const store = transaction.objectStore(OUTBOX)
+  const request = store.getAll()
+  request.onsuccess = () => {
+    const current = (request.result as OutboxOperation[]).filter(operation => operation.ownerId === snapshot.ownerId)
+    if (current.length !== expected.length || current.some(operation => revisions.get(operation.id) !== operation.revision)) {
+      failure = new Error('Pending changes changed during recovery. Review them and try again.')
+      transaction.abort()
+      return
+    }
+    const snapshots = transaction.objectStore(SNAPSHOTS)
+    const previous = snapshots.get(CURRENT)
+    previous.onsuccess = () => {
+      const local = previous.result as CachedSnapshot | undefined
+      if (!local || local.ownerId !== snapshot.ownerId) {
+        failure = new Error('The cached account changed during recovery.')
+        transaction.abort()
+        return
+      }
+      try {
+        assertCurrent()
+        transaction.objectStore(RECOVERY).put({ id: crypto.randomUUID(), ownerId: snapshot.ownerId, createdAt: new Date().toISOString(), snapshot: local, operations: current } satisfies RecoveryArchive)
+        snapshots.put(snapshot, CURRENT)
+        for (const operation of current) store.delete(operation.id)
+      } catch (error) {
+        failure = error instanceof Error ? error : new Error('The account changed during recovery.')
+        transaction.abort()
+        return
+      }
+    }
+  }
+  try { await done } catch (error) { throw failure ?? error }
+}
+
+export async function countRecoveryArchives(ownerId: string): Promise<number> {
+  const db = await openDb()
+  const transaction = db.transaction(RECOVERY, 'readonly')
+  const done = transactionDone(transaction)
+  const read = requestResult(transaction.objectStore(RECOVERY).index('ownerId').count(ownerId))
+  const [count] = await Promise.all([read, done])
+  return count
 }

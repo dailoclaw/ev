@@ -6,9 +6,15 @@ import {
   readOutboxOperations,
   loadCachedSnapshot,
   acknowledgeOutboxOperation,
+  setOutboxRejection,
+  discardOutboxToRemote,
+  listRecoveryArchives,
+  countRecoveryArchives,
+  type OutboxOperation,
   type CachedSnapshot,
   type OutboxMutation,
 } from './cache'
+import { classifySyncFailure } from './syncFailure'
 import { isOutboxOperationReady, orderOutboxOperations, outboxPrerequisiteIds } from './outboxPlan'
 import { nextPaletteColor, type Provider } from './providers'
 import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from './repository'
@@ -46,6 +52,8 @@ export interface EvState {
   pendingCount: number
   lastSaveError: string | null
   lastSyncError: string | null
+  rejectedWrites: OutboxOperation[]
+  recoveryArchiveCount: number
 }
 
 let state: EvState = {
@@ -60,6 +68,8 @@ let state: EvState = {
   pendingCount: 0,
   lastSyncError: null,
   lastSaveError: null,
+  rejectedWrites: [],
+  recoveryArchiveCount: 0,
 }
 
 const listeners = new Set<() => void>()
@@ -189,6 +199,7 @@ interface DataSession {
   ownerId: string
   epoch: number
   ready: boolean
+  recovering: boolean
   syncPromise: Promise<void> | null
   syncRequested: boolean
   writeTail: Promise<void>
@@ -240,10 +251,11 @@ async function saveLocal<T>(build: () => { next: EvState; operations: OutboxMuta
     const { next, operations, result } = build()
     commitAttempted = true
     await commitCachedState(cachedSnapshot(next), operations)
-    const pendingCount = await listOutbox(session.ownerId).then(items => items.length).catch(() => Math.max(state.pendingCount, operations.length))
+    const pending = await listOutbox(session.ownerId).catch(() => null)
+    const pendingCount = pending?.length ?? Math.max(state.pendingCount, operations.length)
     assertCurrentSession(session)
     state = {
-      ...state, pendingCount, sessions: next.sessions, providers: next.providers, settings: next.settings,
+      ...state, pendingCount, rejectedWrites: pending?.filter(item => item.rejection) ?? state.rejectedWrites, sessions: next.sessions, providers: next.providers, settings: next.settings,
       budgetCap: next.settings.budgetCap, vehiclePhoto: next.vehiclePhoto,
       synced: false, syncStatus: isOnline() ? 'syncing' : 'offline', lastSaveError: null,
     }
@@ -276,12 +288,22 @@ async function flushOutbox(session: DataSession) {
     assertCurrentSession(session)
     const [current, ...prerequisites] = await readOutboxOperations([operation.id, ...outboxPrerequisiteIds(operation)])
     assertCurrentSession(session)
-    // A replacement or newly queued prerequisite belongs to the next pass.
-    if (current?.revision !== operation.revision || !isOutboxOperationReady(current, prerequisites)) continue
-    await applyOutboxOperation(operation, session.ownerId, () => assertCurrentSession(session))
-    assertCurrentSession(session)
-    await acknowledgeOutboxOperation(operation)
-    assertCurrentSession(session)
+    // Rejected revisions wait for an explicit retry or a correcting mutation.
+    if (current?.revision !== operation.revision || current.rejection) continue
+    try {
+      if (!isOutboxOperationReady(current, prerequisites)) continue
+      await applyOutboxOperation(operation, session.ownerId, () => assertCurrentSession(session))
+      assertCurrentSession(session)
+      await acknowledgeOutboxOperation(operation)
+      assertCurrentSession(session)
+    } catch (error) {
+      assertCurrentSession(session)
+      const failure = classifySyncFailure(error)
+      if (failure.kind === 'transient') throw error
+      const retained = await setOutboxRejection(operation, { ...failure, failedAt: now() })
+      assertCurrentSession(session)
+      if (retained && failure.kind === 'authorization') break
+    }
   }
 }
 
@@ -293,7 +315,7 @@ function remoteState(remote: Awaited<ReturnType<typeof fetchRemoteSnapshot>>): E
     ...state, providers: finalizeProviders(providers),
     sessions: remote.sessions.map(session => mapSession(session, providersById)),
     settings, budgetCap: settings.budgetCap, vehiclePhoto: remote.vehiclePhotoDataUrl,
-    loading: false, lastSyncError: null,
+    loading: false, lastSyncError: null, rejectedWrites: [],
   }
 }
 
@@ -429,6 +451,7 @@ async function runSynchronization(session: DataSession) {
     assertCurrentSession(session)
     const initialPending = await listOutbox(session.ownerId)
     assertCurrentSession(session)
+    if (initialPending.some(operation => operation.rejection)) throw new Error(`${initialPending.find(operation => operation.rejection)?.rejection?.message} Queued changes need attention. Review them in Settings before retrying.`)
     if (initialPending.length > 0) {
       session.syncRequested = true
       return
@@ -444,6 +467,7 @@ async function runSynchronization(session: DataSession) {
     assertCurrentSession(session)
     const migrationPending = await listOutbox(session.ownerId)
     assertCurrentSession(session)
+    if (migrationPending.some(operation => operation.rejection)) throw new Error(`${migrationPending.find(operation => operation.rejection)?.rejection?.message} Queued changes need attention. Review them in Settings before retrying.`)
     if (migrationPending.length > 0) {
       session.syncRequested = true
       return
@@ -459,12 +483,14 @@ async function runSynchronization(session: DataSession) {
     if (!(await adoptRemote(session, canonicalRemote, true))) session.syncRequested = true
   } catch (error) {
     if (!isCurrentSession(session)) return
-    const message = error instanceof Error ? error.message : 'Supabase synchronization failed.'
-    const pendingCount = (await listOutbox(session.ownerId).catch(() => [])).length
+    const message = classifySyncFailure(error).message
+    const pending = await listOutbox(session.ownerId).catch(() => [])
+    const pendingCount = pending.length
     if (!isCurrentSession(session)) return
     state = {
       ...state,
       pendingCount,
+      rejectedWrites: pending.filter(operation => operation.rejection),
       synced: false,
       loading: false,
       syncStatus: isOnline() ? 'error' : 'offline',
@@ -476,7 +502,7 @@ async function runSynchronization(session: DataSession) {
 
 export function synchronize(): Promise<void> {
   const session = activeSession
-  if (!session?.ready) return Promise.resolve()
+  if (!session?.ready || session.recovering) return Promise.resolve()
   if (session.syncPromise) {
     session.syncRequested = true
     return session.syncPromise
@@ -517,7 +543,7 @@ export async function initializeData(currentOwnerId: string) {
   if (activeSession?.ownerId === currentOwnerId) return synchronize()
   stopDataSync()
   const session: DataSession = {
-    ownerId: currentOwnerId, epoch: sessionEpoch, ready: false, syncPromise: null, syncRequested: false, writeTail: Promise.resolve(),
+    ownerId: currentOwnerId, epoch: sessionEpoch, ready: false, recovering: false, syncPromise: null, syncRequested: false, writeTail: Promise.resolve(),
   }
   activeSession = session
   ownerId = currentOwnerId
@@ -528,9 +554,11 @@ export async function initializeData(currentOwnerId: string) {
   if (!isCurrentSession(session)) return
   if (cached?.ownerId === currentOwnerId) applyCachedSnapshot(cached)
   if (!isCurrentSession(session)) return
-  const pendingCount = (await listOutbox(currentOwnerId).catch(() => [])).length
+  const pending = await listOutbox(currentOwnerId).catch(() => [])
+  const pendingCount = pending.length
+  const recoveryArchiveCount = await countRecoveryArchives(currentOwnerId).catch(() => 0)
   if (!isCurrentSession(session)) return
-  state = { ...state, pendingCount }
+  state = { ...state, pendingCount, rejectedWrites: pending.filter(operation => operation.rejection), recoveryArchiveCount }
   emit()
   if (!isCurrentSession(session)) return
 
@@ -568,11 +596,74 @@ export function stopDataSync() {
     pendingCount: 0,
     lastSyncError: null,
     lastSaveError: null,
+    rejectedWrites: [],
+    recoveryArchiveCount: 0,
   }
   emit()
 }
 
-export const retrySync = () => synchronize()
+export async function retrySync() {
+  const session = activeSession
+  if (!session) return
+  try {
+    if (session.recovering) throw new Error('Recovery is already in progress.')
+    await session.syncPromise
+    assertCurrentSession(session)
+    for (const operation of await listOutbox(session.ownerId)) {
+      assertCurrentSession(session)
+      if (operation.rejection) await setOutboxRejection(operation)
+    }
+    assertCurrentSession(session)
+    const pending = await listOutbox(session.ownerId)
+    assertCurrentSession(session)
+    state = { ...state, rejectedWrites: pending.filter(operation => operation.rejection), pendingCount: pending.length }
+    emit()
+    await synchronize()
+  } catch (error) {
+    if (!isCurrentSession(session)) return
+    state = { ...state, lastSyncError: classifySyncFailure(error).message, syncStatus: 'error' }
+    emit()
+  }
+}
+
+export async function exportSyncRecovery() {
+  const session = requireSession()
+  const [operations, archives] = await Promise.all([listOutbox(session.ownerId), listRecoveryArchives(session.ownerId)])
+  assertCurrentSession(session)
+  return { version: 1, ownerId: session.ownerId, exportedAt: now(), pending: operations, archives }
+}
+
+/** Explicitly discard ALL pending changes; preserve them in a durable recovery archive. */
+export async function discardPendingChanges() {
+  const session = requireSession()
+  if (!isOnline()) throw new Error('Go online to restore the cloud version before discarding pending changes.')
+  if (session.recovering) throw new Error('Recovery is already in progress.')
+  session.recovering = true
+  try {
+    const intended = await listOutbox(session.ownerId)
+    assertCurrentSession(session)
+    const revisions = new Map(intended.map(operation => [operation.id, operation.revision]))
+    await session.syncPromise
+    assertCurrentSession(session)
+    await withLocalWrite(session, async () => {
+      const pending = await listOutbox(session.ownerId)
+      assertCurrentSession(session)
+      if (!pending.length) throw new Error('There are no pending changes to discard.')
+      if (pending.some(operation => revisions.get(operation.id) !== operation.revision)) throw new Error('Pending changes changed during recovery. Review them and try again.')
+      const remote = await fetchRemoteSnapshot(session.ownerId, () => assertCurrentSession(session))
+      assertCurrentSession(session)
+      const next = remoteState(remote)
+      await discardOutboxToRemote(cachedSnapshot(next), pending, () => assertCurrentSession(session))
+      assertCurrentSession(session)
+      state = { ...next, pendingCount: 0, rejectedWrites: [], recoveryArchiveCount: state.recoveryArchiveCount + 1, synced: isOnline(), syncStatus: isOnline() ? 'synced' : 'offline', lastSaveError: null }
+      mirrorSettings(state.settings)
+      emit()
+    })
+  } finally {
+    session.recovering = false
+    if (isCurrentSession(session)) void synchronize()
+  }
+}
 
 /* ================= Mutations ================= */
 

@@ -1,0 +1,11 @@
+.sync-recovery { overflow-wrap: anywhere; }
+.sync-recovery h3 { margin: 0 0 10px; }
+.sync-recovery p { margin: 10px 0; font-size: 13px; line-height: 1.5; }
+.sync-recovery ul { margin: 16px 0; padding: 0; list-style: none; }
+.sync-recovery li { padding: 12px 0; border-top: 1px solid var(--bd); }
+.sync-recovery a { color: var(--tx); text-decoration: underline; }
+.sync-correction fieldset { display: grid; gap: 12px; min-width: 0; margin: 12px 0; padding: 12px; border: 1px solid var(--bd); border-radius: 11px; }
+.sync-correction label { display: grid; gap: 5px; font-size: 13px; font-weight: 700; }
+.sync-correction input:not([type='checkbox']), .sync-correction select { width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--surf2); color: var(--tx); font: inherit; }
+.sync-correction input:focus-visible, .sync-correction select:focus-visible { outline: 2px solid var(--tx); outline-offset: 2px; }
+.sync-correction label:has(input[type='checkbox']) { display: flex; align-items: center; min-height: 44px; }

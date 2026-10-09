@@ -150,7 +150,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
         {message && <p role="status">{message}</p>}
       </GateCard>
     )
-  } else if (data.syncStatus === 'error' && data.sessions.length === 0 && data.providers.length === 0) {
+  } else if (data.syncStatus === 'error' && data.sessions.length === 0 && data.providers.length === 0 && data.rejectedWrites.length === 0 && data.recoveryArchiveCount === 0) {
     content = (
       <GateCard>
         <h1>Ledger unavailable</h1>

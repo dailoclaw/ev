@@ -75,3 +75,22 @@ it('refuses an outbox operation from another owner before making a request', asy
   }, 'owner-2', () => {})).rejects.toThrow('different account')
   expect(backend.from).not.toHaveBeenCalled()
 })
+
+it('preserves SQL error codes and HTTP status for rejected writes', async () => {
+  backend.from.mockReturnValue({ upsert: async () => ({ error: { code: '23514', message: 'Constraint failed', details: 'Detail' }, status: 400 }) })
+  await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'session-upsert', payload: { id: 's' } }, 'owner-1', () => {})).rejects.toMatchObject({ code: '23514', status: 400, message: 'Constraint failed' })
+})
+it.each([null, { id: 1, owner_id: 'owner-2' }])('does not acknowledge a settings update without a matching owner row', async data => {
+  const query = { update: () => query, eq: () => query, select: () => query, maybeSingle: async () => ({ data, error: null, status: 200 }) }
+  backend.from.mockReturnValue(query)
+  await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'settings-update', payload: { budget_cap: 80 } }, 'owner-1', () => {})).rejects.toMatchObject({ code: '42501' })
+})
+it('acknowledges settings only when a matching owner row is returned', async () => {
+  const query = { update: () => query, eq: () => query, select: () => query, maybeSingle: async () => ({ data: { id: 1, owner_id: 'owner-1' }, error: null, status: 200 }) }
+  backend.from.mockReturnValue(query)
+  await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'settings-update', payload: { budget_cap: 80 } }, 'owner-1', () => {})).resolves.toBeUndefined()
+})
+it('classifies malformed queued photos before sending them to storage', async () => {
+  await expect(applyOutboxOperation({ id: 'write', ownerId: 'owner-1', updatedAt: '', revision: 'r', action: 'photo-upsert', payload: { path: 'owner-1/vehicle.jpg', dataUrl: 'data:image/jpeg;base64,invalid***' } }, 'owner-1', () => {})).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+  expect(backend.storageFrom).not.toHaveBeenCalled()
+})

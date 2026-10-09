@@ -1,3 +1,4 @@
+import SyncRecoveryPanel from '../components/SyncRecoveryPanel'
 import { INPUT_LIMITS } from '../lib/validation'
 import { useRef, useState } from 'react'
 import { useEv } from '../lib/useEv'
@@ -12,6 +13,7 @@ import {
   previewRestore,
   restoreMerge,
   retrySync,
+  useEvState,
   setBudgetCap,
   setProviderArchived,
   setProviderOrder,
@@ -34,6 +36,7 @@ type Pending = { backup: Backup; providersNew: number; sessionsNew: number; tota
 
 export default function Settings() {
   const ev = useEv()
+  const { rejectedWrites } = useEvState()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [exported, setExported] = useState(false)
   const [density, setDensity] = useDensity()
@@ -418,12 +421,13 @@ export default function Settings() {
         </span>
         <SyncBadge status={ev.syncStatus} label={ev.syncStatus === 'offline' ? 'Offline' : undefined} />
       </div>
-      {(ev.syncStatus === 'error' || ev.syncStatus === 'offline') && (
+      {(ev.syncStatus === 'error' || ev.syncStatus === 'offline') && rejectedWrites.length === 0 && (
         <button className="row" type="button" onClick={() => void retrySync()}>
           <span className="mark" style={{ ['--pc' as string]: '#334155' }}>↻</span>
           <span><strong>Retry sync</strong><small>Queued changes stay on this device until Supabase accepts them</small></span>
         </button>
       )}
+      <SyncRecoveryPanel />
       <button className="row" type="button" onClick={exportAll}>
         <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
           <Icon name="dl" size={17} />
