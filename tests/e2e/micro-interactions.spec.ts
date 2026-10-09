@@ -395,3 +395,98 @@ test('a rejected charger name can be corrected without dropping its charges', as
   await expect(page.locator('.swiperow')).toHaveCount(1)
   await expect(page.locator('.swiperow')).toContainText('Corrected charger')
 })
+
+async function backupFile(page: Page, value: unknown) {
+  await page.locator('input[type=file][accept="application/json,.json"]').waitFor({ state: 'attached' })
+  await page.evaluate(value => {
+    const input = document.querySelector<HTMLInputElement>('input[type=file][accept="application/json,.json"]')!
+    const transfer = new DataTransfer()
+    transfer.items.add(new File([JSON.stringify(value)], 'backup.json', { type: 'application/json' }))
+    input.files = transfer.files
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  }, value)
+}
+function restoreFixture() {
+  return { version: 2, exportedAt: '', settings: { budgetCap: 75, theme: 'light', style: 'classic', density: 'comfortable', vehicle: { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7 }, vehiclePhotoPath: null },
+    providers: [{ id: '44444444-4444-4444-8444-444444444444', name: 'Imported', color: '#123456', freeKwhPerDay: 9, archived: true, sortOrder: 4 }],
+    sessions: [{ id: '55555555-5555-4555-8555-555555555555', providerId: '44444444-4444-4444-8444-444444444444', type: 'Imported', date: '2026-01-01', amount: 7, cost: 1, notes: 'Imported charge' }], vehiclePhotoDataUrl: null }
+}
+test('backup worker previews, cancels, restores offline and safely repeats', async ({ page, context, browserName }) => {
+  await ledger(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  if (browserName === 'webkit') {
+    // Playwright network-offline mode also prevents local Blob/File reads here.
+    // Exercise the app's offline branch with backend requests blocked instead.
+    await page.route('https://example.supabase.co/**', route => route.abort())
+    await page.evaluate(() => { Object.defineProperty(navigator, 'onLine', { configurable: true, value: false }); window.dispatchEvent(new Event('offline')) })
+  } else await context.setOffline(true)
+  await backupFile(page, restoreFixture())
+  await expect(page.getByText('Restore preview', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Vehicle photo will be removed/)).toBeVisible()
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Merge safely' })).toHaveCount(0)
+  await backupFile(page, restoreFixture())
+  await page.getByRole('button', { name: 'Merge safely' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Added 1 charge and 1 charger' })).toBeVisible()
+  await backupFile(page, restoreFixture())
+  await page.getByRole('button', { name: 'Merge safely' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Added 0 charges and 0 chargers' })).toBeVisible()
+})
+test('backup worker rejects duplicate identities and invalid photos without presenting a merge', async ({ page }) => {
+  await ledger(page)
+  await page.goto('/settings')
+  const file = restoreFixture()
+  await backupFile(page, { ...file, sessions: [file.sessions[0], file.sessions[0]] })
+  await expect(page.getByRole('alert').filter({ hasText: 'duplicate charge IDs' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Merge safely' })).toHaveCount(0)
+  await backupFile(page, { ...file, vehiclePhotoDataUrl: 'data:image/svg+xml;base64,PHN2Zz4=' })
+  await expect(page.getByRole('alert').filter({ hasText: /photo/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Merge safely' })).toHaveCount(0)
+})
+
+
+test('failed restore keeps the preview and commits once after retry', async ({ page, context, browserName }) => {
+  await ledger(page)
+  await injectQuotaFailure(page)
+  await page.goto('/settings')
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  if (browserName === 'webkit') {
+    // Playwright network-offline mode also prevents local Blob/File reads here.
+    // Exercise the app's offline branch with backend requests blocked instead.
+    await page.route('https://example.supabase.co/**', route => route.abort())
+    await page.evaluate(() => { Object.defineProperty(navigator, 'onLine', { configurable: true, value: false }); window.dispatchEvent(new Event('offline')) })
+  } else await context.setOffline(true)
+  await backupFile(page, restoreFixture())
+  await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+  await page.getByRole('button', { name: 'Merge safely' }).click()
+  await expect(page.getByRole('alert').filter({ hasText: 'Not saved on this device' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Merge safely' })).toBeEnabled()
+  await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+  await page.getByRole('button', { name: 'Merge safely' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Added 1 charge and 1 charger' })).toBeVisible()
+  const stored = await page.evaluate(async () => {
+    const modulePath = '/src/lib/cache.ts'
+    const cache = await import(/* @vite-ignore */ modulePath)
+    const snapshot = await cache.loadCachedSnapshot()
+    return { sessions: snapshot.sessions.length, archived: snapshot.providers.find((item: { name: string }) => item.name === 'Imported').archived }
+  })
+  expect(stored).toEqual({ sessions: 2, archived: true })
+})
+test('v1 preview preserves settings and photos while valid raster photos decode in v2', async ({ page }) => {
+  await ledger(page)
+  await page.goto('/settings')
+  await backupFile(page, { version: 1, budgetCap: 80, providers: [], sessions: [] })
+  await expect(page.getByText(/legacy file restores budget only.*Vehicle photo will be kept/)).toBeVisible()
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  for (const format of ['image/png', 'image/jpeg', 'image/webp']) {
+    const photo = await page.evaluate(format => {
+      const canvas = document.createElement('canvas'); canvas.width = 2; canvas.height = 2
+      const context = canvas.getContext('2d')!; context.fillStyle = '#123456'; context.fillRect(0, 0, 2, 2)
+      return canvas.toDataURL(format)
+    }, format)
+    await backupFile(page, { ...restoreFixture(), vehiclePhotoDataUrl: photo })
+    await expect(page.getByText(/Vehicle photo will be replaced/)).toBeVisible()
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  }
+})

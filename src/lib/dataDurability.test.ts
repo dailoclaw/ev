@@ -1,14 +1,15 @@
+import { TEST_PHOTO, ALT_TEST_PHOTO } from './testPhotoFixtures'
 import 'fake-indexeddb/auto'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from './appModel'
 import * as cache from './cache'
-import { addProvider, addSession, deleteSession, getState, initializeData, removeVehiclePhoto, restoreMerge, setProviderOrder, stopDataSync, undoDeleteSession, updateAppSettings, updateProvider, updateSession, uploadVehiclePhoto } from './data'
+import { addProvider, addSession, deleteSession, getState, initializeData, removeVehiclePhoto, parseBackup, restoreMerge, setProviderOrder, stopDataSync, undoDeleteSession, updateAppSettings, updateProvider, updateSession, uploadVehiclePhoto } from './data'
 
 vi.mock('./supa', () => ({ supa: null }))
 const provider = { id: 'p', name: 'Example', color: '#123456', freeKwhPerDay: 0 }
 const session = { id: 's', providerId: 'p', date: '2026-01-01', type: 'Example', amount: 10, cost: 1, notes: null }
-const snapshot = { ownerId: 'owner', settings: { ...DEFAULT_SETTINGS, vehiclePhotoPath: 'owner/vehicle.jpg' }, providers: [provider], sessions: [session], vehiclePhotoDataUrl: 'data:image/jpeg;base64,old', cachedAt: '' }
-const backup = { version: 2 as const, exportedAt: '', settings: DEFAULT_SETTINGS, providers: [{ ...provider, id: 'new', name: 'New provider' }], sessions: [{ ...session, id: 'new', type: 'New provider' }], vehiclePhotoDataUrl: 'data:image/jpeg;base64,new' }
+const snapshot = { ownerId: 'owner', settings: { ...DEFAULT_SETTINGS, vehiclePhotoPath: 'owner/vehicle.jpg' }, providers: [provider], sessions: [session], vehiclePhotoDataUrl: TEST_PHOTO, cachedAt: '' }
+const backup = { version: 2 as const, exportedAt: '', settings: DEFAULT_SETTINGS, providers: [{ ...provider, id: 'new', name: 'New provider' }], sessions: [{ ...session, id: 'new', providerId: 'new', type: 'New provider' }], vehiclePhotoDataUrl: ALT_TEST_PHOTO }
 const changes = [
   ['add', () => addSession({ ...session, cost: 2 })],
   ['new charger and charge', () => addSession({ ...session, type: 'New provider' }, { name: 'New provider', color: '#234567', freeKwhPerDay: 0 })],
@@ -19,7 +20,7 @@ const changes = [
   ['provider edit', () => updateProvider('p', { name: 'Renamed' })],
   ['provider order', () => setProviderOrder(['p'])],
   ['settings', () => updateAppSettings({ budgetCap: 80 })],
-  ['photo upload', () => uploadVehiclePhoto('data:image/jpeg;base64,new')],
+  ['photo upload', () => uploadVehiclePhoto(ALT_TEST_PHOTO)],
   ['photo removal', () => removeVehiclePhoto()],
   ['restore', () => restoreMerge(backup)],
 ] as const
@@ -124,4 +125,35 @@ it('stores and queues the same rounded charge and provider values', async () => 
     expect.objectContaining({ payload: expect.objectContaining({ amount: 1.235, cost: 1.01 }) }),
     expect.objectContaining({ payload: expect.objectContaining({ free_kwh_per_day: 1.01 }) }),
   ]))
+})
+
+it('restores complete metadata and repeats without duplicate rows, then explicitly removes a v2 photo', async () => {
+  const imported = { ...backup, providers: [{ ...backup.providers[0], id: '44444444-4444-4444-8444-444444444444', archived: true, sortOrder: 3 }], sessions: [{ ...backup.sessions[0], id: '55555555-5555-4555-8555-555555555555', providerId: '44444444-4444-4444-8444-444444444444' }] }
+  const first = await restoreMerge(imported)
+  expect(first.sessionsAdded).toBe(1)
+  expect(getState().providers.find(item => item.id === imported.providers[0].id)?.archived).toBe(true)
+  expect(getState().sessions.find(item => item.id === imported.sessions[0].id)?.providerId).toBe(imported.providers[0].id)
+  expect((await restoreMerge(imported)).sessionsAdded).toBe(0)
+  await restoreMerge({ ...imported, vehiclePhotoDataUrl: null })
+  expect(getState().vehiclePhoto).toBeNull()
+  expect(getState().settings.vehiclePhotoPath).toBeNull()
+  expect((await cache.listOutbox()).find(item => item.action === 'photo-delete')?.action).toBe('photo-delete')
+})
+
+it('rejects an account mismatch before changing rows or photos', async () => {
+  const before = getState()
+  await expect(restoreMerge(backup, 'another-owner')).rejects.toThrow('account changed')
+  expect(getState()).toBe(before)
+  expect(await cache.listOutbox()).toEqual([])
+})
+
+it('restores a legacy budget without replacing current vehicle settings or photo', async () => {
+  await updateAppSettings({ theme: 'dark', vehicle: { efficiency: 18 } })
+  const legacy = parseBackup(JSON.stringify({ version: 1, budgetCap: 80, providers: [], sessions: [] }))!
+  const result = await restoreMerge(legacy)
+  expect(result.photoAction).toBe('keep')
+  expect(result.settingsAction).toBe('budget')
+  expect(getState().settings).toMatchObject({ budgetCap: 80, theme: 'dark', vehicle: { efficiency: 18 }, vehiclePhotoPath: 'owner/vehicle.jpg' })
+  expect(getState().vehiclePhoto).toBe(TEST_PHOTO)
+  expect((await cache.listOutbox()).some(item => item.action.startsWith('photo-'))).toBe(false)
 })

@@ -1,3 +1,4 @@
+import { readBackupFile } from './readBackupFile'
 import { useSyncExternalStore } from 'react'
 import { DEFAULT_SETTINGS, type AppSettings, type SyncStatus, type VehicleAssumptions } from './appModel'
 import {
@@ -14,6 +15,7 @@ import {
   type CachedSnapshot,
   type OutboxMutation,
 } from './cache'
+import { verifyBackupPhoto } from './backupPhoto'
 import { classifySyncFailure } from './syncFailure'
 import { isOutboxOperationReady, orderOutboxOperations, outboxPrerequisiteIds } from './outboxPlan'
 import { nextPaletteColor, type Provider } from './providers'
@@ -21,7 +23,7 @@ import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from 
 import type { Session } from './savings'
 import { supa, type DbProvider, type DbSession, type DbSettings } from './supa'
 import { validateProviderInput, validateSessionInput, normalizeSettings, normalizeProvider, normalizeSession } from './validation'
-import { backupDelta, normalizeBackupValues, sessionSignature, type Backup } from './backup'
+import { planRestore, assertBackupSize, normalizeBackupValues, sessionSignature, type Backup } from './backup'
 
 export { parseBackup } from './backup'
 export type { Backup } from './backup'
@@ -376,7 +378,7 @@ async function migrateLegacyState(session: DataSession) {
       return next
     })
 
-    const signatures = new Set(state.sessions.map(sessionSignature))
+    const signatures = new Set(state.sessions.map(item => sessionSignature(item)))
     const sessions = [...state.sessions]
     for (const legacy of readLS<Session[]>(LS_SESSIONS, [])) {
       if (signatures.has(sessionSignature(legacy))) continue
@@ -743,9 +745,11 @@ export function updateAppSettings(patch: Partial<Omit<AppSettings, 'vehicle'>> &
 export const setBudgetCap = (budgetCap: number) => updateAppSettings({ budgetCap })
 export const setVehicleAssumptions = (vehicle: Partial<VehicleAssumptions>) => updateAppSettings({ vehicle })
 
-export function uploadVehiclePhoto(dataUrl: string) {
+export async function uploadVehiclePhoto(dataUrl: string) {
+  const session = requireSession()
+  await verifyBackupPhoto(dataUrl)
+  assertCurrentSession(session)
   return saveLocal(() => {
-    if (!dataUrl.startsWith('data:image/') || dataUrl.length > 7_000_000) throw new Error('Photo must be an image under 5 MB.')
     const path = `${ownerId}/vehicle.jpg`
     const settings = normalizeSettings({ ...state.settings, vehiclePhotoPath: path })
     return { next: { ...state, settings, vehiclePhoto: dataUrl }, operations: [mutationOperation('photo', 'photo-upsert', { path, dataUrl }), mutationOperation('settings', 'settings-update', settingsPayload(settings))], result: undefined }
@@ -767,18 +771,19 @@ export async function buildBackup(): Promise<Backup> {
   const session = requireSession()
   const snapshot = state
   let vehiclePhotoDataUrl = snapshot.vehiclePhoto?.startsWith('data:image/') ? snapshot.vehiclePhoto : null
-  if (!vehiclePhotoDataUrl && snapshot.settings.vehiclePhotoPath && snapshot.synced) {
-    vehiclePhotoDataUrl = await downloadVehiclePhoto(snapshot.settings.vehiclePhotoPath, () => assertCurrentSession(session)).catch(() => null)
+  if (!vehiclePhotoDataUrl && snapshot.settings.vehiclePhotoPath) {
+    if (!isOnline()) throw new Error('Backup is incomplete: the vehicle photo is not cached. Go online and retry.')
+    vehiclePhotoDataUrl = await downloadVehiclePhoto(snapshot.settings.vehiclePhotoPath, () => assertCurrentSession(session))
   }
   assertCurrentSession(session)
-  return {
-    version: 2,
-    exportedAt: now(),
-    settings: snapshot.settings,
-    providers: snapshot.providers,
-    sessions: snapshot.sessions,
-    vehiclePhotoDataUrl,
-  }
+  await verifyBackupPhoto(vehiclePhotoDataUrl)
+  assertCurrentSession(session)
+  const backup = normalizeBackupValues({
+    version: 2, exportedAt: now(), settings: snapshot.settings,
+    providers: snapshot.providers, sessions: snapshot.sessions, vehiclePhotoDataUrl,
+  })
+  assertBackupSize(backup)
+  return backup
 }
 
 export function markBackedUp() {
@@ -787,41 +792,58 @@ export function markBackedUp() {
 
 export const lastBackupAt = () => readLS<string | null>(LS_LAST_BACKUP, null)
 
+export async function readRestoreFile(file: File, onProgress?: (message: string) => void) {
+  const session = requireSession()
+  const backup = await readBackupFile(file, onProgress)
+  assertCurrentSession(session)
+  return { backup, ...previewRestore(backup) }
+}
+
 export function previewRestore(backup: Backup) {
+  const session = requireSession()
   const prepared = normalizeBackupValues(backup)
-  const { newProviders, newSessions } = backupDelta(prepared, state.providers, state.sessions)
+  const plan = planRestore(prepared, state.providers, state.sessions)
+  const photo = prepared.sourceVersion === 1 ? state.vehiclePhoto : prepared.vehiclePhotoDataUrl
+  const settings = prepared.sourceVersion === 1
+    ? { ...state.settings, budgetCap: prepared.settings.budgetCap }
+    : { ...prepared.settings, vehiclePhotoPath: photo ? `${session.ownerId}/vehicle.jpg` : null }
+  assertBackupSize({ ...prepared, providers: [...state.providers, ...plan.newProviders], sessions: [...state.sessions, ...plan.newSessions], settings, vehiclePhotoDataUrl: photo })
   return {
-    providersNew: newProviders.length,
-    sessionsNew: newSessions.length,
-    totalSessions: backup.sessions.length,
-    totalProviders: backup.providers.length,
+    ownerId: session.ownerId,
+    providersNew: plan.newProviders.length,
+    sessionsNew: plan.newSessions.length,
+    providersMatched: plan.providersMatched,
+    sessionsMatched: plan.sessionsMatched,
+    sessionsConflicting: plan.sessionsConflicting,
+    photoAction: prepared.sourceVersion === 1 ? 'keep' as const : prepared.vehiclePhotoDataUrl ? 'replace' as const : 'remove' as const,
+    settingsAction: prepared.sourceVersion === 1 ? 'budget' as const : 'all' as const,
+    totalSessions: prepared.sessions.length,
+    totalProviders: prepared.providers.length,
   }
 }
 
-/** Merge-only restore: adds missing ledger rows, then restores settings and photo. */
-export function restoreMerge(backup: Backup): Promise<{ providersAdded: number; sessionsAdded: number }> {
+/** Add missing rows without replacing existing identities; commit the full plan atomically. */
+export async function restoreMerge(backup: Backup, expectedOwnerId?: string) {
+  const session = requireSession()
+  if (expectedOwnerId !== undefined && expectedOwnerId !== session.ownerId) throw new Error('The account changed since this backup preview. Select the file again.')
+  const prepared = normalizeBackupValues(backup)
+  await verifyBackupPhoto(prepared.vehiclePhotoDataUrl)
+  assertCurrentSession(session)
   return saveLocal(() => {
-    const prepared = normalizeBackupValues(backup)
-    const { newProviders, newSessions } = backupDelta(prepared, state.providers, state.sessions)
-    const providers = [...state.providers]
-    const sessions = [...state.sessions]
+    const plan = planRestore(prepared, state.providers, state.sessions)
+    const providers = [...state.providers, ...plan.newProviders]
+    const sessions = [...state.sessions, ...plan.newSessions]
     const operations: OutboxMutation[] = []
-    for (const item of newProviders) {
-      const provider = createProvider(item, providers)
-      providers.push(provider)
-      operations.push(mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider)))
-    }
-    for (const item of newSessions) {
-      const provider = providers.find(candidate => candidate.name.toLowerCase() === item.type.toLowerCase())
-      if (!provider) throw new Error('A restored charge has no matching provider.')
-      const session = normalizeSession({ ...item, type: provider.name, id: uuid(), providerId: provider.id })
-      sessions.push(session)
-      operations.push(mutationOperation(`session:${session.id}`, 'session-upsert', sessionPayload(session)))
-    }
-    const path = backup.vehiclePhotoDataUrl ? `${ownerId}/vehicle.jpg` : state.settings.vehiclePhotoPath
-    const settings = normalizeSettings({ ...prepared.settings, vehiclePhotoPath: path })
-    if (backup.vehiclePhotoDataUrl) operations.push(mutationOperation('photo', 'photo-upsert', { path: path!, dataUrl: backup.vehiclePhotoDataUrl }))
+    for (const provider of plan.newProviders) operations.push(mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider)))
+    for (const charge of plan.newSessions) operations.push(mutationOperation(`session:${charge.id}`, 'session-upsert', sessionPayload(charge)))
+    const photoAction = prepared.sourceVersion === 1 ? 'keep' : prepared.vehiclePhotoDataUrl ? 'replace' : 'remove'
+    const path = photoAction === 'keep' ? state.settings.vehiclePhotoPath : photoAction === 'replace' ? `${ownerId}/vehicle.jpg` : null
+    const settings = normalizeSettings({ ...(prepared.sourceVersion === 1 ? { ...state.settings, budgetCap: prepared.settings.budgetCap } : prepared.settings), vehiclePhotoPath: path })
+    assertBackupSize({ version: 2, exportedAt: now(), settings, providers, sessions, vehiclePhotoDataUrl: photoAction === 'keep' ? state.vehiclePhoto : prepared.vehiclePhotoDataUrl })
+    if (photoAction === 'replace') operations.push(mutationOperation('photo', 'photo-upsert', { path: path!, dataUrl: prepared.vehiclePhotoDataUrl! }))
+    if (photoAction === 'remove' && state.settings.vehiclePhotoPath) operations.push(mutationOperation('photo', 'photo-delete', { path: state.settings.vehiclePhotoPath }))
     operations.push(mutationOperation('settings', 'settings-update', settingsPayload(settings)))
-    return { next: { ...state, providers: finalizeProviders(providers), sessions, settings, vehiclePhoto: backup.vehiclePhotoDataUrl ?? state.vehiclePhoto }, operations, result: { providersAdded: newProviders.length, sessionsAdded: newSessions.length } }
+    return { next: { ...state, providers: finalizeProviders(providers), sessions, settings, vehiclePhoto: photoAction === 'keep' ? state.vehiclePhoto : prepared.vehiclePhotoDataUrl }, operations,
+      result: { providersAdded: plan.newProviders.length, sessionsAdded: plan.newSessions.length, providersMatched: plan.providersMatched, sessionsMatched: plan.sessionsMatched, sessionsConflicting: plan.sessionsConflicting, photoAction, settingsAction: prepared.sourceVersion === 1 ? 'budget' : 'all' } }
   })
 }

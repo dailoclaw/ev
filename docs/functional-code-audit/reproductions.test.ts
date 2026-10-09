@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { expect, it, vi } from 'vitest'
 import { matchRoutes } from 'react-router-dom'
 import { DEFAULT_SETTINGS } from '../../src/lib/appModel'
-import { parseBackup, backupDelta } from '../../src/lib/backup'
+import { parseBackup } from '../../src/lib/backup'
 import { validateSessionInput } from '../../src/lib/validation'
 import { enrichSessions } from '../../src/lib/savings'
 import { costConcentration } from '../../src/lib/costConcentration'
@@ -35,10 +35,8 @@ it('regression: negative legacy budget is rejected', () => {
   expect(parseBackup(JSON.stringify({ version: 1, budgetCap: -5, providers: [provider], sessions: [row] }))).toBeNull()
 })
 
-it('demonstrates duplicate legacy providers accepted', () => {
-  const backup = parseBackup(JSON.stringify({ version: 1, budgetCap: 50, providers: [provider, { ...provider, id: 'p2' }], sessions: [row] }))!
-  expect(backup.settings.budgetCap).toBe(50)
-  expect(backupDelta(backup, [], []).newProviders).toHaveLength(2)
+it('regression: duplicate legacy providers are rejected before merge', () => {
+  expect(parseBackup(JSON.stringify({ version: 1, budgetCap: 50, providers: [provider, { ...provider, id: 'p2' }], sessions: [row] }))).toBeNull()
 })
 
 it('demonstrates accepted fully allowance-covered cost disappears from curve', () => {

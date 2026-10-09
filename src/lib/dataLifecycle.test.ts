@@ -1,8 +1,9 @@
+import { TEST_PHOTO } from './testPhotoFixtures'
 import 'fake-indexeddb/auto'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from './appModel'
 import * as cache from './cache'
-import { buildBackup, getState, initializeData, stopDataSync, synchronize, updateSession } from './data'
+import { buildBackup, readRestoreFile, getState, initializeData, stopDataSync, synchronize, updateSession } from './data'
 
 const backend = vi.hoisted(() => {
   const channel = { on: vi.fn(), subscribe: vi.fn() }
@@ -200,7 +201,7 @@ it('rejects a backup when sign-out occurs during its photo download', async () =
   const backup = buildBackup()
   const rejected = expect(backup).rejects.toThrow('account session changed')
   stopDataSync()
-  photo.resolve('data:image/jpeg;base64,old')
+  photo.resolve(TEST_PHOTO)
   await rejected
   expect(getState().syncStatus).toBe('signed-out')
 })
@@ -217,7 +218,28 @@ it('exports one captured snapshot when an edit occurs during its photo download'
   const backup = buildBackup()
   connection.onLine = false
   await updateSession('session-1', { cost: 9 })
-  photo.resolve('data:image/jpeg;base64,photo')
+  photo.resolve(TEST_PHOTO)
   expect((await backup).sessions[0].cost).toBe(7)
   expect(getState().sessions[0].cost).toBe(9)
+})
+
+
+it.each(transitions)('rejects a file preview after %s while reading', async kind => {
+  await initializeData('owner-1')
+  const read = deferred<string>()
+  const file = { size: 1, text: () => read.promise } as File
+  const result = readRestoreFile(file)
+  const rejected = expect(result).rejects.toThrow('account session changed')
+  await transition(kind)
+  read.resolve(JSON.stringify({ version: 2, exportedAt: '', settings: DEFAULT_SETTINGS, providers: [], sessions: [], vehiclePhotoDataUrl: null }))
+  await rejected
+})
+
+it('refuses an incomplete offline photo backup and surfaces photo download failure', async () => {
+  await cache.commitCachedState({ ...snapshot, settings: { ...DEFAULT_SETTINGS, vehiclePhotoPath: 'owner-1/vehicle.jpg' } })
+  await initializeData('owner-1')
+  await expect(buildBackup()).rejects.toThrow('photo')
+  connection.onLine = true
+  backend.photo.mockRejectedValueOnce(new Error('Photo download failed'))
+  await expect(buildBackup()).rejects.toThrow('Photo download failed')
 })

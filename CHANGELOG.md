@@ -1,5 +1,15 @@
 # EV Command — Changelog
 
+## v4.3.8 (2026-10-09)
+### Fixes
+- Shared backup preflight and merge planning reject duplicate identities, broken references and incomplete or invalid photos.
+- Preserved UUIDs, repeated charge multiplicity and archived/order metadata; existing matched rows retain current values.
+- Made v1 budget/photo preservation and v2 settings/photo replacement or deletion explicit in preview and results.
+- Validated image encoding, bounded containers and browser decoding; photo download failures prevent incomplete exports.
+- Added worker-based file validation, offline fallback, progress and repeat-confirmation guards; restores remain atomic and retryable.
+- Enforced a 15 MB/25,000-charge ceiling on imports, exports and merged ledgers after browser scale testing; guarded account changes while reading files.
+- Bounded tall vehicle image resizing as well as wide images.
+
 ## v4.3.7 (2026-10-09)
 ### Fixes
 - Preserved server error codes/status and held invalid, conflicting or unauthorized queue revisions for review.

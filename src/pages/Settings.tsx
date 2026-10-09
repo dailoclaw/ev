@@ -9,8 +9,8 @@ import {
   downloadJson,
   lastBackupAt,
   markBackedUp,
-  parseBackup,
   previewRestore,
+  readRestoreFile,
   restoreMerge,
   retrySync,
   useEvState,
@@ -32,7 +32,7 @@ import GlassSegmented from '../components/GlassSegmented'
 import { supa } from '../lib/supa'
 import { MIN_OWNER_PASSWORD_LENGTH, validateOwnerPassword } from '../lib/auth'
 
-type Pending = { backup: Backup; providersNew: number; sessionsNew: number; totalSessions: number; totalProviders: number }
+type Pending = { backup: Backup } & ReturnType<typeof previewRestore>
 
 export default function Settings() {
   const ev = useEv()
@@ -51,6 +51,10 @@ export default function Settings() {
 
   const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
   const [restoreError, setRestoreError] = useState<string | null>(null)
+  const [reading, setReading] = useState(false)
+  const [backingUp, setBackingUp] = useState(false)
+  const [restoreProgress, setRestoreProgress] = useState<string | null>(null)
+  const fileRequestRef = useRef(0)
   const [restoring, setRestoring] = useState(false)
   const [restoreDone, setRestoreDone] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
@@ -74,28 +78,32 @@ export default function Settings() {
   }
 
   const downloadBackup = async () => {
+    if (backingUp) return
+    setBackingUp(true); setRestoreError(null)
     try {
       downloadJson(await buildBackup(), `ev-command-backup-${todayIso()}.json`)
       markBackedUp()
       setLastBackup(lastBackupAt())
     } catch (error) {
       setRestoreError(error instanceof Error ? error.message : 'Could not build the backup.')
-    }
+    } finally { setBackingUp(false) }
   }
 
   const onFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    setRestoreError(null)
-    setRestoreDone(null)
-    const text = await file.text()
-    const backup = parseBackup(text)
-    if (!backup) {
-      setRestoreError('Could not read that file — expecting an EV Command backup JSON.')
-      return
+    const request = ++fileRequestRef.current
+    setReading(true); setPending(null); setRestoreError(null); setRestoreDone(null)
+    try {
+      const preview = await readRestoreFile(file, message => { if (request === fileRequestRef.current) setRestoreProgress(message) })
+      if (request !== fileRequestRef.current) return
+      setPending(preview)
+    } catch (error) {
+      if (request === fileRequestRef.current) setRestoreError(error instanceof Error ? error.message : 'Could not read backup file.')
+    } finally {
+      if (request === fileRequestRef.current) { setReading(false); setRestoreProgress(null) }
     }
-    setPending({ backup, ...previewRestore(backup) })
   }
 
   const confirmMerge = async () => {
@@ -103,16 +111,13 @@ export default function Settings() {
     setRestoring(true)
     setRestoreError(null)
     try {
-      const { providersAdded, sessionsAdded } = await restoreMerge(pending.backup)
-      setRestoreDone(
-        `Added ${sessionsAdded} charge${sessionsAdded === 1 ? '' : 's'}` +
-          (providersAdded ? ` and ${providersAdded} provider${providersAdded === 1 ? '' : 's'}` : '') +
-          '. Settings and vehicle photo were restored too.',
-      )
+      setRestoreProgress('Saving restore on this device…')
+      const result = await restoreMerge(pending.backup, pending.ownerId)
+      setRestoreDone(`Added ${result.sessionsAdded} charge${result.sessionsAdded === 1 ? '' : 's'} and ${result.providersAdded} charger${result.providersAdded === 1 ? '' : 's'}. ${result.sessionsMatched} existing charges kept${result.sessionsConflicting ? ` (${result.sessionsConflicting} changed IDs kept at their current values)` : ''}. ${result.settingsAction === 'budget' ? 'Budget restored; other settings kept.' : 'Settings restored.'} Vehicle photo ${result.photoAction === 'keep' ? 'kept' : result.photoAction === 'replace' ? 'restored' : 'removed'}. Cloud sync may still be pending.`)
       setPending(null)
     } catch (err) {
       setRestoreError(err instanceof Error ? err.message : 'Restore failed.')
-    } finally { setRestoring(false) }
+    } finally { setRestoring(false); setRestoreProgress(null) }
   }
 
   const capPct = Math.min(100, Math.max(0, ((ev.budgetCap - 20) / (150 - 20)) * 100))
@@ -443,14 +448,14 @@ export default function Settings() {
 
       <h2 className="sec-h2">Backup &amp; Restore</h2>
       <p className="sec-sub">
-        A complete, portable copy of your ledger, providers, preferences, vehicle assumptions, and vehicle photo.
+        A complete, portable copy of your ledger, providers, preferences, vehicle assumptions, and vehicle photo. Limit: 15 MB, 25,000 charges and 10,000 chargers.
       </p>
-      <button className="row" type="button" onClick={downloadBackup}>
+      <button className="row" type="button" disabled={backingUp || reading || restoring} onClick={downloadBackup}>
         <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
           <Icon name="dl" size={17} />
         </span>
         <span>
-          <strong>Download backup</strong>
+          <strong>{backingUp ? 'Building backup…' : 'Download backup'}</strong>
           <small>
             {ev.sessions.length} charges · {ev.providers.length} provider{ev.providers.length === 1 ? '' : 's'} · all settings
           </small>
@@ -468,7 +473,7 @@ export default function Settings() {
           <small>{lastBackup ? stamp(lastBackup) : 'none yet'}</small>
         </span>
       </div>
-      <button className="row" type="button" onClick={() => fileInputRef.current?.click()}>
+      <button className="row" type="button" disabled={reading || restoring || backingUp} onClick={() => fileInputRef.current?.click()}>
         <span className="mark" style={{ ['--pc' as string]: '#334155' }}>
           <Icon name="book" size={17} />
         </span>
@@ -480,15 +485,16 @@ export default function Settings() {
           <Icon name="chev" size={17} />
         </b>
       </button>
-      <input ref={fileInputRef} type="file" accept="application/json" style={{ display: 'none' }} onChange={onFileChosen} />
+      <input ref={fileInputRef} type="file" disabled={restoring || reading} accept="application/json,.json" style={{ display: 'none' }} onChange={onFileChosen} />
 
+      {restoreProgress && <p role="status" className="sec-sub">{restoreProgress}</p>}
       {restoreError && (
-        <p className="sec-sub" style={{ color: 'var(--neg)', fontWeight: 700 }}>
+        <p role="alert" className="sec-sub" style={{ color: 'var(--neg)', fontWeight: 700 }}>
           {restoreError}
         </p>
       )}
       {restoreDone && (
-        <p className="sec-sub" style={{ color: 'var(--money-deep)', fontWeight: 700 }}>
+        <p role="status" className="sec-sub" style={{ color: 'var(--money-deep)', fontWeight: 700 }}>
           {restoreDone}
         </p>
       )}
@@ -511,17 +517,19 @@ export default function Settings() {
             .
           </p>
 
+          <p>{pending.providersMatched} matching chargers keep their current allowance, colour, archive status and order. New chargers keep backup metadata and append in backup order.</p>
+          <p>{pending.sessionsConflicting} same-ID differences keep their current values. {pending.settingsAction === 'budget' ? 'This legacy file restores budget only.' : 'This file replaces your app and vehicle settings.'} Vehicle photo will be {pending.photoAction === 'keep' ? 'kept' : pending.photoAction === 'replace' ? 'replaced' : 'removed'}.</p>
           <button className="row" type="button" disabled={restoring} onClick={confirmMerge} style={{ marginBottom: 8 }}>
             <span className="mark" style={{ ['--pc' as string]: '#059669' }}>
               <Icon name="dl" size={17} />
             </span>
             <span>
               <strong>Merge safely</strong>
-              <small>Adds missing rows, restores settings and photo, then syncs to Supabase</small>
+              <small>Adds missing rows; existing charges and matching charger settings stay unchanged</small>
             </span>
           </button>
 
-          <button type="button" className="text-btn" onClick={() => setPending(null)}>
+          <button type="button" disabled={restoring} className="text-btn" onClick={() => setPending(null)}>
             Cancel
           </button>
         </div>

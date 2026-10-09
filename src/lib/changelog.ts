@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.8',
+    date: '9 Oct 2026',
+    notes: ['Backups now validate identities and photos, preserve charger metadata and charge IDs, and show explicit restore behavior with offline support and retryable saves.'],
+  },
+  {
     version: '4.3.7',
     date: '9 Oct 2026',
     notes: ['Rejected cloud changes can now be corrected or retried in Settings; discarding pending changes keeps a downloadable recovery archive.'],

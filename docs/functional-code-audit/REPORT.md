@@ -594,6 +594,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 6. Benchmark 1k/10k rows and the supported maximum; lower the advertised maximum if realistic devices cannot handle it.
 7. **Gate:** no partial local restore on validation/cache failure, honest restored counts/metadata, no silent photo omission, acceptable memory/time.
 
+**Implementation update (9 October 2026):** Shared bounded backup preflight, explicit v1/v2 settings/photo semantics, UUID/metadata-preserving merge plans, atomic retryable restores, complete photo exports and worker/offline file handling are implemented locally in v4.3.8. See [backup/restore notes](BACKUP-RESTORE-FIX.md). Desktop scale measurements cover large imports; the physical low-end-device performance gate, live storage/RLS and production service-worker acceptance checks remain open.
+
 ### Step 5 — Fix quick visible failures (C5, M2, M6, M8)
 
 1. Remove account double decode and add recovery boundary; test `%`, `%20`, Unicode, slash-encoded names and renamed provider links.

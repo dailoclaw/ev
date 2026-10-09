@@ -1,3 +1,4 @@
+import { TEST_PHOTO, ALT_TEST_PHOTO } from './testPhotoFixtures'
 import 'fake-indexeddb/auto'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import { DEFAULT_SETTINGS } from './appModel'
@@ -32,7 +33,7 @@ function mutation(entity: string, action: OutboxMutation['action'], payload: Rec
 }
 const providerWrite = mutation('provider:p', 'provider-upsert', { id: 'p', name: 'Example', color: '#123456', free_kwh_per_day: 0, archived: false, sort_order: 0 }, '30')
 const sessionWrite = mutation('session:s', 'session-upsert', { id: 's', provider_id: 'p', date: '2026-01-01', amount: 10, cost: 2, notes: null }, '10')
-const photoWrite = mutation('photo', 'photo-upsert', { path: photoPath, dataUrl: 'data:image/jpeg;base64,original' }, '30')
+const photoWrite = mutation('photo', 'photo-upsert', { path: photoPath, dataUrl: TEST_PHOTO }, '30')
 const photoDelete = mutation('photo', 'photo-delete', { path: photoPath }, '10')
 const photoSettings = (path: string | null) => mutation('settings', 'settings-update', { vehicle_photo_path: path }, path ? '10' : '30')
 
@@ -165,14 +166,14 @@ it('does not delete a newly queued photo after a paused settings clear completes
   const syncing = synchronize()
   await started
   connection.onLine = false
-  uploadVehiclePhoto('data:image/jpeg;base64,new')
-  await vi.waitFor(async () => expect((await listOutbox(ownerId)).find(op => op.action === 'photo-upsert')?.payload.dataUrl).toBe('data:image/jpeg;base64,new'))
+  uploadVehiclePhoto(ALT_TEST_PHOTO)
+  await vi.waitFor(async () => expect((await listOutbox(ownerId)).find(op => op.action === 'photo-upsert')?.payload.dataUrl).toBe(ALT_TEST_PHOTO))
   connection.onLine = true
   release()
   await syncing
   await vi.waitFor(() => expect(getState().syncStatus).toBe('synced'))
   expect(applied()).toEqual(['settings-update', 'photo-upsert', 'settings-update'])
-  expect(photos.get(photoPath)).toBe('data:image/jpeg;base64,new')
+  expect(photos.get(photoPath)).toBe(ALT_TEST_PHOTO)
   expect(remoteSettings.vehicle_photo_path).toBe(photoPath)
 })
 
