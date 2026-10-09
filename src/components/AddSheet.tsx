@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { addProvider, addSession } from '../lib/data'
+import { addSession } from '../lib/data'
 import { previewFreeAllocation } from '../lib/savings'
 import { aud, todayIso } from '../lib/format'
 import { PROVIDER_PALETTE, nextPaletteColor } from '../lib/providers'
@@ -29,6 +29,8 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const [kwhStr, setKwhStr] = useState('')
   const [costStr, setCostStr] = useState('')
   const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   useEffect(() => {
     if (!saved || syncStatus === 'error') return
@@ -50,28 +52,24 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   const providerChosen = showNew ? newName.trim().length > 0 : !!provider
   const canSave = isFee ? providerChosen && cost > 0 : providerChosen && kwh > 0 && cost >= 0
 
-  const handleSave = () => {
-    let typeName = selectedProviderName
-    // A brand-new charger has no history today, so its whole allowance is available.
-    let freeKwh = preview.freeKwh
-    if (showNew) {
-      const p = addProvider(newName, newFree, newColor)
-      typeName = p.name
-      freeKwh = Math.min(newFree, kwh)
-    }
-    addSession({
-      date,
-      type: typeName,
-      amount: isFee ? 0 : kwh,
-      cost,
-      notes: notes.trim() || (isFee ? 'Monthly membership' : null),
-    })
-    playSaveFeedback(classifySave({ isFee, kwh, cost, freeKwh }))
-    setSaved(true)
+  const handleSave = async () => {
+    if (saving) return
+    setSaving(true)
+    setError(null)
+    try {
+      const freeKwh = showNew ? Math.min(newFree, kwh) : preview.freeKwh
+      await addSession({ date, type: showNew ? newName.trim() : selectedProviderName, amount: isFee ? 0 : kwh, cost,
+        notes: notes.trim() || (isFee ? 'Monthly membership' : null) },
+        showNew ? { name: newName, freeKwhPerDay: newFree, color: newColor } : undefined)
+      playSaveFeedback(classifySave({ isFee, kwh, cost, freeKwh }))
+      setSaved(true)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not save. Please retry.')
+    } finally { setSaving(false) }
   }
 
   return (
-    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
+    <div className="sheet-backdrop" role="presentation" onClick={() => { if (!saving) onClose() }}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Add charge or fee" onClick={e => e.stopPropagation()}>
         <div className="handle" />
         {saved ? (
@@ -93,7 +91,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             <GlassSegmented
               ariaLabel="Entry type"
               value={mode}
-              onChange={setMode}
+              onChange={value => { if (!saving) setMode(value) }}
               style={{ marginTop: 12 }}
               options={[
                 { value: 'charge', label: 'Charge' },
@@ -104,7 +102,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             <label>Charger</label>
             <div className="provrow">
               {providers.map(p => (
-                <button
+                <button disabled={saving}
                   key={p.id}
                   type="button"
                   className={!showNew && selectedProviderName === p.name ? 'on' : ''}
@@ -116,7 +114,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                   {p.name}
                 </button>
               ))}
-              <button type="button" className={`newp ${showNew ? 'on' : ''}`} onClick={() => setShowNew(v => !v)}>
+              <button disabled={saving} type="button" className={`newp ${showNew ? 'on' : ''}`} onClick={() => setShowNew(v => !v)}>
                 + New
               </button>
             </div>
@@ -125,12 +123,12 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               <div className="freepreview" style={{ background: 'var(--surf2)', borderColor: 'var(--bd)', color: 'var(--tx)' }}>
                 <label style={{ margin: '0 0 5px' }}>New charger name</label>
                 <div className="fld" style={{ background: 'var(--surf)' }}>
-                  <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
+                  <input disabled={saving} value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
                 </div>
                 <label>Colour</label>
                 <div className="colorrow">
                   {PROVIDER_PALETTE.slice(0, 5).map(c => (
-                    <button
+                    <button disabled={saving}
                       key={c}
                       type="button"
                       className={newColor === c ? 'on' : ''}
@@ -142,7 +140,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                 </div>
                 <label>Free allowance (kWh per day)</label>
                 <div className="fld" style={{ background: 'var(--surf)' }}>
-                  <input
+                  <input disabled={saving}
                     type="number"
                     min={0}
                     step={0.5}
@@ -156,14 +154,14 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
 
             <label>{isFee ? 'Billed on' : 'Date'}</label>
             <div className="fld">
-              <input type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+              <input disabled={saving} type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
             </div>
 
             {isFee ? (
               <>
                 <label>Fee amount</label>
                 <div className="fld">
-                  <input
+                  <input disabled={saving}
                     type="number"
                     inputMode="decimal"
                     min={0}
@@ -183,7 +181,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                 <div style={{ minWidth: 0 }}>
                   <label>Energy</label>
                   <div className="fld">
-                    <input
+                    <input disabled={saving}
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -198,7 +196,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                 <div style={{ minWidth: 0 }}>
                   <label>Cost</label>
                   <div className="fld">
-                    <input
+                    <input disabled={saving}
                       type="number"
                       inputMode="decimal"
                       min={0}
@@ -215,7 +213,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
 
             <label>Notes (optional)</label>
             <div className="fld">
-              <input
+              <input disabled={saving}
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder={isFee ? 'e.g. Monthly membership' : 'e.g. Norwood carpark'}
@@ -233,8 +231,9 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave} onClick={handleSave}>
-              {showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
+            {error && <p role="alert" style={{ color: 'var(--neg)' }}>{error}</p>}
+            <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave || saving} onClick={handleSave}>
+              {saving ? 'Saving…' : showNew ? 'Create charger & save' : isFee ? 'Save fee' : 'Save charge'}
             </button>
           </>
         )}

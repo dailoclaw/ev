@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { initializeData, retrySync, stopDataSync, useEvState } from '../lib/data'
+import { dismissSaveError, initializeData, retrySync, stopDataSync, useEvState } from '../lib/data'
 import { hasSupabaseConfig, supa } from '../lib/supa'
 import { applyTheme } from '../lib/theme'
 import StartupSplash from './StartupSplash'
@@ -169,6 +169,12 @@ export default function AuthGate({ children }: { children: ReactNode }) {
 
   return (
     <>
+      {auth.user && data.lastSaveError && (
+        <div role="alert" style={{ position: 'fixed', top: 12, left: 12, right: 12, zIndex: 10000, padding: 12, borderRadius: 12, background: 'var(--surf)', color: 'var(--neg)', border: '1px solid var(--neg)' }}>
+          <p>{data.lastSaveError}</p>
+          <button type="button" onClick={dismissSaveError}>Dismiss save error</button>
+        </div>
+      )}
       {content}
       {startupPending && <StartupSplash />}
     </>

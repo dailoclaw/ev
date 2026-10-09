@@ -1,5 +1,14 @@
 # EV Command — Changelog
 
+## v4.3.5 (2026-10-09)
+### Fixes
+- Published mutations only after atomic IndexedDB commit and returned save failures to callers.
+- Serialized local writes and remote snapshot adoption to preserve concurrent edits.
+- Saved new charger/charge pairs and backup merges atomically; kept failed forms and Undo available for retry.
+- Added visible save errors for settings and other quick controls, separate from cloud sync errors.
+- Made optional localStorage access safe and allowed IndexedDB initialization to recover after errors or blocked opens.
+- Added regression tests for storage failures, transaction rollback, concurrent saves and browser form retries.
+
 ## v4.3.4 (2026-10-09)
 ### Fixes
 - Ordered provider/session and photo/settings synchronization by dependencies instead of timestamp offsets.

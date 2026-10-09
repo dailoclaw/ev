@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.5',
+    date: '9 Oct 2026',
+    notes: ['Saves now confirm only after offline storage succeeds; failed saves preserve the ledger and keep forms ready to retry.'],
+  },
+  {
     version: '4.3.4',
     date: '9 Oct 2026',
     notes: ['Offline sync now saves providers before their charges and keeps photo uploads and removals in the correct order.'],

@@ -69,23 +69,31 @@ function CanvasVehicle() {
   const [view, setView] = useState<VehicleView>('overview')
   const photo = ev.vehiclePhoto
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [photoRetry, setPhotoRetry] = useState<string | null>(null)
+  const [photoSaving, setPhotoSaving] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   const save = (patch: Partial<Assumptions>) => {
-    setVehicleAssumptions(patch)
+    void setVehicleAssumptions(patch).catch(() => undefined)
   }
 
+  const savePhoto = async (compressed: string) => {
+    setPhotoSaving(true)
+    try {
+      await uploadVehiclePhoto(compressed)
+      setPhotoError(null)
+      setPhotoRetry(null)
+    } catch (error) {
+      setPhotoRetry(compressed)
+      setPhotoError(error instanceof Error ? error.message : 'Could not save that photo. Please retry.')
+    } finally { setPhotoSaving(false) }
+  }
   const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    try {
-      const compressed = await compressImage(file)
-      uploadVehiclePhoto(compressed)
-      setPhotoError(null)
-    } catch {
-      setPhotoError('Could not read that photo — try a different one.')
-    }
+    try { await savePhoto(await compressImage(file)) }
+    catch (error) { setPhotoError(error instanceof Error ? error.message : 'Could not read that photo.') }
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -162,8 +170,9 @@ function CanvasVehicle() {
               <small>saved</small>
             </VehicleGlassStat>
           </button>
-          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
-          {photoError && <p className="cv-error">{photoError}</p>}
+          <input disabled={photoSaving} ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
+          {photoError && <p role="alert" className="cv-error">{photoError}</p>}
+          {photoRetry && <button type="button" disabled={photoSaving} onClick={() => void savePhoto(photoRetry)}>Retry photo save</button>}
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => setView('efficiency')}>
               <span className="k">Efficiency</span>
@@ -469,27 +478,35 @@ function ClassicVehicle() {
   const [editing, setEditing] = useState(false)
   const photo = ev.vehiclePhoto
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [photoRetry, setPhotoRetry] = useState<string | null>(null)
+  const [photoSaving, setPhotoSaving] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   const save = (patch: Partial<Assumptions>) => {
-    setVehicleAssumptions(patch)
+    void setVehicleAssumptions(patch).catch(() => undefined)
   }
 
+  const savePhoto = async (compressed: string) => {
+    setPhotoSaving(true)
+    try {
+      await uploadVehiclePhoto(compressed)
+      setPhotoError(null)
+      setPhotoRetry(null)
+    } catch (error) {
+      setPhotoRetry(compressed)
+      setPhotoError(error instanceof Error ? error.message : 'Could not save that photo. Please retry.')
+    } finally { setPhotoSaving(false) }
+  }
   const onPhotoChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    try {
-      const compressed = await compressImage(file)
-      uploadVehiclePhoto(compressed)
-      setPhotoError(null)
-    } catch {
-      setPhotoError('Could not read that photo — try a different one.')
-    }
+    try { await savePhoto(await compressImage(file)) }
+    catch (error) { setPhotoError(error instanceof Error ? error.message : 'Could not read that photo.') }
   }
 
   const removePhoto = () => {
-    removeVehiclePhoto()
+    void removeVehiclePhoto().catch(error => setPhotoError(error instanceof Error ? error.message : 'Could not remove that photo. Please retry.'))
   }
 
   const distanceKm = a.efficiency > 0 ? (ev.lifetime.kwh / a.efficiency) * 100 : 0
@@ -530,7 +547,7 @@ function ClassicVehicle() {
           </span>
         )}
       </button>
-      <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
+      <input disabled={photoSaving} ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPhotoChosen} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <p className="sec-sub" style={{ margin: 0 }}>
           Synced privately to Supabase and included in JSON backups.
@@ -541,6 +558,7 @@ function ClassicVehicle() {
           </button>
         )}
       </div>
+      {photoRetry && <button type="button" disabled={photoSaving} onClick={() => void savePhoto(photoRetry)}>Retry photo save</button>}
       {photoError && (
         <p style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: -8, marginBottom: 12 }}>{photoError}</p>
       )}

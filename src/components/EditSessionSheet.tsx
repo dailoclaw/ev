@@ -48,7 +48,7 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
   }
 
   return (
-    <div className="sheet-backdrop" role="presentation" onClick={onClose}>
+    <div className="sheet-backdrop" role="presentation" onClick={() => { if (!saving) onClose() }}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Edit charge" onClick={e => e.stopPropagation()}>
         <div className="handle" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -61,14 +61,14 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
 
         <label>{session.isFee ? 'Billed on' : 'Date'}</label>
         <div className="fld">
-          <input type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+          <input disabled={saving} type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
         </div>
 
         {!session.isFee && (
           <>
             <label>Energy</label>
             <div className="fld">
-              <input
+              <input disabled={saving}
                 type="number"
                 inputMode="decimal"
                 min={0}
@@ -83,16 +83,16 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
 
         <label>Cost</label>
         <div className="fld">
-          <input type="number" inputMode="decimal" min={0} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
+          <input disabled={saving} type="number" inputMode="decimal" min={0} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
           <span className="unit">AUD</span>
         </div>
 
         <label>Notes (optional)</label>
         <div className="fld">
-          <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
+          <input disabled={saving} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
         </div>
 
-        {error && <p style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}
+        {error && <p role="alert" style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}
 
         <button className="primary-btn" style={{ marginTop: 16 }} type="button" disabled={!canSave || saving} onClick={handleSave}>
           {saving ? 'Saving...' : 'Save changes'}

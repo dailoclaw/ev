@@ -47,6 +47,7 @@ export default function Settings() {
 
   const [lastBackup, setLastBackup] = useState<string | null>(lastBackupAt())
   const [restoreError, setRestoreError] = useState<string | null>(null)
+  const [restoring, setRestoring] = useState(false)
   const [restoreDone, setRestoreDone] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -59,7 +60,7 @@ export default function Settings() {
     if (swapIdx < 0 || swapIdx >= ids.length) return
     ;[ids[idx], ids[swapIdx]] = [ids[swapIdx], ids[idx]]
     const archivedIds = ev.providers.filter(p => p.archived).map(p => p.id)
-    setProviderOrder([...ids, ...archivedIds])
+    void setProviderOrder([...ids, ...archivedIds]).catch(() => undefined)
   }
 
   const exportAll = () => {
@@ -94,7 +95,9 @@ export default function Settings() {
   }
 
   const confirmMerge = async () => {
-    if (!pending) return
+    if (!pending || restoring) return
+    setRestoring(true)
+    setRestoreError(null)
     try {
       const { providersAdded, sessionsAdded } = await restoreMerge(pending.backup)
       setRestoreDone(
@@ -105,7 +108,7 @@ export default function Settings() {
       setPending(null)
     } catch (err) {
       setRestoreError(err instanceof Error ? err.message : 'Restore failed.')
-    }
+    } finally { setRestoring(false) }
   }
 
   const capPct = ((ev.budgetCap - 20) / (150 - 20)) * 100
@@ -164,7 +167,7 @@ export default function Settings() {
       <GlassSegmented
         ariaLabel="Visual style"
         value={style}
-        onChange={setStyle}
+        onChange={value => { void setStyle(value).catch(() => undefined) }}
         options={[
           { value: 'classic', label: 'Classic' },
           { value: 'minimal', label: 'Minimal' },
@@ -193,7 +196,7 @@ export default function Settings() {
       <GlassSegmented
         ariaLabel="Theme"
         value={theme}
-        onChange={setTheme}
+        onChange={value => { void setTheme(value).catch(() => undefined) }}
         options={[
           { value: 'light', label: 'Light' },
           { value: 'dark', label: 'Dark' },
@@ -204,7 +207,7 @@ export default function Settings() {
         ariaLabel="Display density"
         className="density-seg"
         value={density}
-        onChange={setDensity}
+        onChange={value => { void setDensity(value).catch(() => undefined) }}
         options={[
           { value: 'comfortable', label: 'Comfortable' },
           { value: 'compact', label: 'Compact' },
@@ -285,7 +288,7 @@ export default function Settings() {
                 <div className="kstep">
                   <button
                     type="button"
-                    onClick={() => updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(1)) })}
+                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(1)) }).catch(() => undefined) }}
                   >
                     −
                   </button>
@@ -295,7 +298,7 @@ export default function Settings() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => updateProvider(p.id, { freeKwhPerDay: +(p.freeKwhPerDay + 0.5).toFixed(1) })}
+                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: +(p.freeKwhPerDay + 0.5).toFixed(1) }).catch(() => undefined) }}
                   >
                     +
                   </button>
@@ -336,8 +339,7 @@ export default function Settings() {
                   className="text-btn"
                   style={{ marginTop: 10, color: 'var(--fnt)' }}
                   onClick={() => {
-                    setProviderArchived(p.id, true)
-                    setEditingId(null)
+                    void setProviderArchived(p.id, true).then(() => setEditingId(null)).catch(() => undefined)
                   }}
                 >
                   Archive this charger ›
@@ -368,7 +370,7 @@ export default function Settings() {
                   type="button"
                   className="text-btn"
                   style={{ whiteSpace: 'nowrap' }}
-                  onClick={() => setProviderArchived(p.id, false)}
+                  onClick={() => { void setProviderArchived(p.id, false).catch(() => undefined) }}
                 >
                   Unarchive
                 </button>
@@ -391,7 +393,7 @@ export default function Settings() {
           step={5}
           value={ev.budgetCap}
           style={{ ['--pct' as string]: `${capPct}%` }}
-          onChange={e => setBudgetCap(Number(e.target.value))}
+          onChange={e => { void setBudgetCap(Number(e.target.value)).catch(() => undefined) }}
         />
         <div className="thermoleg" style={{ marginTop: 10 }}>
           <span>$20</span>
@@ -500,7 +502,7 @@ export default function Settings() {
             .
           </p>
 
-          <button className="row" type="button" onClick={confirmMerge} style={{ marginBottom: 8 }}>
+          <button className="row" type="button" disabled={restoring} onClick={confirmMerge} style={{ marginBottom: 8 }}>
             <span className="mark" style={{ ['--pc' as string]: '#059669' }}>
               <Icon name="dl" size={17} />
             </span>

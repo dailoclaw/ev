@@ -7,7 +7,8 @@ const isDensity = (value: string | null): value is Density =>
   value === 'compact' || value === 'presentation' || value === 'comfortable'
 
 export const getStoredDensity = (): Density => {
-  const stored = localStorage.getItem(KEY)
+  let stored: string | null = null
+  try { stored = localStorage.getItem(KEY) } catch { /* Use the default. */ }
   return isDensity(stored) ? stored : 'comfortable'
 }
 
@@ -17,15 +18,13 @@ export function applyDensity(density: Density) {
   else root.dataset.density = density
 }
 
-export function setDensity(density: Density) {
-  updateAppSettings({ density })
+export async function setDensity(density: Density) {
+  await updateAppSettings({ density })
   applyDensity(density)
 }
 
 export function useDensity() {
   const density = useEvState().settings.density
-  const update = (value: Density) => {
-    setDensity(value)
-  }
+  const update = (value: Density) => setDensity(value)
   return [density, update] as const
 }

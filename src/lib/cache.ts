@@ -31,17 +31,33 @@ let openPromise: Promise<IDBDatabase> | null = null
 
 function openDb(): Promise<IDBDatabase> {
   if (openPromise) return openPromise
-  openPromise = new Promise((resolve, reject) => {
+  let cancelled = false
+  const attempt = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
     request.onupgradeneeded = () => {
       const db = request.result
       if (!db.objectStoreNames.contains(SNAPSHOTS)) db.createObjectStore(SNAPSHOTS)
       if (!db.objectStoreNames.contains(OUTBOX)) db.createObjectStore(OUTBOX, { keyPath: 'id' })
     }
-    request.onsuccess = () => resolve(request.result)
+    request.onsuccess = () => {
+      const db = request.result
+      if (cancelled) { db.close(); return }
+      db.onversionchange = () => { db.close(); if (openPromise === connection) openPromise = null }
+      db.onclose = () => { if (openPromise === connection) openPromise = null }
+      resolve(db)
+    }
+    request.onblocked = () => {
+      cancelled = true
+      reject(new Error('Offline storage is blocked by another tab. Close other EV Command tabs and retry.'))
+    }
     request.onerror = () => reject(request.error ?? new Error('Could not open the offline cache'))
   })
-  return openPromise
+  const connection = attempt.catch(error => {
+    if (openPromise === connection) openPromise = null
+    throw error
+  })
+  openPromise = connection
+  return connection
 }
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
@@ -55,7 +71,6 @@ function transactionDone(transaction: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve()
     transaction.onabort = () => reject(transaction.error ?? new Error('IndexedDB transaction was aborted'))
-    transaction.onerror = () => reject(transaction.error ?? new Error('IndexedDB transaction failed'))
   })
 }
 
@@ -66,15 +81,21 @@ export async function loadCachedSnapshot(): Promise<CachedSnapshot | null> {
   return (value as CachedSnapshot | undefined) ?? null
 }
 
-/** Atomically persist the optimistic snapshot and all operations needed to sync it. */
+/** Atomically persist the snapshot and all operations needed to sync it. */
 export async function commitCachedState(snapshot: CachedSnapshot, operations: OutboxMutation[] = []): Promise<void> {
   const db = await openDb()
   const transaction = db.transaction([SNAPSHOTS, OUTBOX], 'readwrite')
-  transaction.objectStore(SNAPSHOTS).put(snapshot, CURRENT)
-  const outbox = transaction.objectStore(OUTBOX)
-  // A new token for every durable write, even for identical payloads/timestamps.
-  for (const operation of operations) outbox.put({ ...operation, revision: crypto.randomUUID() })
-  await transactionDone(transaction)
+  const done = transactionDone(transaction)
+  try {
+    transaction.objectStore(SNAPSHOTS).put(snapshot, CURRENT)
+    const outbox = transaction.objectStore(OUTBOX)
+    for (const operation of operations) outbox.put({ ...operation, revision: crypto.randomUUID() })
+  } catch (error) {
+    try { transaction.abort() } catch { /* The transaction may already have aborted. */ }
+    await done.catch(() => undefined)
+    throw error
+  }
+  await done
 }
 
 export async function listOutbox(ownerId?: string): Promise<OutboxOperation[]> {

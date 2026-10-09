@@ -82,6 +82,7 @@ export default function Statement() {
   const [editing, setEditing] = useState<EnrichedSession | null>(null)
   const [openRowId, setOpenRowId] = useState<string | null>(null)
   const [snack, setSnack] = useState<{ session: Session; msg: string } | null>(null)
+  const [undoing, setUndoing] = useState(false)
   const snackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleDelete = async (s: EnrichedSession) => {
@@ -93,16 +94,18 @@ export default function Statement() {
         setSnack({ session: removed, msg: `${s.isFee ? 'Fee' : 'Charge'} deleted` })
         snackTimer.current = setTimeout(() => setSnack(null), 6000)
       }
-    } catch {
-      // optimistic state already reverted inside deleteSession
-    }
+    } catch { /* The save error banner is set by the mutation; the row is unchanged. */ }
   }
 
-  const handleUndo = () => {
-    if (!snack) return
-    undoDeleteSession(snack.session)
+  const handleUndo = async () => {
+    if (!snack || undoing) return
+    setUndoing(true)
     if (snackTimer.current) clearTimeout(snackTimer.current)
-    setSnack(null)
+    try {
+      await undoDeleteSession(snack.session)
+      setSnack(null)
+    } catch { /* Keep Undo available so a failed restore can be retried. */ }
+    finally { setUndoing(false) }
   }
 
   const idx = monthsDesc.findIndex(m => m.month === ym)
@@ -238,7 +241,7 @@ export default function Statement() {
       {snack && (
         <div className="snackbar">
           <span>{snack.msg}</span>
-          <button type="button" onClick={handleUndo}>
+          <button type="button" disabled={undoing} onClick={handleUndo}>
             Undo
           </button>
         </div>

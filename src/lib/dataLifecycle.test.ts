@@ -171,7 +171,7 @@ it.each(['success', 'failure'] as const)('ignores old mutation persistence %s af
   const signedOut = getState()
   if (result === 'success') write.resolve()
   else write.reject(new Error('Old transaction failed'))
-  await mutation
+  await expect(mutation).rejects.toThrow(result === 'success' ? 'account session changed' : 'Old transaction failed')
   expect(getState()).toBe(signedOut)
 })
 

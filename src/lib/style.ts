@@ -9,7 +9,9 @@ export type Style = 'classic' | 'minimal'
 const KEY = 'ev.style'
 let requestedStyle: Style = 'classic'
 
-export const getStoredStyle = (): Style => (localStorage.getItem(KEY) === 'minimal' ? 'minimal' : 'classic')
+export const getStoredStyle = (): Style => {
+  try { return localStorage.getItem(KEY) === 'minimal' ? 'minimal' : 'classic' } catch { return 'classic' }
+}
 
 export function applyStyle(style: Style) {
   const root = document.documentElement
@@ -21,16 +23,14 @@ export function applyStyle(style: Style) {
   } else delete root.dataset.style
 }
 
-export function setStyle(style: Style) {
-  updateAppSettings({ style })
+export async function setStyle(style: Style) {
+  await updateAppSettings({ style })
   applyStyle(style)
 }
 
 /** Settings toggle state — reads the stored value, writes through on change. */
 export function useStyle() {
   const style = useEvState().settings.style
-  const update = (s: Style) => {
-    setStyle(s)
-  }
+  const update = (s: Style) => setStyle(s)
   return [style, update] as const
 }

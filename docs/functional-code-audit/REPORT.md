@@ -560,6 +560,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 
 ### Step 2 — Make saves durably truthful (C2, M11, M13)
 
+**Implementation update (9 October 2026):** Publish-after-commit mutations, atomic paired saves/restores, recoverable storage errors and awaited UI save outcomes are implemented locally in v4.3.5. See [durable-save notes](DURABLE-SAVE-FIX.md). Shared input validation and cross-tab conflict handling remain open.
+
 1. Choose publish-after-commit or revision-aware optimistic rollback and apply consistently.
 2. Return promises/results from all mutations; update Add/Edit/Delete/Settings/Photo/Undo callers to handle failures.
 3. Put optional localStorage mirroring behind safe access wrappers.

@@ -55,16 +55,16 @@ it('demonstrates Date.parse normalizes the invalid day', () => {
   vi.restoreAllMocks()
 })
 
-it('demonstrates cache failure resolves save and leaves an unpersisted edit visible', async () => {
+it('regression: cache failure rejects save and preserves the persisted ledger', async () => {
   await clearOfflineCache()
   vi.stubGlobal('navigator', { onLine: false })
   vi.stubGlobal('localStorage', { getItem: () => 'done', setItem: () => undefined })
   await commitCachedState({ ownerId: 'owner', sessions: [{ ...row, providerId: 'p' }], providers: [provider], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: '' })
   await initializeData('owner')
   const failed = vi.spyOn(cache, 'commitCachedState').mockRejectedValueOnce(new Error('quota exceeded'))
-  await expect(updateSession('s', { cost: 9 })).resolves.toBeUndefined()
-  expect(getState().sessions[0].cost).toBe(9)
-  expect(getState().syncStatus).toBe('error')
+  await expect(updateSession('s', { cost: 9 })).rejects.toThrow('quota exceeded')
+  expect(getState().sessions[0].cost).toBe(5)
+  expect(getState().lastSaveError).toContain('Not saved')
   expect(await listOutbox('owner')).toEqual([])
   failed.mockRestore()
   stopDataSync()
@@ -72,15 +72,15 @@ it('demonstrates cache failure resolves save and leaves an unpersisted edit visi
   await clearOfflineCache()
 })
 
-it('demonstrates blocked localStorage changes settings before throwing with no durable operation', async () => {
+it('regression: blocked optional localStorage does not prevent durable settings saves', async () => {
   await clearOfflineCache()
   vi.stubGlobal('navigator', { onLine: false })
   vi.stubGlobal('localStorage', { getItem: () => 'done', setItem: () => { throw new Error('storage blocked') } })
   await commitCachedState({ ownerId: 'owner', sessions: [row], providers: [provider], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: '' })
   await initializeData('owner')
-  expect(() => updateAppSettings({ budgetCap: 70 })).toThrow('storage blocked')
+  await expect(updateAppSettings({ budgetCap: 70 })).resolves.toBeUndefined()
   expect(getState().budgetCap).toBe(70)
-  expect(await listOutbox('owner')).toEqual([])
+  expect(await listOutbox('owner')).toHaveLength(1)
   stopDataSync()
   vi.unstubAllGlobals()
   await clearOfflineCache()

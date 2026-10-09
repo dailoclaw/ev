@@ -5,7 +5,9 @@ import { updateAppSettings, useEvState } from './data'
 export type Theme = 'light' | 'dark'
 const KEY = 'ev.theme'
 
-export const getStoredTheme = (): Theme => (localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light')
+export const getStoredTheme = (): Theme => {
+  try { return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light' } catch { return 'light' }
+}
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement
@@ -16,16 +18,14 @@ export function applyTheme(theme: Theme) {
     ?.setAttribute('content', theme === 'dark' ? '#000000' : '#f3f5f7')
 }
 
-export function setTheme(theme: Theme) {
-  updateAppSettings({ theme })
+export async function setTheme(theme: Theme) {
+  await updateAppSettings({ theme })
   applyTheme(theme)
 }
 
 /** Settings toggle state — reads the stored value, writes through on change. */
 export function useTheme() {
   const theme = useEvState().settings.theme
-  const update = (t: Theme) => {
-    setTheme(t)
-  }
+  const update = (t: Theme) => setTheme(t)
   return [theme, update] as const
 }

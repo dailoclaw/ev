@@ -1,9 +1,10 @@
 import 'fake-indexeddb/auto'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { acknowledgeOutboxOperation, clearOfflineCache, commitCachedState, listOutbox, loadCachedSnapshot, resetCacheConnectionForTests, type OutboxMutation } from './cache'
 import { DEFAULT_SETTINGS } from './appModel'
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await clearOfflineCache()
   resetCacheConnectionForTests()
 })
@@ -94,4 +95,57 @@ describe('offline cache', () => {
     await acknowledgeOutboxOperation(firstRead[0])
     expect(await listOutbox()).toEqual([])
   })
+})
+
+
+it('recovers after an IndexedDB open denial', async () => {
+  resetCacheConnectionForTests()
+  vi.spyOn(indexedDB, 'open').mockImplementationOnce(() => { throw new DOMException('Offline storage denied', 'SecurityError') })
+  await expect(loadCachedSnapshot()).rejects.toThrow('Offline storage denied')
+  await expect(loadCachedSnapshot()).resolves.toBeNull()
+})
+
+it('rolls back the snapshot if an outbox put throws after the snapshot put', async () => {
+  const snapshot = { ownerId: 'owner', sessions: [], providers: [], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: 'original' }
+  await commitCachedState(snapshot)
+  const put = IDBObjectStore.prototype.put
+  vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function (this: IDBObjectStore, ...args) {
+    if (this.name === 'outbox') throw new DOMException('Queue quota exceeded', 'QuotaExceededError')
+    return put.apply(this, args)
+  })
+  await expect(commitCachedState({ ...snapshot, cachedAt: 'failed' }, [
+    { id: 'owner:settings', ownerId: 'owner', updatedAt: '', action: 'settings-update', payload: { budget_cap: 80 } },
+  ])).rejects.toThrow('Queue quota exceeded')
+  expect(await loadCachedSnapshot()).toEqual(snapshot)
+  expect(await listOutbox()).toEqual([])
+  vi.restoreAllMocks()
+  await expect(commitCachedState({ ...snapshot, cachedAt: 'retry' })).resolves.toBeUndefined()
+})
+
+it('rejects an aborted transaction and retains the previous snapshot', async () => {
+  const snapshot = { ownerId: 'owner', sessions: [], providers: [], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: 'original' }
+  await commitCachedState(snapshot)
+  const put = IDBObjectStore.prototype.put
+  vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementationOnce(function (this: IDBObjectStore, ...args) {
+    const request = put.apply(this, args)
+    const transaction = this.transaction
+    queueMicrotask(() => transaction.abort())
+    return request
+  })
+  await expect(commitCachedState({ ...snapshot, cachedAt: 'failed' })).rejects.toThrow('aborted')
+  expect(await loadCachedSnapshot()).toEqual(snapshot)
+})
+
+it.each(['error', 'blocked'] as const)('recovers after an asynchronous IndexedDB open %s', async event => {
+  resetCacheConnectionForTests()
+  vi.spyOn(indexedDB, 'open').mockImplementationOnce(() => {
+    const request = { error: new DOMException('Open failed', 'UnknownError'), onerror: null, onblocked: null }
+    queueMicrotask(() => {
+      const handler = event === 'error' ? request.onerror : request.onblocked
+      ;(handler as ((event: Event) => void) | null)?.(new Event(event))
+    })
+    return request as unknown as IDBOpenDBRequest
+  })
+  await expect(loadCachedSnapshot()).rejects.toThrow(event === 'error' ? 'Open failed' : 'blocked by another tab')
+  await expect(loadCachedSnapshot()).resolves.toBeNull()
 })

@@ -189,3 +189,103 @@ test('sign-out stays signed out when a paused sync response resumes', async ({ p
   })).toEqual({ status: 'signed-out', sessions: 0 })
   await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
 })
+
+async function injectQuotaFailure(page: Page) {
+  await page.addInitScript(() => {
+    const put = IDBObjectStore.prototype.put
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.transaction.db.name === 'ev-command' && document.documentElement.dataset.testStorage === 'fail') {
+        throw new DOMException('Test device quota exceeded', 'QuotaExceededError')
+      }
+      return put.apply(this, args)
+    }
+  })
+}
+
+test('failed edit keeps its input and succeeds only after a durable retry', async ({ page }) => {
+  await ledger(page)
+  await injectQuotaFailure(page)
+  await page.goto('/statement')
+  await expect(page.locator('.startup-splash')).toHaveCount(0)
+  const row = page.locator('.swiperow').first()
+  await row.getByRole('button', { name: 'Actions for FreeCo charge' }).click()
+  await row.getByRole('button', { name: 'Edit FreeCo charge' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Edit charge' })
+  const cost = dialog.locator('input[type="number"]').last()
+  await cost.fill('1.25')
+  await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+  await dialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(dialog.getByRole('alert')).toContainText('Not saved on this device')
+  await expect(cost).toHaveValue('1.25')
+  await page.getByRole('button', { name: 'Dismiss save error' }).click()
+  await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+  await dialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect.poll(() => page.evaluate(async () => {
+    const modulePath = '/src/lib/cache.ts'
+    const cache = await import(/* @vite-ignore */ modulePath)
+    return (await cache.loadCachedSnapshot())?.sessions[0].cost
+  })).toBe(1.25)
+})
+
+test('failed new charger and charge save stays atomic and preserves the add form', async ({ page }) => {
+  await ledger(page)
+  await injectQuotaFailure(page)
+  await page.goto('/statement')
+  await expect(page.locator('.startup-splash')).toHaveCount(0)
+  await page.getByRole('button', { name: /Add charge/ }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'Add charge or fee' })
+  await dialog.getByRole('button', { name: '+ New', exact: true }).click()
+  await dialog.getByPlaceholder('e.g. Evie').fill('New charger')
+  await dialog.getByPlaceholder('0.0', { exact: true }).fill('5')
+  await dialog.getByPlaceholder('0.00', { exact: true }).fill('2')
+  await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+  await dialog.getByRole('button', { name: 'Create charger & save' }).click()
+  await expect(dialog.getByRole('alert')).toContainText('Not saved on this device')
+  await expect(dialog.getByPlaceholder('e.g. Evie')).toHaveValue('New charger')
+  await expect(dialog.locator('.save-status')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Dismiss save error' }).click()
+  await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+  await dialog.getByRole('button', { name: 'Create charger & save' }).click()
+  await expect(dialog.locator('.save-status')).toBeVisible()
+  await expect.poll(() => page.evaluate(async () => {
+    const modulePath = '/src/lib/cache.ts'
+    const cache = await import(/* @vite-ignore */ modulePath)
+    const snapshot = await cache.loadCachedSnapshot()
+    return { providers: snapshot?.providers.filter((provider: { name: string }) => provider.name === 'New charger').length,
+      charges: snapshot?.sessions.filter((session: { cost: number }) => session.cost === 2).length }
+  })).toEqual({ providers: 1, charges: 1 })
+})
+
+test('failed Delete preserves the row and failed Undo remains available to retry', async ({ page }) => {
+  await ledger(page)
+  await injectQuotaFailure(page)
+  await page.goto('/statement')
+  await expect(page.locator('.startup-splash')).toHaveCount(0)
+  const row = page.locator('.swiperow').first()
+  const openDelete = async () => {
+    await row.getByRole('button', { name: 'Actions for FreeCo charge' }).click()
+    await row.getByRole('button', { name: 'Delete FreeCo charge' }).click()
+  }
+  await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+  await openDelete()
+  await expect(page.getByRole('alert')).toContainText('Not saved on this device')
+  await expect(page.locator('.swiperow')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Dismiss save error' }).click()
+  await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+  await openDelete()
+  await expect(page.locator('.swiperow')).toHaveCount(0)
+  const undo = page.getByRole('button', { name: 'Undo', exact: true })
+  await expect(undo).toBeVisible()
+  await page.evaluate(() => { document.documentElement.dataset.testStorage = 'fail' })
+  await undo.click()
+  await expect(page.getByRole('alert')).toContainText('Not saved on this device')
+  await expect(undo).toBeVisible()
+  await expect(page.locator('.swiperow')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Dismiss save error' }).click()
+  await page.evaluate(() => { delete document.documentElement.dataset.testStorage })
+  await undo.click()
+  await expect(page.locator('.swiperow')).toHaveCount(1)
+  await expect(undo).toHaveCount(0)
+})
