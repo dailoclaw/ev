@@ -2,8 +2,9 @@ import { providerAccountPath } from '../lib/accountRoutes'
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { aud, kwh } from '../lib/format'
+import { aud, kwh, thisMonth } from '../lib/format'
 import { Icon, Mark } from '../components/ui'
+import { recentCalendarMonths } from '../lib/analyticsPeriods'
 import { yearOnYear } from '../lib/yearOnYear'
 import { records } from '../lib/records'
 import { useUnitRoll } from '../lib/useUnitRoll'
@@ -82,9 +83,7 @@ function CanvasStats() {
 
   const model = useMemo(() => {
     const activeYear = years[0] ?? String(new Date().getFullYear())
-    const prevYear = String(Number(activeYear) - 1)
     const months = ev.months.filter(m => m.month.startsWith(activeYear))
-    const prevMonths = ev.months.filter(m => m.month.startsWith(prevYear))
     const sum = (list: typeof ev.months) =>
       list.reduce(
         (a, m) => ({
@@ -97,10 +96,11 @@ function CanvasStats() {
         { cost: 0, kwh: 0, sessions: 0, freeKwh: 0, saved: 0 },
       )
     const cur = sum(months)
-    const prev = sum(prevMonths)
     const rateNow = cur.kwh > 0 ? cur.cost / cur.kwh : 0
-    const ratePrev = prev.kwh > 0 ? prev.cost / prev.kwh : 0
-    const rateDelta = ratePrev > 0 ? ((rateNow - ratePrev) / ratePrev) * 100 : null
+    const comparison = yearOnYear(ev.months, activeYear)
+    const ratePrev = comparison.prevKwh > 0 ? (comparison.prevEnergy + comparison.prevFees) / comparison.prevKwh : 0
+    const comparableRate = comparison.curKwh > 0 ? (comparison.curEnergy + comparison.curFees) / comparison.curKwh : null
+    const rateDelta = comparableRate !== null && ratePrev > 0 ? ((comparableRate - ratePrev) / ratePrev) * 100 : null
     const freePct = cur.kwh > 0 ? Math.round((cur.freeKwh / cur.kwh) * 100) : 0
     const avgMonth = months.length > 0 ? cur.kwh / months.length : 0
     const largestMonth = months.reduce((max, m) => Math.max(max, m.kwh), 0)
@@ -109,7 +109,7 @@ function CanvasStats() {
         .filter(p => p.kwh > 0)
         .slice()
         .sort((a, b) => a.effectiveRate - b.effectiveRate)[0] ?? ev.byProvider[0]
-    return { activeYear, months, cur, prev, rateNow, rateDelta, freePct, avgMonth, largestMonth, bestProvider }
+    return { activeYear, months, cur, rateNow, rateDelta, freePct, avgMonth, largestMonth, bestProvider }
   }, [ev, years])
 
   const rates = model.months.map(m => (m.kwh > 0 ? m.cost / m.kwh : 0))
@@ -126,7 +126,7 @@ function CanvasStats() {
   const deltaText =
     model.rateDelta == null
       ? 'Building trend.'
-      : `${model.rateDelta > 0 ? 'Up' : 'Down'} ${Math.abs(model.rateDelta).toFixed(0)}% on last year.`
+      : `${model.rateDelta > 0 ? 'Up' : 'Down'} ${Math.abs(model.rateDelta).toFixed(0)}% across matching completed months last year.`
 
   return (
     <main className="app-shell cv cv-stats">
@@ -207,7 +207,7 @@ function CanvasStats() {
           </div>
           <section className="cv-mini-grid">
             <article>
-              <span>Average month</span>
+              <span>Average recorded month</span>
               <b>
                 <CountUpNumber value={model.avgMonth} format={value => kwh(value, 0)} durationMs={760} />
               </b>
@@ -486,7 +486,7 @@ function ClassicAnalytics() {
       o.kwh += s.amount
       byM.set(ym, o)
     }
-    return ev.months.map(m => {
+    return recentCalendarMonths(ev.months).map(m => {
       const o = byM.get(m.month) ?? { cost: 0, kwh: 0 }
       const value = metric === 'cost' ? o.cost : metric === 'kwh' ? o.kwh : o.kwh > 0 ? o.cost / o.kwh : 0
       return { month: m.month, label: m.label.split(' ')[0], cost: o.cost, kwh: o.kwh, value }
@@ -560,7 +560,7 @@ function ClassicAnalytics() {
       ) : view === 'split' ? (
         <SplitView ev={ev} provColor={provColor} navigate={navigate} />
       ) : (
-        <CompareView years={years} yearAgg={yearAgg} />
+        <CompareView years={years} yearAgg={yearAgg} months={ev.months} />
       )}
 
       <footer className="app-footer">EV Command · Analytics</footer>
@@ -588,7 +588,8 @@ function StatementView({
   const yDesc = [...yMonths].reverse()
   const tot = yearAgg(activeYear)
   const prevYear = String(Number(activeYear) - 1)
-  const deltaCost = years.includes(prevYear) ? pct(tot.cost, yearAgg(prevYear).cost) : null
+  const comparison = yearOnYear(ev.months, activeYear)
+  const deltaCost = comparison.hasPair ? pct(comparison.curEnergy + comparison.curFees, comparison.prevEnergy + comparison.prevFees) : null
 
   return (
     <>
@@ -616,6 +617,7 @@ function StatementView({
         <p className="hero-sub">
           {kwh(tot.kwh)} kWh added over {tot.sessions} charges · effective {perKwh(tot.cost, tot.kwh)}/kWh
         </p>
+        {deltaCost != null && <p className="hero-sub">Change compares {comparison.months.length} completed matching {comparison.months.length === 1 ? 'month' : 'months'}: {aud(comparison.curEnergy + comparison.curFees)} vs {aud(comparison.prevEnergy + comparison.prevFees)}. The year headline includes all recorded months.</p>}
       </section>
 
       <div className="sec-head">
@@ -734,8 +736,27 @@ function ClusterView({
   const bk = bucketize(ev.months, gran)
   const cur = bk[bk.length - 1]
   const prev = bk[bk.length - 2]
-  const dCost = prev ? pct(cur.cost, prev.cost) : null
-  const dKwh = prev ? pct(cur.kwh, prev.kwh) : null
+  const currentMonth = thisMonth()
+  const [year, mm] = currentMonth.split('-').map(Number)
+  const ongoingKey = gran === 'year' ? String(year) : gran === 'quarter' ? `${year}-Q${Math.ceil(mm / 3)}` : currentMonth
+  const bucketIndex = (key: string) => gran === 'year' ? Number(key) : gran === 'quarter'
+    ? Number(key.slice(0, 4)) * 4 + Number(key.slice(-1)) - 1
+    : Number(key.slice(0, 4)) * 12 + Number(key.slice(5)) - 1
+  const comparable = prev && cur.key < ongoingKey && bucketIndex(cur.key) - bucketIndex(prev.key) === 1
+  const comparison = gran === 'year' ? yearOnYear(ev.months, cur.key) : null
+  const completeQuarter = gran !== 'quarter' || [cur, prev].every(bucket => bucket && ev.months.filter(month => {
+    const quarter = `${month.month.slice(0, 4)}-Q${Math.ceil(Number(month.month.slice(5)) / 3)}`
+    return quarter === bucket.key
+  }).length === 3)
+  let dCost: number | null = null
+  let dKwh: number | null = null
+  if (comparison?.hasPair) {
+    dCost = pct(comparison.curEnergy + comparison.curFees, comparison.prevEnergy + comparison.prevFees)
+    dKwh = pct(comparison.curKwh, comparison.prevKwh)
+  } else if (!comparison && comparable && completeQuarter) {
+    dCost = pct(cur.cost, prev.cost)
+    dKwh = pct(cur.kwh, prev.kwh)
+  }
   const priciest = bk.reduce((a, b) => (b.cost > a.cost ? b : a), bk[0])
 
   const rolling = useUnitRoll(metric)
@@ -764,7 +785,7 @@ function ClusterView({
           </strong>
           {dCost != null ? (
             <small className={dCost > 0 ? 'negd' : 'pos'}>
-              {dCost > 0 ? '▲' : '▼'} {Math.abs(dCost).toFixed(0)}% vs {prev.label}
+              {dCost > 0 ? '▲' : '▼'} {Math.abs(dCost).toFixed(0)}% vs {prev.label}{comparison ? ` · ${comparison.months.length} completed matching months` : ' · completed periods'}
             </small>
           ) : (
             <small>{cur.label}</small>
@@ -777,7 +798,7 @@ function ClusterView({
           </strong>
           {dKwh != null ? (
             <small>
-              {dKwh > 0 ? '▲' : '▼'} {Math.abs(dKwh).toFixed(0)}% vs {prev.label}
+              {dKwh > 0 ? '▲' : '▼'} {Math.abs(dKwh).toFixed(0)}% vs {prev.label}{comparison ? ` · ${comparison.months.length} completed matching months` : ' · completed periods'}
             </small>
           ) : (
             <small>{cur.label}</small>
@@ -935,14 +956,7 @@ function YoyCard({ ev }: { ev: ReturnType<typeof useEv> }) {
         <b>Energy only.</b> These bars exclude membership fees — {aud(y.curFees, 0)} across these {y.months.length}{' '}
         months
         {y.prevFees === 0 ? `, none in ${y.prevYear}` : ` vs ${aud(y.prevFees, 0)} in ${y.prevYear}`}. Only months that
-        exist in both years are compared, so a part-year never skews it.
-        {down && y.feeDelta > 0 && (
-          <>
-            {' '}
-            The year total at the top of this page counts those fees, which is why it reads as a rise while your actual
-            energy cost <b>fell {Math.abs(y.energyDeltaPct!).toFixed(0)}%</b>.
-          </>
-        )}
+        are completed and recorded in both consecutive years. The ongoing month is excluded; missing records are not assumed to mean zero usage.
       </p>
     </section>
   )
@@ -1139,7 +1153,7 @@ function SplitView({
   const byKwh = [...ev.byProvider].sort((a, b) => b.kwh - a.kwh)
   const maxKwh = Math.max(...byKwh.map(p => p.kwh), 0.01)
 
-  const last6 = ev.months.slice(-6)
+  const last6 = recentCalendarMonths(ev.months)
   const maxTot = Math.max(...last6.map(m => m.kwh), 0.01)
 
   return (
@@ -1273,8 +1287,10 @@ function SplitView({
 function CompareView({
   years,
   yearAgg,
+  months,
 }: {
   years: string[]
+  months: ReturnType<typeof useEv>['months']
   yearAgg: (y: string) => { cost: number; kwh: number; sessions: number; freeKwh: number; saved: number; fees: number }
 }) {
   if (years.length < 2) {
@@ -1288,10 +1304,20 @@ function CompareView({
       </div>
     )
   }
-  const A = years[1]
-  const B = years[0]
-  const a = yearAgg(A)
-  const b = yearAgg(B)
+  const comparison = yearOnYear(months)
+  if (!comparison.hasPair) return <p className="hero-sub">No completed matching months in consecutive years to compare.</p>
+  const A = comparison.prevYear
+  const B = comparison.curYear
+  const a = { ...yearAgg(A), cost: comparison.prevEnergy + comparison.prevFees, kwh: comparison.prevKwh }
+  const b = { ...yearAgg(B), cost: comparison.curEnergy + comparison.curFees, kwh: comparison.curKwh }
+  const keys = new Set(comparison.months.map(month => month.mm))
+  for (const [year, total] of [[A, a], [B, b]] as const) {
+    const matched = months.filter(month => month.month.startsWith(year) && keys.has(month.month.slice(5)))
+    total.sessions = matched.reduce((sum, month) => sum + month.sessions, 0)
+    total.freeKwh = matched.reduce((sum, month) => sum + month.freeKwh, 0)
+    total.saved = matched.reduce((sum, month) => sum + month.saved, 0)
+    total.fees = matched.reduce((sum, month) => sum + month.fees, 0)
+  }
   const rateA = a.kwh > 0 ? a.cost / a.kwh : 0
   const rateB = b.kwh > 0 ? b.cost / b.kwh : 0
   const bar = (va: number, vb: number) => {
@@ -1306,6 +1332,7 @@ function CompareView({
 
   return (
     <>
+      <p className="hero-sub">{comparison.months.length} completed matching {comparison.months.length === 1 ? 'month' : 'months'}. The ongoing month and months without records in both years are excluded.</p>
       <div className="seg" style={{ gridTemplateColumns: '1fr auto 1fr', gridAutoFlow: 'unset' }}>
         <button type="button" className="on">
           {A}
@@ -1371,7 +1398,7 @@ function CompareView({
           </div>
           <div className="mid">
             {arrow(rateB, rateA)}
-            {rateB > rateA ? 'higher' : 'lower'}
+            {rateB === rateA ? 'unchanged' : rateB > rateA ? 'higher' : 'lower'}
           </div>
           <div className="side">
             <div className="v">

@@ -615,6 +615,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 5. Test fee-only, all-free, no history, multiple providers, missing years/months, ongoing month, zero reference rate, zero budget and changing allowances.
 6. **Gate:** receipts/CSV/chart/explanations agree on the same totals and scope.
 
+**Implementation update (9 October 2026):** Recorded-cost attribution with disclosed non-energy exclusions, completed matching consecutive-year comparisons, equal-day Home comparisons, calendar-filled six-month series and multiple-network allowance displays are implemented locally in v4.3.10. Zero-budget gauges and allowance/reference-rate explanations are corrected. See [analytics semantics notes](ANALYTICS-SEMANTICS-FIX.md). Historical allowance versions are not stored; current settings are explicitly applied across history. Production environment and cross-tab acceptance remain open.
+
 ### Step 7 — Close security and accessibility gaps
 
 1. Refresh vulnerable dependency resolutions on a branch; avoid forced major upgrades. `npm audit fix` may help, but inspect its lockfile diff and compatibility instead of accepting it blindly.

@@ -154,7 +154,7 @@ export function Thermo({ spent, projected, cap }: { spent: number; projected: nu
     [],
   )
   const [armed, setArmed] = useState(false)
-  const pct = (n: number) => Math.min(100, Math.max(0, (n / cap) * 100))
+  const pct = (n: number) => cap > 0 ? Math.min(100, Math.max(0, (n / cap) * 100)) : n > 0 ? 100 : 0
 
   useEffect(() => {
     if (reduceMotion) return

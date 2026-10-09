@@ -84,3 +84,30 @@ describe('cost concentration', () => {
     expect(model.totalCost).toBe(0)
   })
 })
+
+it('preserves positive recorded cost when an allowance covers all energy in every mode', () => {
+  const covered = row({ amount: 7, cost: 5, freeKwh: 7, paidKwh: 0 })
+  for (const mode of ['all', 'paid', 'provider'] as const) {
+    const model = costConcentration([covered], mode, 'Network', 50)
+    expect(model.totalCost).toBe(5)
+    expect(model.totalKwh).toBe(7)
+    expect(model.tailCostPct).toBeCloseTo(50)
+    expect(model.points.at(-1)).toEqual({ energyPct: 100, costPct: 100 })
+  }
+})
+
+it('reconciles scoped ledger cost with energy and excluded non-energy costs', () => {
+  const sessions = [
+    row({ id: 'covered', amount: 7, cost: 5, freeKwh: 7 }),
+    row({ id: 'mixed', amount: 10, cost: 4, freeKwh: 2, paidKwh: 8 }),
+    row({ id: 'fee', amount: 0, cost: 15, isFee: true }),
+    row({ id: 'other', type: 'Other', amount: 10, cost: 100, freeKwh: 0 }),
+  ]
+  const result = costConcentration(sessions, 'provider', 'Network', 100)
+  expect(result.totalCost + result.excludedNonEnergyCost).toBe(24)
+  expect(result.tailCostPct).toBe(0)
+  expect(result.tailSessions).toEqual([])
+  const free = costConcentration([row({})], 'all', null, 0)
+  expect(free.totalCost).toBe(0)
+  expect(free.points.every(p => Number.isFinite(p.costPct))).toBe(true)
+})

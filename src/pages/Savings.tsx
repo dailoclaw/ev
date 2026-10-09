@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { allowanceUsedOn } from '../lib/savings'
+import { allowanceRule, dailyAllowances, recentCalendarMonths } from '../lib/analyticsPeriods'
 import { aud, kwh, rate, thisMonth, todayIso } from '../lib/format'
 import { Bars, Icon } from '../components/ui'
 import Explainable from '../components/Explainable'
@@ -20,17 +20,17 @@ function CanvasSavings() {
   const navigate = useNavigate()
   const ev = useEv()
   const [view, setView] = useState<CanvasSavingsView>('overview')
-  const freeProvider = ev.providers.find(p => p.freeKwhPerDay > 0)
-  const usedToday = freeProvider ? allowanceUsedOn(ev.sessions, freeProvider.name, todayIso()) : 0
-  const allowance = freeProvider?.freeKwhPerDay ?? 0
-  const leftToday = Math.max(0, allowance - usedToday)
-  const last6 = ev.months.slice(-6)
+  const allowances = dailyAllowances(ev.sessions, ev.providers, todayIso())
+  const usedToday = allowances.reduce((sum, a) => sum + a.used, 0)
+  const allowance = allowances.reduce((sum, a) => sum + a.provider.freeKwhPerDay, 0)
+  const leftToday = allowances.reduce((sum, a) => sum + a.left, 0)
+  const last6 = recentCalendarMonths(ev.months)
   const averageSaved = last6.length > 0 ? last6.reduce((sum, month) => sum + month.saved, 0) / last6.length : 0
   const currentSaved = ev.months.find(month => month.month === thisMonth())?.saved ?? 0
 
   const cumulative = useMemo(() => {
-    const visible = ev.months.slice(-12)
-    const hidden = ev.months.slice(0, Math.max(0, ev.months.length - visible.length))
+    const visible = recentCalendarMonths(ev.months, 12)
+    const hidden = ev.months.filter(month => month.month < visible[0].month)
     const openingValue = hidden.reduce((sum, month) => sum + month.saved, 0)
     return visible.map((month, index) => ({
       label: month.label,
@@ -71,7 +71,7 @@ function CanvasSavings() {
               </span>
               <span className="c" aria-hidden="true">›</span>
             </button>
-            {freeProvider && (
+            {allowances.length > 0 && (
               <button className="cv-row" type="button" onClick={() => setView('allowance')}>
                 <span className="k">Today's allowance</span>
                 <span className="v">
@@ -124,10 +124,10 @@ function CanvasSavings() {
 
           <section className="cv-savings-note">
             <span>How it is calculated</span>
-            {freeProvider ? (
+            {ev.providers.some(p => p.freeKwhPerDay > 0) ? (
               <>
                 <p>
-                  Each day's first {allowance} kWh at {freeProvider.name} is free. We value the captured energy at{' '}
+                  {allowanceRule(ev.providers)} We value the captured energy at{' '}
                   <b>{rate(ev.refRate)}/kWh</b>.
                 </p>
                 <p>
@@ -156,18 +156,21 @@ function CanvasSavings() {
             backLabel="Back to savings"
           />
 
-          <figure className="allowance-gauge-panel">
-            <SloshGauge used={usedToday} max={allowance} provider={freeProvider?.name ?? 'your network'} large />
-            <figcaption>
-              <strong>{freeProvider?.name}</strong>
-              <span>{usedToday.toFixed(1)} of {allowance.toFixed(1)} kWh used today</span>
-              <span>{leftToday.toFixed(1)} kWh still free</span>
-            </figcaption>
-          </figure>
+          {allowances.map(({ provider, used, left }) => (
+            <figure className="allowance-gauge-panel" key={provider.id}>
+              <SloshGauge used={used} max={provider.freeKwhPerDay} provider={provider.name} large />
+              <figcaption>
+                <strong>{provider.name}</strong>
+                <span>{used.toFixed(1)} of {provider.freeKwhPerDay.toFixed(1)} kWh used today</span>
+                <span>{left.toFixed(1)} kWh still free at this network</span>
+              </figcaption>
+            </figure>
+          ))}
+          <p className="hero-sub">Allowances are separate for each network. They reset at midnight.</p>
 
           <div className="cv-rows">
             <div className="cv-row cv-row-static">
-              <span className="k">Days maxed, all time</span>
+              <span className="k">Network-days maxed, all time</span>
               <span className="v">
                 <CountUpNumber value={ev.lifetime.daysMaxed} format={value => Math.round(value).toLocaleString('en-AU')} durationMs={720} />
               </span>
@@ -186,7 +189,7 @@ function CanvasSavings() {
           <CanvasSavingsHeader
             title="This month"
             value={<CountUpNumber value={currentSaved} format={aud} durationMs={850} />}
-            ctx="Free energy value before membership fees."
+            ctx="Six calendar months, including this month so far. Months without records show zero; values are before fees."
             onBack={back}
             backLabel="Back to savings"
           />
@@ -300,10 +303,8 @@ function CanvasSavingsBars({ data }: { data: Array<{ label: string; value: numbe
 function ClassicSavings() {
   const navigate = useNavigate()
   const ev = useEv()
-  const freeProvider = ev.providers.find(p => p.freeKwhPerDay > 0)
-  const usedToday = freeProvider ? allowanceUsedOn(ev.sessions, freeProvider.name, todayIso()) : 0
-  const leftToday = freeProvider ? Math.max(0, freeProvider.freeKwhPerDay - usedToday) : 0
-  const last6 = ev.months.slice(-6)
+  const allowances = dailyAllowances(ev.sessions, ev.providers, todayIso())
+  const last6 = recentCalendarMonths(ev.months)
 
   return (
     <main className="app-shell">
@@ -312,7 +313,7 @@ function ClassicSavings() {
           <p className="eyebrow">Free energy</p>
           <h1>Savings</h1>
           <span className="sub">
-            {freeProvider ? `Powered by ${freeProvider.name}'s ${freeProvider.freeKwhPerDay} kWh/day` : 'No free allowances configured'}
+            {ev.providers.filter(p => p.freeKwhPerDay > 0).map(p => `${p.name}: ${p.freeKwhPerDay} kWh/day`).join(' · ') || 'No free allowances configured'}
           </span>
         </div>
         <button className="icon-btn" type="button" aria-label="Back" onClick={() => navigate(-1)}>
@@ -361,26 +362,27 @@ function ClassicSavings() {
         </div>
       </section>
 
-      {freeProvider && (
-        <section className="hero-card" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <SloshGauge used={usedToday} max={freeProvider.freeKwhPerDay} provider={freeProvider.name} />
+      {allowances.map(({ provider, used, left }) => (
+        <section key={provider.id} className="hero-card" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <SloshGauge used={used} max={provider.freeKwhPerDay} provider={provider.name} />
           <div>
             <span className="cap">Today's allowance</span>
-            <span className="allowance-exact">{usedToday.toFixed(1)} of {freeProvider.freeKwhPerDay.toFixed(1)} kWh used · {freeProvider.name}</span>
+            <span className="allowance-exact">{used.toFixed(1)} of {provider.freeKwhPerDay.toFixed(1)} kWh used · {provider.name}</span>
             <div style={{ fontSize: 16, fontWeight: 800, marginTop: 5 }}>
-              {leftToday > 0 ? `${leftToday.toFixed(1)} kWh still free` : 'Fully used — nice'}
+              {left > 0 ? `${left.toFixed(1)} kWh still free at this network` : 'Fully used — nice'}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--mut)', fontWeight: 600, marginTop: 3 }}>
-              Resets midnight · {ev.lifetime.daysMaxed} days maxed all-time
+              Resets midnight · {ev.lifetime.daysMaxed} network-days maxed all-time
             </div>
           </div>
         </section>
-      )}
+      ))}
 
       <section className="chart-card">
         <h4>
           Saved per month <em>$ value</em>
         </h4>
+        <p className="hero-sub">Six calendar months, including this month so far. Months without records show zero.</p>
         <Bars data={last6.map(m => ({ label: m.label.split(' ')[0], value: m.saved }))} showValues valueLabel={v => aud(v, 0)} />
       </section>
 
@@ -389,18 +391,14 @@ function ClassicSavings() {
           How it's calculated
         </span>
         <p style={{ fontSize: 12.5, color: 'var(--mut)', fontWeight: 600, lineHeight: 1.6 }}>
-          Each day's first {freeProvider?.freeKwhPerDay ?? 7} kWh at {freeProvider?.name ?? 'Jolt'} is free. We sum{' '}
-          <b style={{ color: 'var(--tx)' }}>
-            min({freeProvider?.freeKwhPerDay ?? 7}, that day's {freeProvider?.name ?? 'Jolt'} kWh)
-          </b>{' '}
-          and value it at <b style={{ color: 'var(--tx)' }}>{rate(ev.refRate)}/kWh</b>.
+          {allowanceRule(ev.providers)} Free energy value is estimated at <b>{rate(ev.refRate)}/kWh</b>. Recorded costs remain payable.
         </p>
         <div className="ratebasis">
           {ev.rateBasis.independent ? (
             <>
               That rate is what you actually pay where there's <b>no</b> free allowance —{' '}
-              <b>{ev.rateBasis.from.join(', ')}</b> across {kwh(ev.rateBasis.kwh)} kWh. {freeProvider?.name ?? 'Jolt'}'s
-              own sessions are excluded: they're already discounted by the free kWh inside them, so counting them would
+              <b>{ev.rateBasis.from.join(', ')}</b> across {kwh(ev.rateBasis.kwh)} kWh. Networks with allowances have their
+              own sessions excluded: they're already discounted by the free kWh inside them, so counting them would
               value the giveaway using the giver's prices.
             </>
           ) : (
@@ -413,7 +411,7 @@ function ClassicSavings() {
       </section>
 
       <footer className="app-footer">
-        You've charged {aud(ev.lifetime.saved + ev.lifetime.cost, 0)} of energy for {aud(ev.lifetime.cost, 0)}
+        Recorded spend {aud(ev.lifetime.cost, 0)} · estimated free energy value {aud(ev.lifetime.saved, 0)}
       </footer>
     </main>
   )

@@ -105,6 +105,10 @@ export default function CostConcentration() {
         </div>
       )}
 
+      <p className="hero-sub">
+        Recorded energy cost: {aud(model.totalCost)}. Non-energy charges excluded: {aud(model.excludedNonEnergyCost)}.
+        Costs on fully allowance-covered charges are spread across their delivered energy.
+      </p>
       {!hasCurve ? (
         <div className="emptybat">
           <div className="batt">

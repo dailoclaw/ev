@@ -2,7 +2,7 @@ import { providerAccountPath } from '../lib/accountRoutes'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
-import { allowanceUsedOn } from '../lib/savings'
+import { dailyAllowances, matchedMonthSpend } from '../lib/analyticsPeriods'
 import { aud, kwh, monthTitle, thisMonth, todayIso, shortDate, rate } from '../lib/format'
 import { FreeTag, Icon, Mark, Ring, Thermo } from '../components/ui'
 import Explainable from '../components/Explainable'
@@ -28,12 +28,12 @@ function CanvasHome() {
       const d = new Date(y, m - 2, 1)
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     })()
-    const prev = ev.months.find(x => x.month === prevYm)
-    const deltaPct = prev && prev.cost > 0 && cur ? ((cur.cost - prev.cost) / prev.cost) * 100 : null
-    return { cur, deltaPct, prevName: monthTitle(prevYm).split(' ')[0] }
+    const comparison = matchedMonthSpend(ev.sessions, todayIso())
+    const deltaPct = comparison.deltaPct
+    return { cur, deltaPct, comparisonDays: comparison.days, prevName: monthTitle(prevYm).split(' ')[0] }
   }, [ev, ym])
 
-  const { cur, deltaPct, prevName } = view
+  const { cur, deltaPct, comparisonDays, prevName } = view
   const freeKwh = cur?.freeKwh ?? 0
   const totalKwh = cur?.kwh ?? 0
   const paidKwh = Math.max(0, totalKwh - freeKwh)
@@ -64,7 +64,7 @@ function CanvasHome() {
         {deltaPct != null && (
           <em>
             {deltaPct > 0 ? 'Up' : 'Down'}{' '}
-            <CountUpNumber value={Math.abs(deltaPct)} format={value => `${value.toFixed(0)}%`} durationMs={620} /> on {prevName}.
+            <CountUpNumber value={Math.abs(deltaPct)} format={value => `${value.toFixed(0)}%`} durationMs={620} /> on {prevName} across the first {comparisonDays} days.
           </em>
         )}
       </p>
@@ -114,13 +114,8 @@ function ClassicHome() {
 
   const view = useMemo(() => {
     const cur = ev.months.find(m => m.month === ym)
-    const prevYm = (() => {
-      const [y, m] = ym.split('-').map(Number)
-      const d = new Date(y, m - 2, 1)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    })()
-    const prev = ev.months.find(m => m.month === prevYm)
-    const deltaPct = prev && prev.cost > 0 && cur ? ((cur.cost - prev.cost) / prev.cost) * 100 : null
+    const comparison = matchedMonthSpend(ev.sessions, todayIso())
+    const deltaPct = comparison.deltaPct
 
     // budget projection: linear on day-of-month
     const now = new Date()
@@ -129,13 +124,13 @@ function ClassicHome() {
     const projected = cur ? (cur.cost / Math.max(1, dayOfMonth)) * daysInMonth : 0
 
     // today's allowance across providers that have one
-    const freeProvider = ev.providers.find(p => p.freeKwhPerDay > 0)
-    const usedToday = freeProvider ? allowanceUsedOn(ev.sessions, freeProvider.name, todayIso()) : 0
-
-    return { cur, deltaPct, projected, freeProvider, usedToday }
+    const allowances = dailyAllowances(ev.sessions, ev.providers, todayIso())
+    const usedToday = allowances.reduce((sum, a) => sum + a.used, 0)
+    const allowance = allowances.reduce((sum, a) => sum + a.provider.freeKwhPerDay, 0)
+    return { cur, deltaPct, comparisonDays: comparison.days, projected, allowances, allowance, usedToday }
   }, [ev, ym])
 
-  const { cur, deltaPct, projected, freeProvider, usedToday } = view
+  const { cur, deltaPct, comparisonDays, projected, allowances, allowance, usedToday } = view
   const freePctOfKwh = cur && cur.kwh > 0 ? Math.round((cur.freeKwh / cur.kwh) * 100) : 0
   const topAccounts = ev.byProvider.slice(0, 2)
   const recent = ev.sessionsDesc.slice(0, 3)
@@ -172,9 +167,10 @@ function ClassicHome() {
         <p className="hero-sub">
           {cur ? `${kwh(cur.kwh)} kWh added · ${freePctOfKwh}% of it free` : 'Tap + to log your first charge'}
         </p>
+        {deltaPct != null && <p className="hero-sub">Change compares the first {comparisonDays} days of each month.</p>}
       </section>
 
-      {freeProvider && (
+      {(allowances.length > 0 || (cur?.freeKwh ?? 0) > 0) && (
         <button
           className="savecard"
           type="button"
@@ -182,21 +178,21 @@ function ClassicHome() {
           onClick={() => navigate('/savings')}
         >
           <span className="bolt">⚡</span>
-          <span className="cap">Free {freeProvider.name} energy · {monthTitle(ym).split(' ')[0]}</span>
+          <span className="cap">Free energy · {monthTitle(ym).split(' ')[0]}</span>
           <b className="big">
             <CountUpNumber value={cur?.saved ?? 0} format={aud} durationMs={780} /> saved
           </b>
           <small>
             {kwh(cur?.freeKwh ?? 0, 1)} kWh free this month · lifetime <b>{aud(ev.lifetime.netSaved, 0)}</b> net
             <br />
-            Today: {usedToday.toFixed(1)} of {freeProvider.freeKwhPerDay} kWh free used
+            {allowances.map(a => `${a.provider.name}: ${a.used.toFixed(1)} of ${a.provider.freeKwhPerDay} kWh today`).join(' · ')}
           </small>
           <span className="ringside">
             <Ring
               value={usedToday}
-              max={freeProvider.freeKwhPerDay}
+              max={allowance}
               label={usedToday.toFixed(1)}
-              sub={`of ${freeProvider.freeKwhPerDay}`}
+              sub={`of ${allowance}`}
             />
           </span>
         </button>

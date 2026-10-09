@@ -1,5 +1,14 @@
 # EV Command — Changelog
 
+## v4.3.10 (2026-10-09)
+### Fixes
+- Preserved recorded costs on fully allowance-covered charges in concentration charts; disclosed excluded non-energy charges.
+- Compared completed matching months in consecutive years across analytics, and equal calendar-day ranges on Home.
+- Included months without records in six-month charts and averages; disclosed current partial-month scope.
+- Displayed each active network's daily allowance separately in both Savings styles and corrected aggregate Home labels.
+- Removed invented default allowances from explanations and disclosed current settings, fallback reference rates and estimated savings.
+- Added regression checks for gaps, unfinished periods, zero baselines, multiple networks and cost reconciliation.
+
 ## v4.3.9 (2026-10-09)
 ### Fixes
 - Removed redundant account name decoding; new account links use stable provider IDs and survive renames while legacy name URLs remain supported.

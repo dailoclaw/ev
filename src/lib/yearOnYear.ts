@@ -1,10 +1,5 @@
-// Same-month year-on-year comparison, with fees held apart from energy.
-//
-// A raw year-vs-year delta compares a full year against a partial one and folds a
-// new subscription into what looks like rising consumption. Pairing calendar months
-// that exist in BOTH years — and splitting fixed fees out of variable energy — shows
-// the two movements separately, which is usually the opposite story.
 import type { MonthSummary } from './savings'
+import { thisMonth } from './format'
 
 export interface YoyMonth {
   mm: string // '05'
@@ -13,6 +8,8 @@ export interface YoyMonth {
   curEnergy: number
   prevFees: number
   curFees: number
+  prevKwh: number
+  curKwh: number
 }
 
 export interface YearOnYear {
@@ -25,6 +22,8 @@ export interface YearOnYear {
   curEnergy: number
   prevFees: number
   curFees: number
+  prevKwh: number
+  curKwh: number
   energyDeltaPct: number | null
   feeDelta: number
 }
@@ -38,6 +37,8 @@ const EMPTY: YearOnYear = {
   curEnergy: 0,
   prevFees: 0,
   curFees: 0,
+  prevKwh: 0,
+  curKwh: 0,
   energyDeltaPct: null,
   feeDelta: 0,
 }
@@ -46,10 +47,10 @@ const monthShort = (mm: string) =>
   new Date(2000, Number(mm) - 1, 1).toLocaleDateString('en-AU', { month: 'short' })
 
 /**
- * Pair the latest year against the one before it, using only months present in both.
+ * Pair the latest year against the one before it, using completed calendar months recorded in both consecutive years.
  * Energy is cost minus fees, so a membership charge never reads as more driving.
  */
-export function yearOnYear(months: MonthSummary[]): YearOnYear {
+export function yearOnYear(months: MonthSummary[], selectedYear?: string, asOfMonth = thisMonth()): YearOnYear {
   if (months.length === 0) return EMPTY
 
   const byYear = new Map<string, Map<string, MonthSummary>>()
@@ -61,16 +62,18 @@ export function yearOnYear(months: MonthSummary[]): YearOnYear {
 
   const years = [...byYear.keys()].sort()
   if (years.length < 2) return EMPTY
-  const curYear = years[years.length - 1]
-  const prevYear = years[years.length - 2]
-  const cur = byYear.get(curYear)!
-  const prev = byYear.get(prevYear)!
+  const curYear = selectedYear ?? years.filter(year => year <= asOfMonth.slice(0, 4)).at(-1)
+  if (!curYear) return EMPTY
+  const prevYear = String(Number(curYear) - 1)
+  const cur = byYear.get(curYear)
+  const prev = byYear.get(prevYear)
+  if (!cur || !prev) return EMPTY
 
   const pairs: YoyMonth[] = []
   for (const mm of [...cur.keys()].sort()) {
     const c = cur.get(mm)
     const p = prev.get(mm)
-    if (!c || !p) continue
+    if (!c || !p || `${curYear}-${mm}` >= asOfMonth) continue
     pairs.push({
       mm,
       label: monthShort(mm),
@@ -78,6 +81,8 @@ export function yearOnYear(months: MonthSummary[]): YearOnYear {
       curEnergy: c.cost - c.fees,
       prevFees: p.fees,
       curFees: c.fees,
+      prevKwh: p.kwh,
+      curKwh: c.kwh,
     })
   }
   if (pairs.length === 0) return EMPTY
@@ -97,6 +102,8 @@ export function yearOnYear(months: MonthSummary[]): YearOnYear {
     curEnergy,
     prevFees,
     curFees,
+    prevKwh: sum(pairs.map(p => p.prevKwh)),
+    curKwh: sum(pairs.map(p => p.curKwh)),
     energyDeltaPct: prevEnergy > 0 ? ((curEnergy - prevEnergy) / prevEnergy) * 100 : null,
     feeDelta: curFees - prevFees,
   }

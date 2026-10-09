@@ -661,3 +661,93 @@ for (const style of ['classic', 'minimal']) {
     expect(reloaded.rows.find((row: { id: string }) => row.id === before.find((row: { createdAt?: string }) => row.createdAt)?.id)?.createdAt).toBe(before.find((row: { createdAt?: string }) => row.createdAt)?.createdAt)
   })
 }
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} savings shows separate network allowances and all costs reconcile`, async ({ page }) => {
+    await ledger(page, style, 'light', 3.5)
+    await page.goto('/')
+    await expect(page.getByRole('main').getByRole('button', { name: 'Settings', exact: true })).toBeVisible()
+    await page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      await data.addProvider('SecondFree', 5)
+      const date = data.getState().sessions[0].date
+      await data.addSession({ type: 'SecondFree', date, amount: 5, cost: 4, notes: 'Recorded allowance cost' })
+      await data.addSession({ type: 'FreeCo', date, amount: 0, cost: 15, notes: 'Membership' })
+    })
+    await page.goto('/savings')
+    if (style === 'minimal') await page.getByRole('button', { name: /Today's allowance/ }).click()
+    await expect(page.getByRole('meter', { name: /FreeCo/ })).toBeVisible()
+    await expect(page.getByRole('meter', { name: /SecondFree/ })).toBeVisible()
+    await expect(page.getByText('5.0 of 5.0 kWh used', { exact: false })).toBeVisible()
+    await page.goto('/analytics/concentration')
+    await expect(page.getByText('Recorded energy cost: $4.00. Non-energy charges excluded: $15.00.', { exact: false })).toBeVisible()
+    await page.getByRole('button', { name: 'Paid only', exact: true }).click()
+    await expect(page.getByText('Recorded energy cost: $4.00. Non-energy charges excluded: $15.00.', { exact: false })).toBeVisible()
+  })
+}
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} empty history and zero budget render finite analytics`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await ledger(page, style, 'light', 0, 0)
+    await page.goto('/')
+    await expect(page.getByRole('main').getByRole('button', { name: 'Settings', exact: true })).toBeVisible()
+    await page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      await data.setBudgetCap(0)
+    })
+    if (style === 'classic') {
+      await expect(page.getByRole('img', { name: 'Spent 0.00 of 0 budget' }).locator('.fill')).toHaveAttribute('style', 'width: 0%;')
+    }
+    await page.goto('/savings')
+    if (style === 'classic') await expect(page.getByText('No free allowances configured', { exact: true })).toBeVisible()
+    else {
+      await expect(page.getByRole('button', { name: /Today's allowance/ })).toHaveCount(0)
+      await page.getByRole('button', { name: /Saved per month/ }).click()
+    }
+    await expect(page.getByRole('main')).not.toContainText('NaN')
+    await expect(page.getByRole('main')).not.toContainText('Infinity')
+    await page.goto('/analytics/concentration')
+    await expect(page.getByText('No cost curve yet', { exact: true })).toBeVisible()
+    await expect(page.getByText('Recorded energy cost: $0.00. Non-energy charges excluded: $0.00.', { exact: false })).toBeVisible()
+  })
+}
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} analytics compares completed matching months rather than partial year totals`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await ledger(page, style, 'light', 0, 0)
+    await page.goto('/')
+    await expect(page.getByRole('main').getByRole('button', { name: 'Settings', exact: true })).toBeVisible()
+    await page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      const now = new Date(), year = now.getFullYear(), month = now.getMonth() + 1
+      // Historical consecutive years ensure this fixture also works during January.
+      const current = month > 1 ? year : year - 1
+      const completed = month > 1 ? String(month - 1).padStart(2, '0') : '12'
+      const ongoing = String(month).padStart(2, '0')
+      for (const [date, cost] of [
+        [`${current - 1}-${completed}-01`, 10], [`${current}-${completed}-01`, 20],
+        ...(month > 1 ? [[`${current - 1}-${ongoing}-01`, 1000], [`${current}-${ongoing}-01`, 1]] : []),
+      ] as [string, number][]) await data.addSession({ type: 'FreeCo', date, amount: 2, cost, notes: null })
+    })
+    await expect.poll(async () => page.evaluate(async () => {
+      const path = '/src/lib/data.ts'; const data = await import(/* @vite-ignore */ path)
+      return data.getState().pendingCount
+    })).toBe(0)
+    await page.goto('/analytics')
+    if (style === 'minimal') {
+      await expect(page.getByText('Up 100% across matching completed months last year.', { exact: true })).toBeVisible()
+    } else {
+      await page.getByRole('navigation', { name: 'Analytics views' }).getByRole('button', { name: 'Compare', exact: true }).click()
+      await expect(page.getByText('1 completed matching month.', { exact: false })).toBeVisible()
+      const costs = page.locator('.cmp').first().locator('.side .v')
+      await expect(costs.nth(0)).toHaveText('$10')
+      await expect(costs.nth(1)).toHaveText('$20')
+      await expect(page.locator('.cmp').first().locator('.mid')).toHaveText('+100%')
+      await page.getByRole('navigation', { name: 'Analytics views' }).getByRole('button', { name: 'Statement', exact: true }).click()
+      await expect(page.getByText('Change compares 1 completed matching month: $20.00 vs $10.00.', { exact: false })).toBeVisible()
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    }
+  })
+}

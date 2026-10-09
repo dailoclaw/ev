@@ -39,10 +39,10 @@ it('regression: duplicate legacy providers are rejected before merge', () => {
   expect(parseBackup(JSON.stringify({ version: 1, budgetCap: 50, providers: [provider, { ...provider, id: 'p2' }], sessions: [row] }))).toBeNull()
 })
 
-it('demonstrates accepted fully allowance-covered cost disappears from curve', () => {
+it('regression: fully allowance-covered recorded cost remains in curve', () => {
   const sessions = enrichSessions([row], [provider])
   expect(sessions[0].cost).toBe(5)
-  expect(costConcentration(sessions, 'all', null, 88).totalCost).toBe(0)
+  expect(costConcentration(sessions, 'all', null, 88).totalCost).toBe(5)
 })
 
 it('regression: router params preserve a percent name without a second decode', () => {

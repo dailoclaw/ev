@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.10',
+    date: '9 Oct 2026',
+    notes: ['Analytics preserve recorded costs, compare completed matching periods, include empty calendar months and show separate daily allowances for every active network.'],
+  },
+  {
     version: '4.3.9',
     date: '9 Oct 2026',
     notes: ['Account links survive special names and renames; Minimal photo controls work across views; charger order and Undo now preserve stable identities and receipt allocations.'],

@@ -4,6 +4,7 @@
 // assumptions have changed more than once. A derivation carries the arithmetic
 // alongside the result so any number can show its working, down to the rows.
 import type { EvData } from './useEv'
+import { allowanceRule } from './analyticsPeriods'
 import { costAnatomy } from './costAnatomy'
 import { aud, kwh, longDate, monthTitle, rate, shortDate } from './format'
 
@@ -37,7 +38,6 @@ export interface Derivation {
 /** Lifetime net benefit — the app's flagship figure, and the one that has moved most. */
 export function deriveNetBenefit(ev: EvData): Derivation {
   const t = ev.lifetime
-  const free = ev.providers.find(p => p.freeKwhPerDay > 0)
 
   // Days that actually contributed free energy, and what each contributed.
   const byDay = new Map<string, number>()
@@ -57,7 +57,7 @@ export function deriveNetBenefit(ev: EvData): Derivation {
     { label: 'Free energy value', value: aud(t.saved), strong: true, gap: true },
     { op: '=', label: `${kwh(t.freeKwh)} kWh × ${rate(ev.refRate)}`, value: aud(t.saved), depth: 1 },
     {
-      label: `${kwh(t.freeKwh)} kWh = sum of min(${free?.freeKwhPerDay ?? 7}, that day's ${free?.name ?? 'Jolt'} kWh)`,
+      label: allowanceRule(ev.providers),
       depth: 2,
     },
     { label: `across ${byDay.size} days that claimed free energy`, depth: 2 },
@@ -67,7 +67,7 @@ export function deriveNetBenefit(ev: EvData): Derivation {
           depth: 2,
         }
       : { label: `${rate(basis.rate)} = your average paid rate (no independent data yet)`, depth: 2 },
-    { label: `providers with a free allowance are excluded from that rate`, depth: 2 },
+    { label: basis.independent ? 'Providers with a free allowance are excluded from that rate' : 'Fallback uses recorded cost divided by delivered energy on positive-cost energy charges across all networks', depth: 2 },
   ]
 
   if (t.fees > 0) {
@@ -87,7 +87,7 @@ export function deriveNetBenefit(ev: EvData): Derivation {
       label: `the ${days.length} days behind ${kwh(t.freeKwh)} kWh`,
       items: days.map(([d, k]) => ({ label: shortDate(d), value: `${k.toFixed(2)} kWh` })),
     },
-    footnote: 'Free energy is valued at what you pay where there is no allowance — see Savings for the basis.',
+    footnote: 'Free energy value is an estimate using your measured reference rate; it does not remove recorded charges. See Savings for the basis.',
   }
 }
 
@@ -137,7 +137,7 @@ export function deriveMonthSpend(ev: EvData, ym: string): Derivation | null {
   lines.push(
     { label: 'Energy cost', value: aud(energyCost), strong: true, gap: true },
     { label: `${kwh(m.kwh)} kWh added, of which ${kwh(m.freeKwh, 1)} kWh was free`, depth: 1 },
-    { label: 'free energy costs nothing, so only billed kWh appear here', depth: 2 },
+    { label: 'All recorded energy charges are included, even when an allowance covers the delivered energy', depth: 2 },
   )
 
   return {

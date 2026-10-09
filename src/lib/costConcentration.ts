@@ -19,6 +19,7 @@ export interface CostConcentrationModel {
   points: CostConcentrationPoint[]
   totalKwh: number
   totalCost: number
+  excludedNonEnergyCost: number
   energySessions: number
   tailEnergyPct: number
   tailCostPct: number
@@ -32,6 +33,11 @@ function blocksForSession(session: EnrichedSession, mode: CostConcentrationMode)
 
   const freeKwh = clamp(session.freeKwh, 0, session.amount)
   const billedKwh = Math.max(0, session.amount - freeKwh)
+
+  // Preserve recorded charges even when the allowance covers every kWh.
+  if (billedKwh === 0 && session.cost > 0) {
+    return [{ session, kwh: session.amount, cost: session.cost, rate: session.cost / session.amount }]
+  }
 
   if (mode === 'paid') {
     if (session.cost <= 0 || billedKwh <= 0) return []
@@ -118,6 +124,7 @@ export function costConcentration(
     points,
     totalKwh,
     totalCost,
+    excludedNonEnergyCost: scoped.reduce((sum, session) => sum + (session.isFee || session.amount <= 0 ? session.cost : 0), 0),
     energySessions: new Set(blocks.map(block => block.session.id)).size,
     tailEnergyPct: 100 - threshold,
     tailCostPct: totalCost > 0 ? clamp(((totalCost - costBefore) / totalCost) * 100, 0, 100) : 0,
