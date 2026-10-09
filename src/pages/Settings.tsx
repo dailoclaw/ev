@@ -1,3 +1,4 @@
+import { INPUT_LIMITS } from '../lib/validation'
 import { useRef, useState } from 'react'
 import { useEv } from '../lib/useEv'
 import {
@@ -111,7 +112,7 @@ export default function Settings() {
     } finally { setRestoring(false) }
   }
 
-  const capPct = ((ev.budgetCap - 20) / (150 - 20)) * 100
+  const capPct = Math.min(100, Math.max(0, ((ev.budgetCap - 20) / (150 - 20)) * 100))
   const signOut = () => {
     if (ev.pendingCount > 0 && !window.confirm('Some changes are still waiting to sync. Sign out on this device anyway?')) return
     void supa?.auth.signOut({ scope: 'local' })
@@ -288,7 +289,9 @@ export default function Settings() {
                 <div className="kstep">
                   <button
                     type="button"
-                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(1)) }).catch(() => undefined) }}
+                    disabled={p.freeKwhPerDay <= 0}
+                    aria-label={`Decrease ${p.name} daily allowance`}
+                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: Math.max(0, +(p.freeKwhPerDay - 0.5).toFixed(2)) }).catch(() => undefined) }}
                   >
                     −
                   </button>
@@ -298,7 +301,9 @@ export default function Settings() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: +(p.freeKwhPerDay + 0.5).toFixed(1) }).catch(() => undefined) }}
+                    disabled={p.freeKwhPerDay >= INPUT_LIMITS.allowance}
+                    aria-label={`Increase ${p.name} daily allowance`}
+                    onClick={() => { void updateProvider(p.id, { freeKwhPerDay: Math.min(INPUT_LIMITS.allowance, +(p.freeKwhPerDay + 0.5).toFixed(2)) }).catch(() => undefined) }}
                   >
                     +
                   </button>

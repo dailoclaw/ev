@@ -1,5 +1,13 @@
 # EV Command — Changelog
 
+## v4.3.6 (2026-10-09)
+### Fixes
+- Shared settings bounds and enums across live saves, legacy migration and v1/v2 backup parsing.
+- Rejected impossible calendar dates and used a consistent UTC future-date boundary.
+- Normalized numeric values to schema precision before committing state and queued writes; rejected charges that round to zero.
+- Bounded vehicle and allowance controls, added date/numeric/note form limits and accessible stepper names.
+- Added validation, durable write rejection and browser boundary regression tests.
+
 ## v4.3.5 (2026-10-09)
 ### Fixes
 - Published mutations only after atomic IndexedDB commit and returned save failures to callers.

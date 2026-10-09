@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 // Exercise the real app and offline outbox against an isolated fake owner/backend.
 // No production account, credentials or ledger writes are used.
-async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5, allowance = 7) {
+async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5, allowance = 7, vehicle = { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7 }) {
   const owner = '11111111-1111-4111-8111-111111111111'
   const provider = '22222222-2222-4222-8222-222222222222'
   const date = new Date().toLocaleDateString('en-CA')
@@ -10,7 +10,7 @@ async function ledger(page: Page, style = 'classic', theme = 'light', used = 3.5
   let fail = false
   let hold: Promise<void> | undefined
   const settings = { id: 1, owner_id: owner, budget_cap: 50, theme, style, density: 'comfortable',
-    vehicle_efficiency: 14.2, petrol_price: 1.85, petrol_use: 7, vehicle_photo_path: null, updated_at: new Date().toISOString() }
+    vehicle_efficiency: vehicle.efficiency, petrol_price: vehicle.petrolPrice, petrol_use: vehicle.petrolUse, vehicle_photo_path: null, updated_at: new Date().toISOString() }
   await page.addInitScript(({ owner }) => {
     localStorage.setItem('ev.supabaseCanonicalMigrated.v2', 'done')
     localStorage.setItem('sb-example-auth-token', JSON.stringify({ access_token: 'test-access-token', refresh_token: 'test-refresh-token',
@@ -288,4 +288,37 @@ test('failed Delete preserves the row and failed Undo remains available to retry
   await undo.click()
   await expect(page.locator('.swiperow')).toHaveCount(1)
   await expect(undo).toHaveCount(0)
+})
+
+for (const style of ['classic', 'minimal']) {
+  test(`${style} vehicle controls stop at database limits`, async ({ page }) => {
+    await ledger(page, style, 'light', 3.5, 7, { efficiency: 1, petrolPrice: 20, petrolUse: 100 })
+    await page.goto('/vehicle')
+    await page.getByRole('button', { name: style === 'minimal' ? 'Assumptions' : 'Edit assumptions', exact: true }).click()
+    await expect(page.getByRole('button', { name: /Decrease.*efficiency/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Increase.*petrol price/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Increase.*petrol.*use/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Increase.*efficiency/i })).toBeEnabled()
+  })
+}
+
+test('invalid edit shows a validation error, preserves input and leaves the queue empty', async ({ page }) => {
+  await ledger(page)
+  await page.goto('/statement')
+  const row = page.locator('.swiperow').first()
+  await row.getByRole('button', { name: 'Actions for FreeCo charge' }).click()
+  await row.getByRole('button', { name: 'Edit FreeCo charge' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Edit charge' })
+  const cost = dialog.locator('input[type="number"]').last()
+  await cost.fill('100000.01')
+  await dialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(dialog.getByRole('alert')).toContainText('Cost must be between')
+  await expect(dialog.getByRole('alert')).not.toContainText('browser storage')
+  await expect(cost).toHaveValue('100000.01')
+  await expect(dialog.locator('input[type="date"]')).toHaveAttribute('min', '2000-01-01')
+  expect(await page.evaluate(async () => {
+    const modulePath = '/src/lib/cache.ts'
+    const cache = await import(/* @vite-ignore */ modulePath)
+    return (await cache.listOutbox()).length
+  })).toBe(0)
 })

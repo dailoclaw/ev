@@ -199,3 +199,30 @@ it('waits for the latest provider revision before sending its queued session', a
   expect(providers.get('p')?.name).toBe('Updated provider')
   expect(await listOutbox(ownerId)).toEqual([])
 })
+
+it.each([
+  ['budget', { 'ev.budgetCap.v1': '-1' }, 'Budget'],
+  ['vehicle', { 'ev.vehicle.v1': '{"efficiency":0}' }, 'efficiency'],
+  ['date', {
+    'ev.providers.v1': JSON.stringify([{ id: 'old', name: 'Legacy', freeKwhPerDay: 0, color: '#123456' }]),
+    'ev.extraSessions.v1': JSON.stringify([{ id: 'old-row', type: 'Legacy', date: '2026-02-30', amount: 1, cost: 0, notes: null }]),
+  }, 'Date'],
+] as const)('invalid legacy %s stops migration without queueing or deleting the source', async (_name, values, message) => {
+  const source = values as Record<string, string>
+  const getItem = vi.spyOn(localStorage, 'getItem').mockImplementation(key => source[key] ?? null)
+  const setItem = vi.spyOn(localStorage, 'setItem')
+  setItem.mockClear()
+  try {
+    await queue([])
+    await sync()
+    expect(getState().syncStatus).toBe('error')
+    expect(getState().lastSyncError).toContain(message)
+    expect(await listOutbox(ownerId)).toEqual([])
+    expect(backend.apply).not.toHaveBeenCalled()
+    expect(getState().providers).toEqual([])
+    expect(getState().sessions).toEqual([])
+    expect(getState().settings.budgetCap).toBe(50)
+    expect(setItem).not.toHaveBeenCalledWith('ev.supabaseCanonicalMigrated.v2', 'done')
+    expect(setItem).not.toHaveBeenCalledWith('ev.extraSessions.v1', '[]')
+  } finally { getItem.mockRestore(); setItem.mockRestore() }
+})

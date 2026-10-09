@@ -1,3 +1,4 @@
+import { INPUT_LIMITS } from '../lib/validation'
 import { useEffect, useMemo, useState } from 'react'
 import { addSession } from '../lib/data'
 import { previewFreeAllocation } from '../lib/savings'
@@ -123,7 +124,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
               <div className="freepreview" style={{ background: 'var(--surf2)', borderColor: 'var(--bd)', color: 'var(--tx)' }}>
                 <label style={{ margin: '0 0 5px' }}>New charger name</label>
                 <div className="fld" style={{ background: 'var(--surf)' }}>
-                  <input disabled={saving} value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
+                  <input disabled={saving} maxLength={80} value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Evie" autoFocus />
                 </div>
                 <label>Colour</label>
                 <div className="colorrow">
@@ -143,6 +144,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                   <input disabled={saving}
                     type="number"
                     min={0}
+                    max={INPUT_LIMITS.allowance}
                     step={0.5}
                     value={newFree}
                     onChange={e => setNewFree(Math.max(0, parseFloat(e.target.value) || 0))}
@@ -154,7 +156,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
 
             <label>{isFee ? 'Billed on' : 'Date'}</label>
             <div className="fld">
-              <input disabled={saving} type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+              <input disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
             </div>
 
             {isFee ? (
@@ -165,7 +167,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                     type="number"
                     inputMode="decimal"
                     min={0}
-                    step={0.01}
+                    max={INPUT_LIMITS.cost} step={0.01}
                     placeholder="15.00"
                     value={costStr}
                     onChange={e => setCostStr(e.target.value)}
@@ -185,7 +187,8 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                       type="number"
                       inputMode="decimal"
                       min={0}
-                      step={0.1}
+                      max={INPUT_LIMITS.energy}
+                    step={0.1}
                       placeholder="0.0"
                       value={kwhStr}
                       onChange={e => setKwhStr(e.target.value)}
@@ -200,7 +203,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
                       type="number"
                       inputMode="decimal"
                       min={0}
-                      step={0.01}
+                      max={INPUT_LIMITS.cost} step={0.01}
                       placeholder="0.00"
                       value={costStr}
                       onChange={e => setCostStr(e.target.value)}
@@ -214,7 +217,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
             <label>Notes (optional)</label>
             <div className="fld">
               <input disabled={saving}
-                value={notes}
+                maxLength={INPUT_LIMITS.notes} value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder={isFee ? 'e.g. Monthly membership' : 'e.g. Norwood carpark'}
               />

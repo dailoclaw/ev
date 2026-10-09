@@ -1,3 +1,4 @@
+import { INPUT_LIMITS } from '../lib/validation'
 import { useMemo, useState } from 'react'
 import type { EnrichedSession } from '../lib/savings'
 import { previewFreeAllocation } from '../lib/savings'
@@ -9,7 +10,7 @@ import { Mark } from './ui'
 
 export default function EditSessionSheet({ session, onClose }: { session: EnrichedSession; onClose: () => void }) {
   const [date, setDate] = useState(session.date)
-  const [kwhStr, setKwhStr] = useState(session.isFee ? '' : session.amount.toFixed(2))
+  const [kwhStr, setKwhStr] = useState(session.isFee ? '' : String(session.amount))
   const [costStr, setCostStr] = useState(session.cost.toFixed(2))
   const [notes, setNotes] = useState(session.notes ?? '')
   const [saving, setSaving] = useState(false)
@@ -61,7 +62,7 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
 
         <label>{session.isFee ? 'Billed on' : 'Date'}</label>
         <div className="fld">
-          <input disabled={saving} type="date" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
+          <input disabled={saving} type="date" min="2000-01-01" value={date} max={todayIso()} onChange={e => setDate(e.target.value)} />
         </div>
 
         {!session.isFee && (
@@ -72,7 +73,8 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
                 type="number"
                 inputMode="decimal"
                 min={0}
-                step={0.1}
+                max={INPUT_LIMITS.energy}
+                    step={0.1}
                 value={kwhStr}
                 onChange={e => setKwhStr(e.target.value)}
               />
@@ -83,13 +85,13 @@ export default function EditSessionSheet({ session, onClose }: { session: Enrich
 
         <label>Cost</label>
         <div className="fld">
-          <input disabled={saving} type="number" inputMode="decimal" min={0} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
+          <input disabled={saving} type="number" inputMode="decimal" min={0} max={INPUT_LIMITS.cost} step={0.01} value={costStr} onChange={e => setCostStr(e.target.value)} />
           <span className="unit">AUD</span>
         </div>
 
         <label>Notes (optional)</label>
         <div className="fld">
-          <input disabled={saving} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
+          <input disabled={saving} maxLength={INPUT_LIMITS.notes} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional" />
         </div>
 
         {error && <p role="alert" style={{ color: 'var(--neg)', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{error}</p>}

@@ -27,13 +27,17 @@ it('regression: stale acknowledgement preserves a newer queued edit', async () =
   await clearOfflineCache()
 })
 
-it('demonstrates invalid calendar date accepted', () => {
-  expect(validateSessionInput({ ...row, date: '2026-02-30' })).toBeNull()
+it('regression: invalid calendar date is rejected', () => {
+  expect(validateSessionInput({ ...row, date: '2026-02-30' })).toBe('Date must be valid.')
 })
 
-it('demonstrates negative legacy cap and duplicate providers accepted', () => {
-  const backup = parseBackup(JSON.stringify({ version: 1, budgetCap: -5, providers: [provider, { ...provider, id: 'p2' }], sessions: [row] }))!
-  expect(backup.settings.budgetCap).toBe(-5)
+it('regression: negative legacy budget is rejected', () => {
+  expect(parseBackup(JSON.stringify({ version: 1, budgetCap: -5, providers: [provider], sessions: [row] }))).toBeNull()
+})
+
+it('demonstrates duplicate legacy providers accepted', () => {
+  const backup = parseBackup(JSON.stringify({ version: 1, budgetCap: 50, providers: [provider, { ...provider, id: 'p2' }], sessions: [row] }))!
+  expect(backup.settings.budgetCap).toBe(50)
   expect(backupDelta(backup, [], []).newProviders).toHaveLength(2)
 })
 

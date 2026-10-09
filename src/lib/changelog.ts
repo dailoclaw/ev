@@ -8,6 +8,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.6',
+    date: '9 Oct 2026',
+    notes: ['Settings and charges now reject invalid values and impossible dates before saving; controls respect server limits and numbers use consistent precision.'],
+  },
+  {
     version: '4.3.5',
     date: '9 Oct 2026',
     notes: ['Saves now confirm only after offline storage succeeds; failed saves preserve the ledger and keep forms ready to retry.'],

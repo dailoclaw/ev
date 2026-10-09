@@ -1,3 +1,4 @@
+import { VEHICLE_LIMITS } from '../lib/validation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
@@ -382,9 +383,9 @@ function CanvasVehicle() {
         <>
           <CanvasVehicleHeader title="Assumptions" value="Tuned" ctx="These values drive Vehicle only. They never alter your charge ledger." onBack={back} />
           <section className="cv-stepper">
-            <CanvasStepper label="Efficiency" sub="kWh / 100 km" value={num(a.efficiency)} onDec={() => save({ efficiency: Math.max(0, +(a.efficiency - 0.1).toFixed(2)) })} onInc={() => save({ efficiency: +(a.efficiency + 0.1).toFixed(2) })} />
-            <CanvasStepper label="Petrol price" sub="Australian dollars / litre" value={aud(a.petrolPrice)} onDec={() => save({ petrolPrice: Math.max(0, +(a.petrolPrice - 0.1).toFixed(2)) })} onInc={() => save({ petrolPrice: +(a.petrolPrice + 0.1).toFixed(2) })} />
-            <CanvasStepper label="Petrol use" sub="litres / 100 km" value={num(a.petrolUse)} onDec={() => save({ petrolUse: Math.max(0, +(a.petrolUse - 1).toFixed(2)) })} onInc={() => save({ petrolUse: +(a.petrolUse + 1).toFixed(2) })} />
+            <CanvasStepper label="Efficiency" sub="kWh / 100 km" value={num(a.efficiency)} decDisabled={a.efficiency <= VEHICLE_LIMITS.efficiency.min} incDisabled={a.efficiency >= VEHICLE_LIMITS.efficiency.max} onDec={() => save({ efficiency: Math.max(VEHICLE_LIMITS.efficiency.min, +(a.efficiency - 0.1).toFixed(2)) })} onInc={() => save({ efficiency: Math.min(VEHICLE_LIMITS.efficiency.max, +(a.efficiency + 0.1).toFixed(2)) })} />
+            <CanvasStepper label="Petrol price" sub="Australian dollars / litre" value={aud(a.petrolPrice)} decDisabled={a.petrolPrice <= VEHICLE_LIMITS.petrolPrice.min} incDisabled={a.petrolPrice >= VEHICLE_LIMITS.petrolPrice.max} onDec={() => save({ petrolPrice: Math.max(VEHICLE_LIMITS.petrolPrice.min, +(a.petrolPrice - 0.1).toFixed(3)) })} onInc={() => save({ petrolPrice: Math.min(VEHICLE_LIMITS.petrolPrice.max, +(a.petrolPrice + 0.1).toFixed(3)) })} />
+            <CanvasStepper label="Petrol use" sub="litres / 100 km" value={num(a.petrolUse)} decDisabled={a.petrolUse <= VEHICLE_LIMITS.petrolUse.min} incDisabled={a.petrolUse >= VEHICLE_LIMITS.petrolUse.max} onDec={() => save({ petrolUse: Math.max(VEHICLE_LIMITS.petrolUse.min, +(a.petrolUse - 1).toFixed(2)) })} onInc={() => save({ petrolUse: Math.min(VEHICLE_LIMITS.petrolUse.max, +(a.petrolUse + 1).toFixed(2)) })} />
           </section>
           <div className="cv-rows">
             <button className="cv-row" type="button" onClick={() => save(DEFAULT_SETTINGS.vehicle)}>
@@ -446,12 +447,16 @@ function CanvasStepper({
   value,
   onDec,
   onInc,
+  decDisabled,
+  incDisabled,
 }: {
   label: string
   sub: string
   value: string
   onDec: () => void
   onInc: () => void
+  decDisabled: boolean
+  incDisabled: boolean
 }) {
   return (
     <div className="cv-step-row">
@@ -460,11 +465,11 @@ function CanvasStepper({
         <small>{sub}</small>
       </span>
       <span className="cv-control">
-        <button type="button" onClick={onDec}>
+        <button type="button" disabled={decDisabled} aria-label={`Decrease ${label}`} onClick={onDec}>
           −
         </button>
         <b>{value}</b>
-        <button type="button" onClick={onInc}>
+        <button type="button" disabled={incDisabled} aria-label={`Increase ${label}`} onClick={onInc}>
           +
         </button>
       </span>
@@ -578,11 +583,11 @@ function ClassicVehicle() {
             <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <span style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: 'var(--mut)' }}>{label}</span>
               <div className="kstep" style={{ width: 150 }}>
-                <button type="button" onClick={() => save({ [key]: Math.max(0, +(a[key] - step).toFixed(2)) } as Partial<Assumptions>)}>
+                <button type="button" disabled={a[key] <= VEHICLE_LIMITS[key].min} aria-label={`Decrease ${label}`} onClick={() => save({ [key]: Math.max(VEHICLE_LIMITS[key].min, +(a[key] - step).toFixed(key === 'petrolPrice' ? 3 : 2)) } as Partial<Assumptions>)}>
                   −
                 </button>
                 <span className="v">{a[key]}</span>
-                <button type="button" onClick={() => save({ [key]: +(a[key] + step).toFixed(2) } as Partial<Assumptions>)}>
+                <button type="button" disabled={a[key] >= VEHICLE_LIMITS[key].max} aria-label={`Increase ${label}`} onClick={() => save({ [key]: Math.min(VEHICLE_LIMITS[key].max, +(a[key] + step).toFixed(key === 'petrolPrice' ? 3 : 2)) } as Partial<Assumptions>)}>
                   +
                 </button>
               </div>

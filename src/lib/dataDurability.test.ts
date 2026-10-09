@@ -94,3 +94,34 @@ it('reports save success even if post-commit queue diagnostics fail', async () =
   expect((await cache.loadCachedSnapshot())?.sessions[0].cost).toBe(2)
   expect(await cache.listOutbox()).toHaveLength(1)
 })
+
+it.each([
+  ['budget', () => updateAppSettings({ budgetCap: -1 })],
+  ['vehicle', () => updateAppSettings({ vehicle: { efficiency: 0 } })],
+  ['date', () => updateSession('s', { date: '2026-02-30' })],
+  ['tiny row', () => addSession({ ...session, amount: 0.0001, cost: 0.001 })],
+  ['order', () => updateProvider('p', { sortOrder: 0.5 })],
+  ['restore', () => restoreMerge({ ...backup, settings: { ...DEFAULT_SETTINGS, budgetCap: -1 } })],
+] as const)('rejects invalid %s before any durable write and accepts the next valid save', async (_name, change) => {
+  await expect(change()).rejects.toThrow()
+  expect(await cache.loadCachedSnapshot()).toEqual(snapshot)
+  expect(await cache.listOutbox()).toEqual([])
+  expect(getState().settings).toEqual(snapshot.settings)
+  expect(getState().sessions).toEqual(snapshot.sessions)
+  expect(getState().providers).toEqual(snapshot.providers)
+  await updateAppSettings({ budgetCap: 1.005 })
+  expect(getState().settings.budgetCap).toBe(1.01)
+  expect((await cache.loadCachedSnapshot())?.settings.budgetCap).toBe(1.01)
+  expect((await cache.listOutbox())[0].payload).toMatchObject({ budget_cap: 1.01 })
+})
+it('stores and queues the same rounded charge and provider values', async () => {
+  await updateSession('s', { amount: 1.2345, cost: 1.005 })
+  await updateProvider('p', { freeKwhPerDay: 1.005 })
+  expect(getState().sessions[0]).toMatchObject({ amount: 1.235, cost: 1.01 })
+  expect(getState().providers[0].freeKwhPerDay).toBe(1.01)
+  expect((await cache.loadCachedSnapshot())?.sessions[0]).toMatchObject({ amount: 1.235, cost: 1.01 })
+  expect(await cache.listOutbox()).toEqual(expect.arrayContaining([
+    expect.objectContaining({ payload: expect.objectContaining({ amount: 1.235, cost: 1.01 }) }),
+    expect.objectContaining({ payload: expect.objectContaining({ free_kwh_per_day: 1.01 }) }),
+  ]))
+})

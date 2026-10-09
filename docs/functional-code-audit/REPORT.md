@@ -572,6 +572,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 
 ### Step 3 — Stop invalid writes entering the queue (C3, C4, M1)
 
+**Implementation update (9 October 2026):** Shared settings bounds/enums, exact calendar dates, SQL precision normalization and bounded form/stepper controls are implemented locally in v4.3.6. Invalid live saves and restores are rejected before commit; invalid legacy settings/dates preserve the migration source and report an error. See [input-validation notes](INPUT-VALIDATION-FIX.md). Permanent server failure classification and correction/retry/discard, existing invalid queued writes, and disposable Supabase rejection/timezone verification remain open; the full Step 3 gate is not yet complete.
+
 1. Implement shared settings limits/enums and exact calendar validation.
 2. Validate owner existence before state mutation; normalize numeric precision to schema.
 3. Bound steppers, add form errors/maxLength, validate provider + session together.

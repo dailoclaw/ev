@@ -14,8 +14,8 @@ import { nextPaletteColor, type Provider } from './providers'
 import { applyOutboxOperation, downloadVehiclePhoto, fetchRemoteSnapshot } from './repository'
 import type { Session } from './savings'
 import { supa, type DbProvider, type DbSession, type DbSettings } from './supa'
-import { validateProviderInput, validateSessionInput } from './validation'
-import { backupDelta, sessionSignature, type Backup } from './backup'
+import { validateProviderInput, validateSessionInput, normalizeSettings, normalizeProvider, normalizeSession } from './validation'
+import { backupDelta, normalizeBackupValues, sessionSignature, type Backup } from './backup'
 
 export { parseBackup } from './backup'
 export type { Backup } from './backup'
@@ -235,8 +235,10 @@ function mirrorSettings(settings: AppSettings) {
 
 async function saveLocal<T>(build: () => { next: EvState; operations: OutboxMutation[]; result: T }): Promise<T> {
   const session = requireSession()
+  let commitAttempted = false
   return withLocalWrite(session, async () => {
     const { next, operations, result } = build()
+    commitAttempted = true
     await commitCachedState(cachedSnapshot(next), operations)
     const pendingCount = await listOutbox(session.ownerId).then(items => items.length).catch(() => Math.max(state.pendingCount, operations.length))
     assertCurrentSession(session)
@@ -253,7 +255,9 @@ async function saveLocal<T>(build: () => { next: EvState; operations: OutboxMuta
   }).catch(error => {
     if (!isCurrentSession(session)) throw error
     const detail = error instanceof Error ? error.message : 'Storage is unavailable.'
-    const message = `Not saved on this device. ${detail} Retry the action after checking browser storage.`
+    const message = commitAttempted
+      ? `Not saved on this device. ${detail} Retry the action after checking browser storage.`
+      : `Not saved. ${detail}`
     state = { ...state, lastSaveError: message }
     emit()
     throw new Error(message)
@@ -327,23 +331,23 @@ async function migrateLegacyState(session: DataSession) {
     let providers = [...state.providers]
     for (const legacy of legacyProviders) {
       if (providers.some(provider => provider.name.toLowerCase() === legacy.name.toLowerCase())) continue
-      const provider: Provider = {
+      const provider: Provider = normalizeProvider({
         ...legacy,
         id: uuid(),
         archived: archivedIds.has(legacy.id) || Boolean(legacy.archived),
         sortOrder: providers.length,
-      }
+      })
       providers.push(provider)
       operations.push(mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider)))
     }
 
     providers = providers.map((provider, index) => {
       const orderedIndex = orderedNames.findIndex(name => name.toLowerCase() === provider.name.toLowerCase())
-      const next = {
+      const next = normalizeProvider({
         ...provider,
         archived: Boolean(provider.archived || archivedIds.has(provider.id) || archivedNames.has(provider.name)),
         sortOrder: orderedIndex >= 0 ? orderedIndex : orderedNames.length + index,
-      }
+      })
       if (next.archived !== provider.archived || next.sortOrder !== provider.sortOrder) {
         operations.push(mutationOperation(`provider:${next.id}`, 'provider-upsert', providerPayload(next)))
       }
@@ -356,15 +360,14 @@ async function migrateLegacyState(session: DataSession) {
       if (signatures.has(sessionSignature(legacy))) continue
       const provider = providers.find(candidate => candidate.name.toLowerCase() === legacy.type.toLowerCase())
       if (!provider) continue
-      const session: Session = { ...legacy, id: uuid(), providerId: provider.id }
-      if (validateSessionInput(session)) continue
+      const session: Session = normalizeSession({ ...legacy, id: uuid(), providerId: provider.id })
       signatures.add(sessionSignature(session))
       sessions.push(session)
       operations.push(mutationOperation(`session:${session.id}`, 'session-upsert', sessionPayload(session)))
     }
 
     const legacyVehicle = readLS<Partial<VehicleAssumptions>>(LS_VEHICLE, {})
-    const settings: AppSettings = {
+    const settings: AppSettings = normalizeSettings({
       ...state.settings,
       budgetCap: readLS<number>(LS_BUDGET, state.settings.budgetCap),
       theme: readStorage(LS_THEME) === 'dark' ? 'dark' : state.settings.theme,
@@ -373,7 +376,7 @@ async function migrateLegacyState(session: DataSession) {
         ? (readStorage(LS_DENSITY) as AppSettings['density'])
         : state.settings.density,
       vehicle: { ...state.settings.vehicle, ...legacyVehicle },
-    }
+    })
     const legacyPhoto = readStorage(LS_PHOTO)
     if (legacyPhoto?.startsWith('data:image/')) settings.vehiclePhotoPath = `${currentOwnerId}/vehicle.jpg`
 
@@ -578,7 +581,7 @@ function createProvider(input: NewProviderInput, providers = state.providers): P
   const validationError = validateProviderInput(input.name, input.freeKwhPerDay, input.color)
   if (validationError) throw new Error(validationError)
   if (providers.some(provider => provider.name.toLowerCase() === input.name.trim().toLowerCase())) throw new Error('A provider with that name already exists.')
-  return { ...input, name: input.name.trim(), id: uuid(), archived: false, sortOrder: Math.max(-1, ...providers.map(item => item.sortOrder ?? -1)) + 1 }
+  return normalizeProvider({ ...input, name: input.name.trim(), id: uuid(), archived: false, sortOrder: Math.max(-1, ...providers.map(item => item.sortOrder ?? -1)) + 1 })
 }
 
 export function addSession(input: Omit<Session, 'id' | 'providerId'>, newProvider?: NewProviderInput): Promise<Session> {
@@ -587,7 +590,7 @@ export function addSession(input: Omit<Session, 'id' | 'providerId'>, newProvide
     if (validationError) throw new Error(validationError)
     const provider = newProvider ? createProvider(newProvider) : state.providers.find(candidate => candidate.name === input.type)
     if (!provider) throw new Error('Choose a valid provider before saving.')
-    const session: Session = { ...input, type: provider.name, id: uuid(), providerId: provider.id }
+    const session: Session = normalizeSession({ ...input, type: provider.name, id: uuid(), providerId: provider.id })
     const operations = [mutationOperation(`session:${session.id}`, 'session-upsert', sessionPayload(session))]
     if (newProvider) operations.push(mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider)))
     return { next: { ...state, sessions: [...state.sessions, session], providers: newProvider ? finalizeProviders([...state.providers, provider]) : state.providers }, operations, result: session }
@@ -598,9 +601,7 @@ export function updateSession(id: string, patch: Partial<Pick<Session, 'date' | 
   return saveLocal(() => {
     const session = state.sessions.find(candidate => candidate.id === id)
     if (!session) throw new Error('That charge no longer exists.')
-    const next = { ...session, ...patch }
-    const validationError = validateSessionInput(next)
-    if (validationError) throw new Error(validationError)
+    const next = normalizeSession({ ...session, ...patch })
     return { next: { ...state, sessions: state.sessions.map(candidate => candidate.id === id ? next : candidate) }, operations: [mutationOperation(`session:${id}`, 'session-upsert', sessionPayload(next))], result: undefined }
   })
 }
@@ -627,9 +628,7 @@ export function updateProvider(id: string, patch: Partial<Omit<Provider, 'id'>>)
   return saveLocal(() => {
     const current = state.providers.find(provider => provider.id === id)
     if (!current) throw new Error('That provider no longer exists.')
-    const next = { ...current, ...patch, name: patch.name?.trim() ?? current.name }
-    const validationError = validateProviderInput(next.name, next.freeKwhPerDay, next.color)
-    if (validationError) throw new Error(validationError)
+    const next = normalizeProvider({ ...current, ...patch, name: patch.name ?? current.name })
     if (state.providers.some(provider => provider.id !== id && provider.name.toLowerCase() === next.name.toLowerCase())) throw new Error('A provider with that name already exists.')
     return { next: { ...state, providers: finalizeProviders(state.providers.map(provider => provider.id === id ? next : provider)), sessions: state.sessions.map(session => session.providerId === id ? { ...session, type: next.name } : session) }, operations: [mutationOperation(`provider:${id}`, 'provider-upsert', providerPayload(next))], result: undefined }
   })
@@ -639,14 +638,14 @@ export const setProviderArchived = (id: string, archived: boolean) => updateProv
 export function setProviderOrder(order: string[]) {
   return saveLocal(() => {
     const rank = new Map(order.map((id, index) => [id, index]))
-    const providers = state.providers.map((provider, index) => ({ ...provider, sortOrder: rank.get(provider.id) ?? order.length + index }))
+    const providers = state.providers.map((provider, index) => normalizeProvider({ ...provider, sortOrder: rank.get(provider.id) ?? order.length + index }))
     return { next: { ...state, providers: finalizeProviders(providers) }, operations: providers.map(provider => mutationOperation(`provider:${provider.id}`, 'provider-upsert', providerPayload(provider))), result: undefined }
   })
 }
 
 export function updateAppSettings(patch: Partial<Omit<AppSettings, 'vehicle'>> & { vehicle?: Partial<VehicleAssumptions> }) {
   return saveLocal(() => {
-    const settings = { ...state.settings, ...patch, vehicle: { ...state.settings.vehicle, ...patch.vehicle } }
+    const settings = normalizeSettings({ ...state.settings, ...patch, vehicle: { ...state.settings.vehicle, ...patch.vehicle } })
     return { next: { ...state, settings }, operations: [mutationOperation('settings', 'settings-update', settingsPayload(settings))], result: undefined }
   })
 }
@@ -657,14 +656,14 @@ export function uploadVehiclePhoto(dataUrl: string) {
   return saveLocal(() => {
     if (!dataUrl.startsWith('data:image/') || dataUrl.length > 7_000_000) throw new Error('Photo must be an image under 5 MB.')
     const path = `${ownerId}/vehicle.jpg`
-    const settings = { ...state.settings, vehiclePhotoPath: path }
+    const settings = normalizeSettings({ ...state.settings, vehiclePhotoPath: path })
     return { next: { ...state, settings, vehiclePhoto: dataUrl }, operations: [mutationOperation('photo', 'photo-upsert', { path, dataUrl }), mutationOperation('settings', 'settings-update', settingsPayload(settings))], result: undefined }
   })
 }
 export function removeVehiclePhoto() {
   return saveLocal(() => {
     const path = state.settings.vehiclePhotoPath
-    const settings = { ...state.settings, vehiclePhotoPath: null }
+    const settings = normalizeSettings({ ...state.settings, vehiclePhotoPath: null })
     const operations = [mutationOperation('settings', 'settings-update', settingsPayload(settings))]
     if (path) operations.push(mutationOperation('photo', 'photo-delete', { path }))
     return { next: { ...state, settings, vehiclePhoto: null }, operations, result: undefined }
@@ -698,7 +697,8 @@ export function markBackedUp() {
 export const lastBackupAt = () => readLS<string | null>(LS_LAST_BACKUP, null)
 
 export function previewRestore(backup: Backup) {
-  const { newProviders, newSessions } = backupDelta(backup, state.providers, state.sessions)
+  const prepared = normalizeBackupValues(backup)
+  const { newProviders, newSessions } = backupDelta(prepared, state.providers, state.sessions)
   return {
     providersNew: newProviders.length,
     sessionsNew: newSessions.length,
@@ -710,7 +710,8 @@ export function previewRestore(backup: Backup) {
 /** Merge-only restore: adds missing ledger rows, then restores settings and photo. */
 export function restoreMerge(backup: Backup): Promise<{ providersAdded: number; sessionsAdded: number }> {
   return saveLocal(() => {
-    const { newProviders, newSessions } = backupDelta(backup, state.providers, state.sessions)
+    const prepared = normalizeBackupValues(backup)
+    const { newProviders, newSessions } = backupDelta(prepared, state.providers, state.sessions)
     const providers = [...state.providers]
     const sessions = [...state.sessions]
     const operations: OutboxMutation[] = []
@@ -722,14 +723,12 @@ export function restoreMerge(backup: Backup): Promise<{ providersAdded: number; 
     for (const item of newSessions) {
       const provider = providers.find(candidate => candidate.name.toLowerCase() === item.type.toLowerCase())
       if (!provider) throw new Error('A restored charge has no matching provider.')
-      const validationError = validateSessionInput(item)
-      if (validationError) throw new Error(validationError)
-      const session = { ...item, type: provider.name, id: uuid(), providerId: provider.id }
+      const session = normalizeSession({ ...item, type: provider.name, id: uuid(), providerId: provider.id })
       sessions.push(session)
       operations.push(mutationOperation(`session:${session.id}`, 'session-upsert', sessionPayload(session)))
     }
     const path = backup.vehiclePhotoDataUrl ? `${ownerId}/vehicle.jpg` : state.settings.vehiclePhotoPath
-    const settings = { ...backup.settings, vehicle: { ...backup.settings.vehicle }, vehiclePhotoPath: path }
+    const settings = normalizeSettings({ ...prepared.settings, vehiclePhotoPath: path })
     if (backup.vehiclePhotoDataUrl) operations.push(mutationOperation('photo', 'photo-upsert', { path: path!, dataUrl: backup.vehiclePhotoDataUrl }))
     operations.push(mutationOperation('settings', 'settings-update', settingsPayload(settings)))
     return { next: { ...state, providers: finalizeProviders(providers), sessions, settings, vehiclePhoto: backup.vehiclePhotoDataUrl ?? state.vehiclePhoto }, operations, result: { providersAdded: newProviders.length, sessionsAdded: newSessions.length } }
