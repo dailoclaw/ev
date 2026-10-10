@@ -1,5 +1,7 @@
 # Large import performance acceptance (v4.3.16, 10 October 2026)
 
+**Follow-up:** v4.3.17 bounds outbox submission within the same transaction and reduces measured maximum timer stalls. See [responsiveness fix and safety checks](IMPORT-RESPONSIVENESS-FIX.md). Measurements below retain their original pre-fix scope.
+
 ## Scope
 
 The expanded standalone benchmark exercises the current application modules in a desktop browser with real local IndexedDB and no live ledger writes. It checks worker reading and the navigator-offline main-thread fallback independently, uses valid UUIDs and adds a 25,000-row case with 320-character Notes. Chromium's main-thread CPU throttle is set to 6 through CDP. This is a diagnostic slowdown, not a calibrated physical low-end device; native storage and worker CPU are not independently calibrated.

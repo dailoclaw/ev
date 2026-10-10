@@ -811,6 +811,37 @@ test('nested achievement stays readable and Escape restores the underlying sheet
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('')
 })
 
+test('batched cache writes roll back after a later submission fails and can retry', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const cachePath = '/src/lib/cache.ts', modelPath = '/src/lib/appModel.ts'
+    const cache = await import(/* @vite-ignore */ cachePath)
+    const model = await import(/* @vite-ignore */ modelPath)
+    const snapshot = { ownerId: 'batch-test', sessions: [], providers: [], settings: model.DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: 'original' }
+    const operations = Array.from({ length: 601 }, (_, i) => ({ id: `batch-test:session:${i}`, ownerId: 'batch-test', updatedAt: '', action: 'session-upsert' as const, payload: { id: String(i) } }))
+    await cache.commitCachedState(snapshot, [operations[0]])
+    const originalQueue = await cache.listOutbox('batch-test')
+    const put = IDBObjectStore.prototype.put
+    let submitted = 0, error = ''
+    IDBObjectStore.prototype.put = function (...args: Parameters<typeof put>) {
+      if (this.name === 'outbox' && ++submitted === 501) throw new DOMException('Late quota failure', 'QuotaExceededError')
+      return put.apply(this, args)
+    }
+    try { await cache.commitCachedState({ ...snapshot, cachedAt: 'failed' }, operations) } catch (reason) {
+      error = String(reason)
+    } finally { IDBObjectStore.prototype.put = put }
+    const unchanged = JSON.stringify(await cache.loadCachedSnapshot()) === JSON.stringify(snapshot)
+      && JSON.stringify(await cache.listOutbox('batch-test')) === JSON.stringify(originalQueue)
+    await cache.commitCachedState({ ...snapshot, cachedAt: 'retry' }, operations)
+    return { error, submitted, unchanged, retrySnapshot: (await cache.loadCachedSnapshot())?.cachedAt, retryCount: (await cache.listOutbox('batch-test')).length }
+  })
+  expect(result.error).toContain('Late quota failure')
+  expect(result.submitted).toBe(501)
+  expect(result.unchanged).toBe(true)
+  expect(result.retrySnapshot).toBe('retry')
+  expect(result.retryCount).toBe(601)
+})
+
 test('achievement restores Add focus after its saving sheet automatically closes', async ({ page }) => {
   await ledger(page)
   await page.goto('/')

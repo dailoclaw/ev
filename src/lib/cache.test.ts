@@ -136,6 +136,29 @@ it('rejects an aborted transaction and retains the previous snapshot', async () 
   expect(await loadCachedSnapshot()).toEqual(snapshot)
 })
 
+it('rolls back every batch and the snapshot when a later outbox submission fails', async () => {
+  const snapshot = { ownerId: 'owner', sessions: [], providers: [], settings: DEFAULT_SETTINGS, vehiclePhotoDataUrl: null, cachedAt: 'original' }
+  const operations: OutboxMutation[] = Array.from({ length: 601 }, (_, i) => ({
+    id: `owner:session:${i}`, ownerId: 'owner', updatedAt: '', action: 'session-upsert', payload: { id: String(i) },
+  }))
+  await commitCachedState(snapshot, [operations[0]])
+  const originalQueue = await listOutbox()
+  const put = IDBObjectStore.prototype.put
+  let submitted = 0
+  vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function (this: IDBObjectStore, ...args) {
+    if (this.name === 'outbox' && ++submitted === 501) throw new DOMException('Late quota failure', 'QuotaExceededError')
+    return put.apply(this, args)
+  })
+  await expect(commitCachedState({ ...snapshot, cachedAt: 'failed' }, operations)).rejects.toThrow('Late quota failure')
+  expect(submitted).toBe(501)
+  expect(await loadCachedSnapshot()).toEqual(snapshot)
+  expect(await listOutbox()).toEqual(originalQueue)
+  vi.restoreAllMocks()
+  await commitCachedState({ ...snapshot, cachedAt: 'retry' }, operations)
+  expect((await loadCachedSnapshot())?.cachedAt).toBe('retry')
+  expect(await listOutbox()).toHaveLength(601)
+})
+
 it.each(['error', 'blocked'] as const)('recovers after an asynchronous IndexedDB open %s', async event => {
   resetCacheConnectionForTests()
   vi.spyOn(indexedDB, 'open').mockImplementationOnce(() => {

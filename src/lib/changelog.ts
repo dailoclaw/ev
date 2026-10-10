@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.17', date: '10 Oct 2026',
+    notes: ['Large local saves submit queued writes in smaller groups to reduce stalls while preserving atomic rollback; late-failure retry checks cover the change.'],
+  },
+  {
     version: '4.3.16', date: '10 Oct 2026',
     notes: ['Added throttled large-backup integrity and responsiveness checks; remaining maximum-size import performance work is documented.'],
   },

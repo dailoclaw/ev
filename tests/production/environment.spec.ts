@@ -31,6 +31,13 @@ test('production headers, lazy pages and backup worker satisfy CSP', async ({ pa
   await productionLedger(page, request)
   const errors: string[] = []
   const violations: string[] = []
+  const startupTables = ['providers', 'charging_sessions', 'app_settings']
+  const completed = new Map<string, number>()
+  page.on('requestfinished', request => {
+    if (request.method() !== 'GET') return
+    const table = new URL(request.url()).pathname.split('/').pop()!
+    if (request.url().includes('/supabase/rest/v1/') && startupTables.includes(table)) completed.set(table, (completed.get(table) ?? 0) + 1)
+  })
   page.on('pageerror', error => errors.push(error.message))
   await page.addInitScript(() => {
     const violations: string[] = []
@@ -38,16 +45,21 @@ test('production headers, lazy pages and backup worker satisfy CSP', async ({ pa
     document.addEventListener('securitypolicyviolation', event => violations.push(`${event.violatedDirective}: ${event.blockedURI}`))
   })
   for (const path of ['/', '/settings', '/analytics', '/analytics/chart', '/analytics/concentration', '/cost-anatomy', '/vehicle', '/statement', '/savings', '/accounts']) {
+    completed.clear()
     const response = await page.goto(path)
     expect(response?.headers()['content-security-policy']).toContain("script-src 'self'")
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible()
     await expect(page.getByRole('main', { name: 'Loading page' })).toHaveCount(0)
+    // This one-page fixture performs an initial and a canonical read per table.
+    // Finish both before full navigation can cancel the route's startup fetches.
+    for (const table of startupTables) await expect.poll(() => completed.get(table) ?? 0, { message: `${path}: completed ${table} startup reads` }).toBeGreaterThanOrEqual(2)
     violations.push(...await page.evaluate(() => (window as unknown as { validationCspViolations: string[] }).validationCspViolations))
   }
   await page.goto('/settings')
   const backup = { version: 2, exportedAt: '', settings: { budgetCap: 50, theme: 'light', style: 'classic', density: 'comfortable', vehicle: { efficiency: 14.2, petrolPrice: 1.85, petrolUse: 7 }, vehiclePhotoPath: null }, providers: [], sessions: [], vehiclePhotoDataUrl: null }
   await page.locator('input[type="file"][accept*="json"]').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) })
   await expect(page.getByText(/This file has/)).toBeVisible()
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
   violations.push(...await page.evaluate(() => (window as unknown as { validationCspViolations: string[] }).validationCspViolations))
   expect(violations).toEqual([])
   expect(errors).toEqual([])

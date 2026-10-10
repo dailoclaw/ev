@@ -1,5 +1,13 @@
 # EV Command — Changelog
 
+## v4.3.17 (2026-10-10)
+### Improvements
+- Submit large outbox writes in bounded request-event groups while preserving one atomic snapshot/outbox transaction.
+- Reduced measured main-thread timer stalls during maximum-size restores; total save time remains a separate performance concern.
+### Validation
+- Added late-batch quota-failure rollback/retry checks in unit tests and the normal browser suite, plus separate write-submission profiling.
+- Production route checks now require completed startup sync before navigating; recorded the actual intermittent WebKit CI failure without claiming remote resolution.
+
 ## v4.3.16 (2026-10-10)
 ### Validation
 - Expanded backup scale checks with configurable Chromium CPU throttling, worker/offline paths, dense Notes and durable snapshot/outbox/reinitialization assertions.

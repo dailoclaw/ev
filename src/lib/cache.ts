@@ -93,16 +93,31 @@ export async function commitCachedState(snapshot: CachedSnapshot, operations: Ou
   const db = await openDb()
   const transaction = db.transaction([SNAPSHOTS, OUTBOX], 'readwrite')
   const done = transactionDone(transaction)
+  let submissionError: unknown
   try {
     transaction.objectStore(SNAPSHOTS).put(snapshot, CURRENT)
     const outbox = transaction.objectStore(OUTBOX)
-    for (const operation of operations) outbox.put({ ...operation, revision: crypto.randomUUID() })
+    let offset = 0
+    const submitBatch = () => {
+      try {
+        const end = Math.min(offset + 250, operations.length)
+        let last: IDBRequest | undefined
+        while (offset < end) last = outbox.put({ ...operations[offset++], revision: crypto.randomUUID() })
+        // Request events keep this same transaction active; timers would allow
+        // auto-commit and turn a later failure into a partially saved restore.
+        if (offset < operations.length && last) last.onsuccess = submitBatch
+      } catch (error) {
+        submissionError = error
+        transaction.abort()
+      }
+    }
+    submitBatch()
+    await done
   } catch (error) {
     try { transaction.abort() } catch { /* The transaction may already have aborted. */ }
     await done.catch(() => undefined)
-    throw error
+    throw submissionError ?? error
   }
-  await done
 }
 
 export async function listOutbox(ownerId?: string): Promise<OutboxOperation[]> {

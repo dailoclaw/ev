@@ -17,6 +17,17 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
     const cache = await import(/* @vite-ignore */ cachePath)
     const model = await import(/* @vite-ignore */ modelPath)
     localStorage.setItem('ev.supabaseCanonicalMigrated.v2', 'done')
+    const originalPut = IDBObjectStore.prototype.put
+    let measuringWrites = false, snapshotSubmissionMs = 0, outboxSubmissionMs = 0
+    IDBObjectStore.prototype.put = function (...args: Parameters<typeof originalPut>) {
+      const start = performance.now()
+      try { return originalPut.apply(this, args) } finally {
+        if (measuringWrites) {
+          if (this.name === 'snapshots') snapshotSubmissionMs += performance.now() - start
+          if (this.name === 'outbox') outboxSubmissionMs += performance.now() - start
+        }
+      }
+    }
     const results = []
     for (const { count, noteLength } of [{ count: 1000, noteLength: 0 }, { count: 10000, noteLength: 0 }, { count: 25000, noteLength: 0 }, { count: 25000, noteLength: 320 }, { count: 25001, noteLength: 0 }]) {
       Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
@@ -48,7 +59,8 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
       let accepted = true, error = ''
       try { data.previewRestore(backup) } catch (reason) { accepted = false; error = String(reason) }
       const previewEnd = performance.now()
-      if (accepted) await data.restoreMerge(backup)
+      snapshotSubmissionMs = 0; outboxSubmissionMs = 0; measuringWrites = true
+      try { if (accepted) await data.restoreMerge(backup) } finally { measuringWrites = false }
       const saved = performance.now()
       await new Promise(resolve => setTimeout(resolve, 25))
       clearInterval(heartbeat)
@@ -56,11 +68,12 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
       const pendingCount = (await cache.listOutbox('benchmark')).length
       data.stopDataSync()
       await data.initializeData('benchmark')
-      results.push({ count, noteLength, inputBytes: file.size, readWorkerMs: Math.round(read - start), previewMs: Math.round(previewEnd - previewStart), restoreRealIdbMs: Math.round(saved - previewEnd), maximumTimerDelayMs: Math.round(maximumTimerDelayMs), savedCount: snapshot?.sessions.length ?? 0, pendingCount, reloadedCount: data.getState().sessions.length, accepted, error })
+      results.push({ count, noteLength, inputBytes: file.size, readWorkerMs: Math.round(read - start), previewMs: Math.round(previewEnd - previewStart), restoreRealIdbMs: Math.round(saved - previewEnd), snapshotSubmissionMs: Math.round(snapshotSubmissionMs), outboxSubmissionMs: Math.round(outboxSubmissionMs), maximumTimerDelayMs: Math.round(maximumTimerDelayMs), savedCount: snapshot?.sessions.length ?? 0, pendingCount, reloadedCount: data.getState().sessions.length, accepted, error })
       data.stopDataSync()
       await cache.clearOfflineCache()
       delete (navigator as unknown as { onLine?: boolean }).onLine
     }
+    IDBObjectStore.prototype.put = originalPut
     return results
   }, { mode })
   writeFileSync(`/tmp/ev-backup-${testInfo.project.name}-${mode}-${cpuRate}x.json`, JSON.stringify({ cpuRate, mode, results }, null, 2))
