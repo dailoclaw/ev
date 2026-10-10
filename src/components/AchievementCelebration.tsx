@@ -1,7 +1,8 @@
 import Modal from './Modal'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { records, type RecordAchievement } from '../lib/records'
+import type { RecordAchievement } from '../lib/records'
+import { useRecords } from '../lib/useRecords'
 import { useEv } from '../lib/useEv'
 import { Icon } from './ui'
 
@@ -39,7 +40,7 @@ const saveSeen = (seen: Set<string>) => {
 export default function AchievementCelebration({ preview = false }: { preview?: boolean }) {
   const ev = useEv()
   const navigate = useNavigate()
-  const achievements = useMemo(() => records(ev).achievements, [ev])
+  const achievements = useRecords(ev).achievements
   const initialized = useRef(false)
   const seen = useRef(new Set<string>())
   const [queue, setQueue] = useState<Celebration[]>(() => preview ? [PREVIEW_ACHIEVEMENT] : [])

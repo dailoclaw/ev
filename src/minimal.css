@@ -327,7 +327,6 @@
 }
 :root[data-style='minimal'] .record-detail-icon { border-radius: 37px; }
 :root[data-style='minimal'] .record-detail-progress { border-color: transparent; border-radius: 20px; }
-:root[data-style='minimal'] .record-detail-close { border-radius: 17px; }
 
 /* ---- receipt ---- */
 :root[data-style='minimal'] .rcpt {

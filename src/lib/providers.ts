@@ -1,6 +1,5 @@
 // Provider (charger network) config.
-// Shaped to match the future Supabase `providers` table so Phase 4 is a drop-in swap:
-//   id · name · color · free_kwh_per_day
+// Domain fields map to the persisted Supabase providers in data.ts.
 export interface Provider {
   id: string
   name: string

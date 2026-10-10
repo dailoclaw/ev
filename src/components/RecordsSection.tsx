@@ -1,6 +1,6 @@
 import Modal from './Modal'
-import { useMemo, useState } from 'react'
-import { records } from '../lib/records'
+import { useState } from 'react'
+import { useRecords } from '../lib/useRecords'
 import { shortDate } from '../lib/format'
 import { useEv } from '../lib/useEv'
 import { Icon } from './ui'
@@ -39,7 +39,7 @@ function RecordDetailPopup({ record, onClose }: { record: RecordDetail; onClose:
 }
 
 export default function RecordsSection({ ev }: { ev: ReturnType<typeof useEv> }) {
-  const r = useMemo(() => records(ev), [ev])
+  const r = useRecords(ev)
   const [selected, setSelected] = useState<RecordDetail | null>(null)
   const trophyNames = new Set(r.trophies.map(t => t.name))
   const completedTargets = r.targets.filter(t => t.progress >= 1 && !trophyNames.has(t.name))

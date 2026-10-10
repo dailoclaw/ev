@@ -648,7 +648,11 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 4. Re-run the established suite once per meaningful change; broaden checks only when new risks justify it.
 5. **Gate:** same verified behavior with smaller, easier-to-review modules and measurable performance improvements.
 
+**Implementation update (10 October 2026):** v4.3.13 shares ledger calculations across immutable session/provider inputs, narrows Home/records memoization to relevant data and calendar inputs, extracts Minimal Stats and Classic Trends, and removes confirmed unused record-close styles and stale comments. A synthetic 20,000-session benchmark measures calculation reuse; existing browser behavior is verified by the established suites. See [maintenance cleanup notes](MAINTENANCE-CLEANUP.md). Larger modules and unconfirmed assets are preserved; Step 7–8 external acceptance gates remain open.
+
 ## Final Verdict
+
+**Remediation status (10 October 2026):** The defect lists below preserve the original audit verdict. Subsequent step updates document the implemented fixes through v4.3.13. Local automated checks pass; production approval is still pending the Step 7–8 external acceptance gates, rather than every original code defect remaining unresolved.
 
 **Must fix before approval:** revision-aware sync acknowledgement, truthful durable-save failure handling, settings/date validation, session-lifecycle guards, malformed/partial restore behavior, account-route crash, modal keyboard behavior, and high-severity dependency findings. The small photo-input/order fixes should be completed alongside those changes.
 

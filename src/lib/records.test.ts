@@ -228,3 +228,11 @@ describe('records', () => {
     ])
   })
 })
+
+it('counts a newly completed budget month at a calendar boundary without a ledger edit', () => {
+  const ev = evData([], [month('2026-08', 20, 10), month('2026-09', 20, 10), month('2026-10', 20, 10)])
+  const october = records(ev, '2026-10').targets.find(target => target.name === 'Budget hat-trick')!
+  const november = records(ev, '2026-11').targets.find(target => target.name === 'Budget hat-trick')!
+  expect(october.progress).toBeCloseTo(2 / 3)
+  expect(november.progress).toBe(1)
+})

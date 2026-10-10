@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEv } from '../lib/useEv'
 import { dailyAllowances, matchedMonthSpend } from '../lib/analyticsPeriods'
-import { aud, kwh, monthTitle, thisMonth, todayIso, shortDate, rate } from '../lib/format'
+import { aud, kwh, monthTitle, todayIso, shortDate, rate } from '../lib/format'
 import { FreeTag, Icon, Mark, Ring, Thermo } from '../components/ui'
 import Explainable from '../components/Explainable'
 import { deriveMonthSpend } from '../lib/derive'
@@ -19,7 +19,8 @@ export default function Home() {
 function CanvasHome() {
   const navigate = useNavigate()
   const ev = useEv()
-  const ym = thisMonth()
+  const today = todayIso()
+  const ym = today.slice(0, 7)
 
   const view = useMemo(() => {
     const cur = ev.months.find(m => m.month === ym)
@@ -28,10 +29,10 @@ function CanvasHome() {
       const d = new Date(y, m - 2, 1)
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     })()
-    const comparison = matchedMonthSpend(ev.sessions, todayIso())
+    const comparison = matchedMonthSpend(ev.sessions, today)
     const deltaPct = comparison.deltaPct
     return { cur, deltaPct, comparisonDays: comparison.days, prevName: monthTitle(prevYm).split(' ')[0] }
-  }, [ev, ym])
+  }, [ev.months, ev.sessions, today, ym])
 
   const { cur, deltaPct, comparisonDays, prevName } = view
   const freeKwh = cur?.freeKwh ?? 0
@@ -110,11 +111,12 @@ function CanvasHome() {
 function ClassicHome() {
   const navigate = useNavigate()
   const ev = useEv()
-  const ym = thisMonth()
+  const today = todayIso()
+  const ym = today.slice(0, 7)
 
   const view = useMemo(() => {
     const cur = ev.months.find(m => m.month === ym)
-    const comparison = matchedMonthSpend(ev.sessions, todayIso())
+    const comparison = matchedMonthSpend(ev.sessions, today)
     const deltaPct = comparison.deltaPct
 
     // budget projection: linear on day-of-month
@@ -124,11 +126,11 @@ function ClassicHome() {
     const projected = cur ? (cur.cost / Math.max(1, dayOfMonth)) * daysInMonth : 0
 
     // today's allowance across providers that have one
-    const allowances = dailyAllowances(ev.sessions, ev.providers, todayIso())
+    const allowances = dailyAllowances(ev.sessions, ev.providers, today)
     const usedToday = allowances.reduce((sum, a) => sum + a.used, 0)
     const allowance = allowances.reduce((sum, a) => sum + a.provider.freeKwhPerDay, 0)
     return { cur, deltaPct, comparisonDays: comparison.days, projected, allowances, allowance, usedToday }
-  }, [ev, ym])
+  }, [ev.months, ev.sessions, ev.providers, today, ym])
 
   const { cur, deltaPct, comparisonDays, projected, allowances, allowance, usedToday } = view
   const freePctOfKwh = cur && cur.kwh > 0 ? Math.round((cur.freeKwh / cur.kwh) * 100) : 0

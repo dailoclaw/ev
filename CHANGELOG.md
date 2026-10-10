@@ -1,5 +1,13 @@
 # EV Command — Changelog
 
+## v4.3.13 (2026-10-10)
+### Improvements
+- Cached ledger summaries across hooks using immutable session/provider inputs, independent of sync and appearance changes.
+- Limited record and Home calculation dependencies to ledger/budget/calendar inputs.
+- Extracted Minimal Stats and Classic Trends views and consolidated their formatting helpers.
+### Removed
+- Removed unused legacy record-dialog close-button CSS and the obsolete future-Supabase comment.
+
 ## v4.3.12 (2026-10-09)
 ### Fixes
 - Applied the shell cache policy to deep links while retaining immutable asset caching.

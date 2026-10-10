@@ -1,19 +1,8 @@
 // One hook every page uses: raw state + enriched sessions + aggregates.
 import { useMemo } from 'react'
 import { useEvState } from './data'
-import {
-  enrichSessions,
-  compareSessions,
-  monthlySummaries,
-  providerSummaries,
-  totals,
-  referenceRateBasis,
-  type EnrichedSession,
-  type MonthSummary,
-  type ProviderSummary,
-  type Totals,
-  type RateBasis,
-} from './savings'
+import { selectLedger } from './ledgerSelectors'
+import type { EnrichedSession, MonthSummary, ProviderSummary, Totals, RateBasis } from './savings'
 import type { Provider } from './providers'
 import type { AppSettings, SyncStatus } from './appModel'
 
@@ -39,20 +28,12 @@ export interface EvData {
 export function useEv(): EvData {
   const { sessions, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError } = useEvState()
 
+  const ledger = useMemo(() => selectLedger(sessions, providers), [sessions, providers])
+
   return useMemo(() => {
-    const ordered = [...sessions].sort(compareSessions)
-    const basis = referenceRateBasis(sessions, providers)
-    const enriched = enrichSessions(ordered, providers)
-    const sessionsDesc = [...enriched].reverse()
     return {
       providers,
-      sessions: enriched,
-      sessionsDesc,
-      months: monthlySummaries(enriched),
-      byProvider: providerSummaries(enriched),
-      lifetime: totals(enriched, providers),
-      refRate: basis.rate,
-      rateBasis: basis,
+      ...ledger,
       budgetCap,
       synced,
       loading,
@@ -62,5 +43,5 @@ export function useEv(): EvData {
       pendingCount,
       lastSyncError,
     }
-  }, [sessions, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError])
+  }, [ledger, providers, budgetCap, synced, loading, settings, vehiclePhoto, syncStatus, pendingCount, lastSyncError])
 }

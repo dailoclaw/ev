@@ -97,7 +97,9 @@ const mondayOf = (iso: string) => {
   return d.toISOString().slice(0, 10)
 }
 
-export function records(ev: EvData): Records {
+export type RecordsInput = Pick<EvData, 'sessions' | 'providers' | 'months' | 'lifetime' | 'budgetCap'>
+
+export function records(ev: RecordsInput, month = thisMonth()): Records {
   const energy = ev.sessions.filter(s => !s.isFee) // chronological
   const isFree = (s: (typeof energy)[number]) => s.cost === 0 && s.amount > 0
 
@@ -147,7 +149,7 @@ export function records(ev: EvData): Records {
   const freeDate = freeTier != null ? freeCharges[freeTier - 1].date : null
 
   // ---- cheapest completed month (current month is still in motion) ----
-  const done = ev.months.filter(m => m.month !== thisMonth() && m.sessions > 0)
+  const done = ev.months.filter(m => m.month !== month && m.sessions > 0)
   const cheapest = done.length > 0 ? done.reduce((a, m) => (m.cost < a.cost ? m : a)) : null
 
   // ---- biggest single charge ----
