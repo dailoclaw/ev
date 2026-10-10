@@ -1,5 +1,7 @@
 # Restore phase profiling (v4.3.18, 10 October 2026)
 
+**Current follow-up:** v4.3.18 passed both main CI jobs. v4.3.19 compares repeated atomic-write batch sizes and retains the existing batch size because no material throughput gain was demonstrated. See [batch comparison and remaining acceptance](ATOMIC-BATCH-COMPARISON.md).
+
 ## CI acceptance
 
 The [v4.3.17 main run](https://github.com/dailoclaw/ev/actions/runs/38027280462) passed both verification and browser jobs. The preceding v4.3.16 run also passed. This confirms remote acceptance of the v4.3.17 implementation; it does not certify physical devices or the live backend.

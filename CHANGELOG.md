@@ -1,5 +1,10 @@
 # EV Command — Changelog
 
+## v4.3.19 (2026-10-10)
+### Validation
+- Added a standalone scale-test configuration and repeatable dense restore trials for comparing atomic write batch sizes.
+- Confirmed v4.3.18 main CI passed; documented batch-size results and remaining device acceptance.
+
 ## v4.3.18 (2026-10-10)
 ### Improvements
 - Avoid creating restore content signatures when no unmatched existing rows remain; preserve same-ID conflict checks and repeated-row matching.

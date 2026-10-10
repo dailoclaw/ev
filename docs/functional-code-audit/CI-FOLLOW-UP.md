@@ -1,5 +1,7 @@
 # CI acceptance follow-up (v4.3.14, 10 October 2026)
 
+**Current follow-up:** v4.3.18 passed both main CI jobs. v4.3.19 compares repeated atomic-write batch sizes and retains the existing batch size because no material throughput gain was demonstrated. See [batch comparison and remaining acceptance](ATOMIC-BATCH-COMPARISON.md).
+
 **Latest completed result:** v4.3.17 main CI passed verification and browser jobs; v4.3.16 also passed. See [current CI and phase profile](IMPORT-PHASE-PROFILE.md). Earlier notes below retain their release-specific results and limitations.
 
 **Later result:** v4.3.15 failed its WebKit production route test with startup request access-control errors; development regression passed 135 checks. v4.3.17 strengthens route synchronization without suppressing error assertions, alongside the atomic large-write responsiveness fix. See [failure evidence and current verification](IMPORT-RESPONSIVENESS-FIX.md). The earlier v4.3.14 passing run does not establish that all subsequent runs pass.

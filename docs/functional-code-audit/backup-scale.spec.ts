@@ -4,13 +4,15 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
   test.setTimeout(300000)
   const cpuRate = Number(process.env.EV_BENCHMARK_CPU_RATE ?? 1)
   expect(Number.isFinite(cpuRate) && cpuRate >= 1 && cpuRate <= 20).toBe(true)
+  const denseRepeats = Number(process.env.EV_BENCHMARK_DENSE_REPEATS ?? 0)
+  expect(Number.isInteger(denseRepeats) && denseRepeats >= 0 && denseRepeats <= 10).toBe(true)
   if (cpuRate > 1) {
     expect(browserName, 'CPU throttling requires a Chromium project').toBe('chromium')
     const cdp = await context.newCDPSession(page)
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuRate })
   }
   await page.goto('/')
-  const results = await page.evaluate(async ({ mode }) => {
+  const results = await page.evaluate(async ({ mode, denseRepeats }) => {
     const readerPath = '/src/lib/readBackupFile.ts', dataPath = '/src/lib/data.ts', cachePath = '/src/lib/cache.ts', modelPath = '/src/lib/appModel.ts'
     const reader = await import(/* @vite-ignore */ readerPath)
     const data = await import(/* @vite-ignore */ dataPath)
@@ -43,7 +45,10 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
       }
     }
     const results = []
-    for (const { count, noteLength } of [{ count: 1000, noteLength: 0 }, { count: 10000, noteLength: 0 }, { count: 25000, noteLength: 0 }, { count: 25000, noteLength: 320 }, { count: 25001, noteLength: 0 }]) {
+    const cases = denseRepeats
+      ? Array.from({ length: denseRepeats }, () => ({ count: 25000, noteLength: 320 }))
+      : [{ count: 1000, noteLength: 0 }, { count: 10000, noteLength: 0 }, { count: 25000, noteLength: 0 }, { count: 25000, noteLength: 320 }, { count: 25001, noteLength: 0 }]
+    for (const { count, noteLength } of cases) {
       Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
       await cache.commitCachedState({ ownerId: 'benchmark', settings: model.DEFAULT_SETTINGS, providers: [], sessions: [], vehiclePhotoDataUrl: null, cachedAt: '' })
       await data.initializeData('benchmark')
@@ -91,8 +96,8 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
     IDBObjectStore.prototype.put = originalPut
     IDBDatabase.prototype.transaction = originalTransaction
     return results
-  }, { mode })
-  writeFileSync(`/tmp/ev-backup-${testInfo.project.name}-${mode}-${cpuRate}x.json`, JSON.stringify({ cpuRate, mode, results }, null, 2))
+  }, { mode, denseRepeats })
+  writeFileSync(`/tmp/ev-backup-${testInfo.project.name}-${mode}-${cpuRate}x.json`, JSON.stringify({ cpuRate, mode, denseRepeats, results }, null, 2))
   for (const result of results) {
     const accepted = result.count <= 25000
     expect(result.accepted, result.error).toBe(accepted)
