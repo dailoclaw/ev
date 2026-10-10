@@ -1,5 +1,7 @@
 # CI acceptance follow-up (v4.3.14, 10 October 2026)
 
+**Completed remote verification:** The [v4.3.14 main run](https://github.com/dailoclaw/ev/actions/runs/38020447090) passed both jobs, including production browser acceptance. The exact historical failure cause was not established. The user subsequently removed disposable Supabase validation from the active plan; live backend acceptance is not performed. See [updated acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md). The sections below preserve the original pre-push investigation.
+
 ## Actual main-branch results
 
 The [v4.3.13 CI run](https://github.com/dailoclaw/ev/actions/runs/38017914387) completed with failure. Its public job/annotation APIs confirm:

@@ -1,5 +1,11 @@
 # EV Command — Changelog
 
+## v4.3.15 (2026-10-10)
+### Validation
+- Verified CSV import/save/reopen in the bundled LibreOffice engine with formula evaluation enabled and an unprotected positive control.
+- Rechecked export/reconciliation and keyboard, modal, contrast, motion and simulated zoom behavior.
+- Recorded successful main CI and removed disposable Supabase validation from the active plan as requested, retaining its unverified status and manual acceptance limits.
+
 ## v4.3.14 (2026-10-10)
 ### Fixes
 - Production reconnect checks now exercise automatic sync without requiring a retry button that successful recovery can hide.

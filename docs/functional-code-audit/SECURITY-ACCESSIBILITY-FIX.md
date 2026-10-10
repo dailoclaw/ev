@@ -1,5 +1,7 @@
 # Step 7 — Security and accessibility (v4.3.11)
 
+**Acceptance update (10 October 2026):** The bundled LibreOffice engine passes CSV import/save/reopen with formula evaluation enabled and a positive control. Sixteen focused unit checks and fourteen Chromium/WebKit accessibility checks pass. Excel UI, independent screen-reader and physical zoom acceptance remain open. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md); older notes below record the original scope.
+
 ## Dependency fixes
 
 The live npm advisory check identified two high-severity dependency findings. A compatible `npm audit fix --ignore-scripts` updated every vulnerable resolution: brace-expansion 1.1.18 → 1.1.21, 2.1.4 → 2.1.7 and both 5.0.9 copies → 5.0.12; source-map-js 1.2.1 → 1.2.2. No direct dependencies or major-version declarations changed. A normal `npm ci` verifies the final lockfile, and `npm audit --audit-level=high` reports zero vulnerabilities. The installed glob package emits a deprecation notice; the current npm advisory check reports no remaining vulnerability for this graph.

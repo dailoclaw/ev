@@ -1,5 +1,7 @@
 # Functional Code Check — EV Command 4.3.1
 
+**Current acceptance status (10 October 2026):** v4.3.14 main CI passes both jobs. v4.3.15 records LibreOffice CSV round-trip and focused accessibility results; Excel, independent screen-reader and physical zoom checks remain open. Disposable Supabase validation is removed from the active plan at the user's request and recorded as not performed, with live backend behavior unverified. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md). Older findings and plan entries below retain their historical scope.
+
 Audit date: 8 October 2026, Australia/Adelaide. This is a review of the workspace as inspected, not an approval of the deployed database. Application source was not modified. Audit evidence and reproduction checks are saved alongside this report.
 
 ## Executive Summary

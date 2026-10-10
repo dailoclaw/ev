@@ -1,5 +1,7 @@
 # Step 8 — Production validation (v4.3.12)
 
+**Current status (10 October 2026):** v4.3.14 main CI passed both jobs, including production browser acceptance. The user removed disposable Supabase validation from the active plan because no test project is available; it is recorded as not performed. The database checklist below is retained for future use. Live backend behavior, installed/deployed PWA and manual accessibility acceptance remain unverified. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md).
+
 ## Implemented locally
 
 - Added `msedge` projects to development and production Playwright configs. CI installs the branded Edge channel alongside Chromium/WebKit and runs both suites. This host has no Microsoft Edge installation, so its actual channel and managed-device policies remain unverified here. [Microsoft's Playwright guidance](https://learn.microsoft.com/en-us/microsoft-edge/playwright/) documents the branded channel.
