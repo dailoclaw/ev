@@ -27,6 +27,21 @@ async function queuedWrites(page: Page) {
   }))
 }
 
+async function pendingWriteIdentity(page: Page) {
+  return page.evaluate(() => new Promise<unknown[]>((resolve, reject) => {
+    const open = indexedDB.open('ev-command')
+    open.onerror = () => reject(open.error)
+    open.onsuccess = () => {
+      const db = open.result
+      const transaction = db.transaction('outbox', 'readonly')
+      const read = transaction.objectStore('outbox').getAll()
+      read.onsuccess = () => resolve(read.result.map(({ id, ownerId, action, payload, revision }) => ({ id, ownerId, action, payload, revision })))
+      read.onerror = () => reject(read.error)
+      transaction.oncomplete = () => db.close()
+    }
+  }))
+}
+
 test('production headers, lazy pages and backup worker satisfy CSP', async ({ page, request }) => {
   await productionLedger(page, request)
   const errors: string[] = []
@@ -131,6 +146,74 @@ test('worker replacement in an open tab preserves queued changes', async ({ page
   await page.getByRole('button', { name: /Retry sync/ }).click()
   await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
   await expect.poll(() => queuedWrites(page)).toBe(0)
+})
+
+test('distinct production build upgrade removes stale chunks and preserves a pending write', async ({ page, context, request, browserName }) => {
+  const backend = await productionLedger(page, request)
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-validation-build', 'a')
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Settings', exact: true }).click()
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  await installedWorker(page)
+  await backend.fail(true)
+  await page.getByRole('slider', { name: 'Monthly spending cap (AUD)' }).evaluate((input: HTMLInputElement) => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, '75')
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'error')
+  await expect.poll(() => queuedWrites(page)).toBe(1)
+  const pending = await pendingWriteIdentity(page)
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Home', exact: true }).click()
+  // Statement is precached but has never been imported into this running page.
+  const oldStatement = await page.evaluate(async () => {
+    for (const name of await caches.keys()) {
+      for (const request of await (await caches.open(name)).keys()) {
+        if (/\/assets\/Statement-.*\.js/.test(new URL(request.url).pathname)) return new URL(request.url).pathname
+      }
+    }
+    throw new Error('Statement chunk was not precached')
+  })
+  expect((await request.post('/__validation__/build?revision=b')).ok()).toBe(true)
+  expect((await request.get(oldStatement)).status()).toBe(404)
+  await page.evaluate(async () => {
+    const changed = new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }))
+    await (await navigator.serviceWorker.getRegistration())!.update()
+    await changed
+  })
+  // Activation removes stale precache entries even though this tab still runs A.
+  await expect.poll(() => page.evaluate(async path => {
+    for (const name of await caches.keys()) {
+      for (const request of await (await caches.open(name)).keys()) {
+        if (new URL(request.url).pathname === path) return true
+      }
+    }
+    return false
+  }, oldStatement)).toBe(false)
+  if (browserName === 'chromium') {
+    // Chromium can retain the old immutable chunk in its separate HTTP cache.
+    // Exercise the removed-chunk case with that cache evicted, as on a device
+    // under storage pressure; this does not touch the durable IndexedDB queue.
+    const cdp = await context.newCDPSession(page)
+    await cdp.send('Network.clearBrowserCache')
+    await cdp.send('Network.setCacheDisabled', { cacheDisabled: true })
+  }
+  await expect(page.locator('html')).toHaveAttribute('data-validation-build', 'a')
+  await page.getByRole('button', { name: 'Statement', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Unable to open this page' })).toBeVisible()
+  expect(await pendingWriteIdentity(page)).toEqual(pending)
+  await page.getByRole('button', { name: 'Reload app' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-validation-build', 'b')
+  await expect(page.locator('html')).toHaveAttribute('data-validation-statement', 'b')
+  await expect(page.getByRole('heading', { name: 'Unable to open this page' })).toHaveCount(0)
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Settings', exact: true }).click()
+  await expect(page.getByRole('slider', { name: 'Monthly spending cap (AUD)' })).toHaveValue('75')
+  expect(await pendingWriteIdentity(page)).toEqual(pending)
+  await backend.fail(false)
+  await page.getByRole('button', { name: /Retry sync/ }).click()
+  await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
+  await expect.poll(() => queuedWrites(page)).toBe(0)
+  const settings = await request.get('/supabase/rest/v1/app_settings')
+  expect((await settings.json()).budget_cap).toBe(75)
 })
 
 test.describe('missing deployment chunk', () => {

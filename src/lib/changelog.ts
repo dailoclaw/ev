@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.20', date: '10 Oct 2026',
+    notes: ['Production upgrade checks now cover different asset builds, missing old chunks and pending-write recovery.'],
+  },
+  {
     version: '4.3.19', date: '10 Oct 2026',
     notes: ['Repeated large-restore benchmarks compare write batching without changing durable save behavior.'],
   },

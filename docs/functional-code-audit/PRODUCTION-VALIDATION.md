@@ -1,5 +1,7 @@
 # Step 8 — Production validation (v4.3.12)
 
+**Latest local follow-up:** v4.3.20 adds distinct generated production builds, removed-old-chunk recovery and pending-write identity checks across upgrades. See [two-build acceptance and limits](TWO-BUILD-UPGRADE.md). Installed/deployed checks remain manual; v4.3.19 CI was still running at the latest check.
+
 **Current status (10 October 2026):** v4.3.14 main CI passed both jobs, including production browser acceptance. The user removed disposable Supabase validation from the active plan because no test project is available; it is recorded as not performed. The database checklist below is retained for future use. Live backend behavior, installed/deployed PWA and manual accessibility acceptance remain unverified. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md).
 
 ## Implemented locally
@@ -40,7 +42,7 @@ Playwright WebKit reports an internal navigation error when starting the control
 
 The production worker-replacement fixture changes the worker's response bytes while keeping the same precache manifest. This verifies activation/claim and queue survival, not a complete old-build-to-new-build CDN upgrade. Offline entry uses a newly opened browser page in the same profile, not a standalone installed-app launch or a browser-process restart. Browser engines, automation routing and OS reachability indicators can differ; outbox assertions inspect durable IndexedDB entries directly. A local backend is used because service-worker fetches may bypass browser request interception.
 
-## Disposable Supabase acceptance — still required
+## Disposable Supabase acceptance — removed from the active plan
 
 No disposable project or test credentials were supplied. Docker is unavailable on this host, so the local CLI cannot launch its Supabase stack. Do not run this against the personal/live ledger.
 

@@ -1,5 +1,7 @@
 # Functional Code Check — EV Command 4.3.1
 
+**Latest local follow-up:** v4.3.20 adds distinct generated production builds, removed-old-chunk recovery and pending-write identity checks across upgrades. See [two-build acceptance and limits](TWO-BUILD-UPGRADE.md). Installed/deployed checks remain manual; v4.3.19 CI was still running at the latest check.
+
 **Current follow-up:** v4.3.18 passed both main CI jobs. v4.3.19 compares repeated atomic-write batch sizes and retains the existing batch size because no material throughput gain was demonstrated. See [batch comparison and remaining acceptance](ATOMIC-BATCH-COMPARISON.md).
 
 **Latest completed CI and local follow-up:** v4.3.17 passed both main CI jobs. v4.3.18 removes unused signature work and adds phase measurements; the dominant dense-import atomic-write delay remains. See [current phase profile and validation](IMPORT-PHASE-PROFILE.md). Manual/device acceptance limits remain open.

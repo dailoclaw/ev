@@ -1,6 +1,7 @@
 import type { APIRequestContext, Page } from '@playwright/test'
 
 export async function productionLedger(page: Page, request: APIRequestContext) {
+  await request.post('/__validation__/build?revision=a')
   await request.post('/__validation__/backend/reset')
   await page.addInitScript(() => {
     const owner = '11111111-1111-4111-8111-111111111111'

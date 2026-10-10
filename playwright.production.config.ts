@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never', outputFolder: 'playwright-report-production' }]] : 'list',
   use: { baseURL: 'http://127.0.0.1:4174', trace: 'retain-on-failure' },
   webServer: {
-    command: 'VITE_SUPABASE_URL=http://127.0.0.1:4174/supabase VITE_SUPABASE_ANON_KEY=e2e-public-key npm run build -- --outDir dist-validation && node scripts/serve-validation.mjs',
+    command: 'VITE_SUPABASE_URL=http://127.0.0.1:4174/supabase VITE_SUPABASE_ANON_KEY=e2e-public-key node scripts/build-validation.mjs && node scripts/serve-validation.mjs',
     url: 'http://127.0.0.1:4174',
     reuseExistingServer: false,
   },

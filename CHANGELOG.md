@@ -1,5 +1,10 @@
 # EV Command — Changelog
 
+## v4.3.20 (2026-10-10)
+### Validation
+- Production acceptance now builds two distinct hashed-asset/worker fixtures and checks an open-tab upgrade with removed old chunks.
+- Verify recovery preserves pending settings, reloads the new build and acknowledges the write only after successful sync.
+
 ## v4.3.19 (2026-10-10)
 ### Validation
 - Added a standalone scale-test configuration and repeatable dense restore trials for comparing atomic write batch sizes.
