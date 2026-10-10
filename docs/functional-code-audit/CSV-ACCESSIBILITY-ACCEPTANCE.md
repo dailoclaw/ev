@@ -40,6 +40,8 @@ Browser role/label assertions do not certify actual VoiceOver/NVDA announcements
 
 ## Plan status
 
+The next performance check is recorded in [large import acceptance](IMPORT-PERFORMANCE-ACCEPTANCE.md). It verifies durable counts under a diagnostic CPU throttle and identifies remaining main-thread stalls; it does not close physical-device acceptance.
+
 The [v4.3.14 main CI run](https://github.com/dailoclaw/ev/actions/runs/38020447090) passed both verification and browser jobs, including production acceptance. Its earlier failure is no longer the active CI blocker; the exact historical cause was not established.
 
 At the user's request, disposable Supabase validation is removed from the active plan and recorded as **not performed**. Live RLS, storage, Realtime, migration 008 and concurrent pagination behavior remain unverified. This scope decision does not establish full production readiness.

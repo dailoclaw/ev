@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.16', date: '10 Oct 2026',
+    notes: ['Added throttled large-backup integrity and responsiveness checks; remaining maximum-size import performance work is documented.'],
+  },
+  {
     version: '4.3.15', date: '10 Oct 2026',
     notes: ['Recorded LibreOffice CSV round-trip and accessibility regression results; remaining manual acceptance checks are documented.'],
   },

@@ -1,5 +1,10 @@
 # EV Command — Changelog
 
+## v4.3.16 (2026-10-10)
+### Validation
+- Expanded backup scale checks with configurable Chromium CPU throttling, worker/offline paths, dense Notes and durable snapshot/outbox/reinitialization assertions.
+- Recorded large-import timings and main-thread stalls, with a focused optimization plan and physical-device acceptance limits.
+
 ## v4.3.15 (2026-10-10)
 ### Validation
 - Verified CSV import/save/reopen in the bundled LibreOffice engine with formula evaluation enabled and an unprotected positive control.

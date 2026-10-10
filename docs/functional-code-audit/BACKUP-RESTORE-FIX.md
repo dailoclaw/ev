@@ -1,5 +1,7 @@
 # Backup and restore reliability — v4.3.8
 
+**Performance follow-up (10 October 2026):** v4.3.16 expands the benchmark with CPU throttling, separate worker/offline paths, dense Notes, durable snapshot/queue/reinitialization assertions and timer-delay measurements. Dense 25,000-row saves take about ten seconds under the diagnostic throttle and can stall the main thread for about two seconds. See [current performance results](IMPORT-PERFORMANCE-ACCEPTANCE.md). Physical-device acceptance remains open; older measurements below are historical.
+
 Implemented locally on 9 October 2026. This step changes backup validation, merge semantics and file handling; it does not approve the deployed Supabase configuration.
 
 ## Restore contract
