@@ -9,6 +9,8 @@
 - Added an idempotent migration `008_settings_realtime.sql`. The client already subscribes to settings changes, but previous migrations published only sessions/providers. The new migration publishes settings without changing owner policies. It has not been applied to a database in this turn.
 - Settings writes now require both `id === 1` and the expected `owner_id` before acknowledgement. Tests cover null/wrong-owner/wrong-id results, 1,201 ordered session reads over three pages, later-page failures and failed private-photo downloads. Existing tests cover edits/deletes during an in-flight upload and photo/settings dependency failures.
 
+**Remote CI update (10 October 2026):** Branded Edge installed and all 135 development browser checks passed in the v4.3.13 Ubuntu job. Its production step failed; the exact failure log is unavailable through the public API. See [CI follow-up](CI-FOLLOW-UP.md). Local passing results below do not supersede that remote failure.
+
 ## Local verification results
 
 - 274 unit tests pass; core coverage is 99.45% lines and 88.42% branches.

@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.14', date: '10 Oct 2026',
+    notes: ['Production checks exercise automatic reconnect recovery; CI retains browser failure annotations, reports and traces.'],
+  },
+  {
     version: '4.3.13', date: '10 Oct 2026',
     notes: ['Shared ledger summaries avoid recalculation during sync updates; Analytics views are separated and unused record-dialog styles removed.'],
   },

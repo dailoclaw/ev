@@ -1,5 +1,11 @@
 # EV Command — Changelog
 
+## v4.3.14 (2026-10-10)
+### Fixes
+- Production reconnect checks now exercise automatic sync without requiring a retry button that successful recovery can hide.
+- Added production CI failure annotations and HTML/trace artifacts; production checks still run when development browser tests fail.
+- Recorded actual main-branch CI results and the remaining deployment/database acceptance gates.
+
 ## v4.3.13 (2026-10-10)
 ### Improvements
 - Cached ledger summaries across hooks using immutable session/provider inputs, independent of sync and appearance changes.

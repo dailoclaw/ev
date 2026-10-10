@@ -35,5 +35,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit msedge
-      - run: npm run test:e2e
-      - run: npm run test:production
+      - name: Development browser regression
+        run: npm run test:e2e
+      - name: Production browser acceptance
+        if: ${{ !cancelled() }}
+        run: npm run test:production
+      - name: Preserve browser failure evidence
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-evidence
+          path: |
+            test-results/
+            test-results-production/
+            playwright-report-production/
+          retention-days: 7
+          if-no-files-found: ignore

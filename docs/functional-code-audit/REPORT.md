@@ -650,6 +650,8 @@ Apply the following sequence. Each step has a concrete acceptance gate; do not s
 
 **Implementation update (10 October 2026):** v4.3.13 shares ledger calculations across immutable session/provider inputs, narrows Home/records memoization to relevant data and calendar inputs, extracts Minimal Stats and Classic Trends, and removes confirmed unused record-close styles and stale comments. A synthetic 20,000-session benchmark measures calculation reuse; existing browser behavior is verified by the established suites. See [maintenance cleanup notes](MAINTENANCE-CLEANUP.md). Larger modules and unconfirmed assets are preserved; Step 7–8 external acceptance gates remain open.
 
+**CI acceptance follow-up (10 October 2026):** Main v4.3.13 passes static verification and 135 development browser checks including branded Edge, but fails its production-browser CI step. v4.3.14 prepares a reconnect-test correction and diagnostic artifacts locally; the remote failure remains unresolved until logs or a successful rerun establish the result. See [CI follow-up](CI-FOLLOW-UP.md).
+
 ## Final Verdict
 
 **Remediation status (10 October 2026):** The defect lists below preserve the original audit verdict. Subsequent step updates document the implemented fixes through v4.3.13. Local automated checks pass; production approval is still pending the Step 7–8 external acceptance gates, rather than every original code defect remaining unresolved.

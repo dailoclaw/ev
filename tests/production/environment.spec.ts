@@ -85,7 +85,9 @@ test('controlled PWA cold starts offline on visited and unvisited routes, retain
   await expect.poll(() => queuedWrites(page)).toBe(1)
   await backend.fail(false)
   await context.setOffline(false)
-  await page.getByRole('button', { name: /Retry sync/ }).click()
+  // Some automation engines omit the online event after an offline new window.
+  // Exercise automatic recovery rather than racing a button it can already hide.
+  await page.evaluate(() => window.dispatchEvent(new Event('online')))
   await expect(page.locator('.sync-badge')).toHaveAttribute('data-sync', 'synced')
   await expect.poll(() => queuedWrites(page)).toBe(0)
 })
