@@ -107,14 +107,21 @@ export function planRestore(backup: Backup, currentProviders: Provider[], curren
     const provider = targetProvider(session)
     if (!provider) throw new Error('A restored charge has no matching charger.')
     const current = existingSessions.get(session.id)
-    const signature = sessionSignature(session, provider.id)
     if (current) {
       matched++
-      if (signature !== sessionSignature(current, current.providerId ?? existingByName.get(key(current.type))?.id) || (session.createdAt ?? LEGACY_SESSION_CREATED_AT) !== (current.createdAt ?? LEGACY_SESSION_CREATED_AT)) conflicts++
+      if (sessionSignature(session, provider.id) !== sessionSignature(current, current.providerId ?? existingByName.get(key(current.type))?.id) || (session.createdAt ?? LEGACY_SESSION_CREATED_AT) !== (current.createdAt ?? LEGACY_SESSION_CREATED_AT)) conflicts++
       continue
     }
-    const count = signatures.get(signature) ?? 0
-    if (count > 0) { signatures.set(signature, count - 1); matched++; continue }
+    if (signatures.size) {
+      const signature = sessionSignature(session, provider.id)
+      const count = signatures.get(signature) ?? 0
+      if (count > 0) {
+        if (count === 1) signatures.delete(signature)
+        else signatures.set(signature, count - 1)
+        matched++
+        continue
+      }
+    }
     newSessions.push({ ...session, type: provider.name, providerId: provider.id, id: isUuid(session.id) ? session.id : makeId() })
   }
   if (currentSessions.length + newSessions.length > BACKUP_LIMITS.sessions) throw new Error('Merged ledger would exceed the charge limit.')

@@ -1,5 +1,7 @@
 # Functional Code Check — EV Command 4.3.1
 
+**Latest completed CI and local follow-up:** v4.3.17 passed both main CI jobs. v4.3.18 removes unused signature work and adds phase measurements; the dominant dense-import atomic-write delay remains. See [current phase profile and validation](IMPORT-PHASE-PROFILE.md). Manual/device acceptance limits remain open.
+
 **Latest follow-up:** v4.3.17 reduces large-write submission stalls while preserving atomic rollback. An intermittent WebKit production failure recurred in v4.3.15 CI; route readiness checks were strengthened and remote verification remains required. See [responsiveness fix and CI evidence](IMPORT-RESPONSIVENESS-FIX.md). Earlier status paragraphs retain their release-specific scope.
 
 **Current acceptance status (10 October 2026):** v4.3.14 main CI passes both jobs. v4.3.15 records LibreOffice CSV round-trip and focused accessibility results; Excel, independent screen-reader and physical zoom checks remain open. Disposable Supabase validation is removed from the active plan at the user's request and recorded as not performed, with live backend behavior unverified. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md). Older findings and plan entries below retain their historical scope.

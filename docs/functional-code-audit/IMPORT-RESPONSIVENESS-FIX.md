@@ -1,5 +1,7 @@
 # Import responsiveness fix (v4.3.17, 10 October 2026)
 
+**Remote acceptance and next profile:** v4.3.17 passed both main CI jobs. v4.3.18 profiles restore transaction phases and removes unnecessary content-signature work, while recording the remaining atomic-write bottleneck. See [phase profiling results](IMPORT-PHASE-PROFILE.md).
+
 ## Change and safety
 
 Profiling the throttled worker benchmark measured approximately 0.6 seconds spent synchronously submitting 25,000 outbox `put` requests. The cache writer now submits at most 250 operations per request-event callback. Every group and the snapshot still belong to one read/write transaction. Completion resolves only when that transaction commits; submission errors abort it and preserve the original error.

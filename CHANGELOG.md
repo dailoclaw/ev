@@ -1,5 +1,12 @@
 # EV Command — Changelog
 
+## v4.3.18 (2026-10-10)
+### Improvements
+- Avoid creating restore content signatures when no unmatched existing rows remain; preserve same-ID conflict checks and repeated-row matching.
+### Validation
+- Added preparation/transaction timing to the isolated scale benchmark and recorded the remaining atomic-write bottleneck.
+- Confirmed v4.3.17 main CI passes both jobs.
+
 ## v4.3.17 (2026-10-10)
 ### Improvements
 - Submit large outbox writes in bounded request-event groups while preserving one atomic snapshot/outbox transaction.

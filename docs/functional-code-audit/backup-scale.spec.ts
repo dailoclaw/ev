@@ -18,7 +18,21 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
     const model = await import(/* @vite-ignore */ modelPath)
     localStorage.setItem('ev.supabaseCanonicalMigrated.v2', 'done')
     const originalPut = IDBObjectStore.prototype.put
+    const originalTransaction = IDBDatabase.prototype.transaction
     let measuringWrites = false, snapshotSubmissionMs = 0, outboxSubmissionMs = 0
+    let restoreStarted = 0, firstTransactionMs = 0
+    let transactions: Array<{ stores: string; mode: string; durationMs: number }> = []
+    IDBDatabase.prototype.transaction = function (...args: Parameters<typeof originalTransaction>) {
+      const transaction = originalTransaction.apply(this, args)
+      if (measuringWrites) {
+        const start = performance.now()
+        if (!transactions.length) firstTransactionMs = start - restoreStarted
+        const sample = { stores: Array.from(transaction.objectStoreNames).join(','), mode: transaction.mode, durationMs: 0 }
+        transactions.push(sample)
+        transaction.addEventListener('complete', () => { sample.durationMs = Math.round(performance.now() - start) }, { once: true })
+      }
+      return transaction
+    }
     IDBObjectStore.prototype.put = function (...args: Parameters<typeof originalPut>) {
       const start = performance.now()
       try { return originalPut.apply(this, args) } finally {
@@ -60,6 +74,7 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
       try { data.previewRestore(backup) } catch (reason) { accepted = false; error = String(reason) }
       const previewEnd = performance.now()
       snapshotSubmissionMs = 0; outboxSubmissionMs = 0; measuringWrites = true
+      transactions = []; firstTransactionMs = 0; restoreStarted = performance.now()
       try { if (accepted) await data.restoreMerge(backup) } finally { measuringWrites = false }
       const saved = performance.now()
       await new Promise(resolve => setTimeout(resolve, 25))
@@ -68,12 +83,13 @@ for (const mode of ['worker', 'offline'] as const) test(`measure ${mode} backup 
       const pendingCount = (await cache.listOutbox('benchmark')).length
       data.stopDataSync()
       await data.initializeData('benchmark')
-      results.push({ count, noteLength, inputBytes: file.size, readWorkerMs: Math.round(read - start), previewMs: Math.round(previewEnd - previewStart), restoreRealIdbMs: Math.round(saved - previewEnd), snapshotSubmissionMs: Math.round(snapshotSubmissionMs), outboxSubmissionMs: Math.round(outboxSubmissionMs), maximumTimerDelayMs: Math.round(maximumTimerDelayMs), savedCount: snapshot?.sessions.length ?? 0, pendingCount, reloadedCount: data.getState().sessions.length, accepted, error })
+      results.push({ count, noteLength, inputBytes: file.size, readWorkerMs: Math.round(read - start), previewMs: Math.round(previewEnd - previewStart), restoreRealIdbMs: Math.round(saved - previewEnd), preparationMs: Math.round(firstTransactionMs), transactions, snapshotSubmissionMs: Math.round(snapshotSubmissionMs), outboxSubmissionMs: Math.round(outboxSubmissionMs), maximumTimerDelayMs: Math.round(maximumTimerDelayMs), savedCount: snapshot?.sessions.length ?? 0, pendingCount, reloadedCount: data.getState().sessions.length, accepted, error })
       data.stopDataSync()
       await cache.clearOfflineCache()
       delete (navigator as unknown as { onLine?: boolean }).onLine
     }
     IDBObjectStore.prototype.put = originalPut
+    IDBDatabase.prototype.transaction = originalTransaction
     return results
   }, { mode })
   writeFileSync(`/tmp/ev-backup-${testInfo.project.name}-${mode}-${cpuRate}x.json`, JSON.stringify({ cpuRate, mode, results }, null, 2))
