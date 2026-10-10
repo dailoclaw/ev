@@ -1,5 +1,12 @@
 # EV Command — Changelog
 
+## v4.3.21 (2026-10-10)
+### Fixes
+- Exclude hashed asset requests from the SPA rewrite so missing chunks are not returned as immutable HTML.
+### Validation
+- Production fixtures now honor configured rewrites, covering missing JavaScript/CSS and dotted account routes.
+- Verified v4.3.20 main CI and read-only public deployment startup/headers; installed and signed-in acceptance remain open.
+
 ## v4.3.20 (2026-10-10)
 ### Validation
 - Production acceptance now builds two distinct hashed-asset/worker fixtures and checks an open-tab upgrade with removed old chunks.

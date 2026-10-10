@@ -39,8 +39,12 @@ createServer(async (request, response) => {
     if (!file.startsWith(root + sep)) { response.writeHead(403); response.end(); return }
     try { if (!(await stat(file)).isFile()) throw new Error('Not a file') }
     catch {
-      if (path.startsWith('/assets/') || extname(path)) { response.writeHead(404, headers); response.end(); return }
-      file = resolve(root, 'index.html')
+      // Exercise the configured SPA rewrite rather than hiding missing-asset
+      // mistakes behind a special case that the real host does not implement.
+      const rewrite = config.rewrites.find(rule => new RegExp(`^${rule.source}$`).test(path))
+      if (!rewrite) { response.writeHead(404, headers); response.end(); return }
+      file = resolve(root, `.${rewrite.destination}`)
+      if (!file.startsWith(root + sep)) { response.writeHead(403); response.end(); return }
     }
     headers['Content-Type'] = types[extname(file)] ?? 'application/octet-stream'
     let body = await readFile(file)

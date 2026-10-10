@@ -8,6 +8,10 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '4.3.21', date: '10 Oct 2026',
+    notes: ['Missing deployment assets are excluded from the app-shell rewrite to improve stale-chunk recovery.'],
+  },
+  {
     version: '4.3.20', date: '10 Oct 2026',
     notes: ['Production upgrade checks now cover different asset builds, missing old chunks and pending-write recovery.'],
   },

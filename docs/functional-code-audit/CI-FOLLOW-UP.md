@@ -1,5 +1,7 @@
 # CI acceptance follow-up (v4.3.14, 10 October 2026)
 
+**Current acceptance:** v4.3.20 main CI passed both jobs. Read-only checks of the user-supplied public app verify headers, precached asset availability and unsigned-in offline shell startup, but expose missing assets returning immutable HTML. v4.3.21 prepares a focused rewrite fix locally; see [deployed evidence and follow-up](DEPLOYED-READ-ONLY-ACCEPTANCE.md).
+
 **Latest local follow-up:** v4.3.20 adds distinct generated production builds, removed-old-chunk recovery and pending-write identity checks across upgrades. See [two-build acceptance and limits](TWO-BUILD-UPGRADE.md). Installed/deployed checks remain manual; v4.3.19 CI was still running at the latest check.
 
 **Current follow-up:** v4.3.18 passed both main CI jobs. v4.3.19 compares repeated atomic-write batch sizes and retains the existing batch size because no material throughput gain was demonstrated. See [batch comparison and remaining acceptance](ATOMIC-BATCH-COMPARISON.md).

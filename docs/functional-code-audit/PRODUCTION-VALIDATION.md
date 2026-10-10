@@ -1,5 +1,7 @@
 # Step 8 — Production validation (v4.3.12)
 
+**Current acceptance:** v4.3.20 main CI passed both jobs. Read-only checks of the user-supplied public app verify headers, precached asset availability and unsigned-in offline shell startup, but expose missing assets returning immutable HTML. v4.3.21 prepares a focused rewrite fix locally; see [deployed evidence and follow-up](DEPLOYED-READ-ONLY-ACCEPTANCE.md).
+
 **Latest local follow-up:** v4.3.20 adds distinct generated production builds, removed-old-chunk recovery and pending-write identity checks across upgrades. See [two-build acceptance and limits](TWO-BUILD-UPGRADE.md). Installed/deployed checks remain manual; v4.3.19 CI was still running at the latest check.
 
 **Current status (10 October 2026):** v4.3.14 main CI passed both jobs, including production browser acceptance. The user removed disposable Supabase validation from the active plan because no test project is available; it is recorded as not performed. The database checklist below is retained for future use. Live backend behavior, installed/deployed PWA and manual accessibility acceptance remain unverified. See [current acceptance results](CSV-ACCESSIBILITY-ACCEPTANCE.md).

@@ -84,6 +84,11 @@ test('production headers, lazy pages and backup worker satisfy CSP', async ({ pa
   const chunk = await page.locator('script[type="module"][src]').getAttribute('src')
   expect((await request.get(chunk!)).headers()['cache-control']).toContain('immutable')
   expect((await request.get('/assets/missing.js')).status()).toBe(404)
+  expect((await request.get('/assets/missing.css')).status()).toBe(404)
+  const dottedRoute = await request.get('/accounts/Depot.v2')
+  expect(dottedRoute.status()).toBe(200)
+  expect(dottedRoute.headers()['content-type']).toContain('text/html')
+  expect(dottedRoute.headers()['cache-control']).toContain('no-store')
 })
 
 test('controlled PWA cold starts offline on visited and unvisited routes, retaining queued writes', async ({ page, context, request, browserName }) => {
